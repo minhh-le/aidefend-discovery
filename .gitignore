@@ -1,0 +1,30 @@
+# Secrets / credentials
+.env
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+*token*
+*secret*
+*credential*
+*cookies*
+
+# Sensitive/raw security artifacts - use explicit policy before tracking
+pcaps/
+*.pcap
+*.pcapng
+malware/
+samples/
+raw-evidence/
+logs/
+
+# Runtime / caches
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+tmp/
+.tmp/
