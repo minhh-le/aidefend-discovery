@@ -41,6 +41,12 @@ from aidefend_discovery.rss_ingest import (  # noqa: E402
     ingest_allowlisted_feed,
 )
 
+try:  # noqa: E402
+    from aidefend_discovery.nvd_ingest import ingest_nvd_incremental
+except ModuleNotFoundError:  # pragma: no cover - implemented in Phase 2 tasks
+    def ingest_nvd_incremental(*args, **kwargs):  # type: ignore[no-redef]
+        raise NotImplementedError("NVD connector is not implemented yet")
+
 
 def _threat_overlap(candidate_text: str, records: list[TechniqueRecord]) -> tuple[list[str], list[str]]:
     """Return (candidate_ids_found, technique_ids_with_item_overlap)."""
@@ -132,7 +138,13 @@ def main() -> int:
         required=True,
         help="Path to aidefense-framework data/data.json",
     )
-    parser.add_argument("--feed-url", required=True, help="RSS or Atom URL (must be in allowlist)")
+    parser.add_argument(
+        "--source",
+        choices=("rss", "nvd"),
+        default="rss",
+        help="Candidate ingestion source",
+    )
+    parser.add_argument("--feed-url", help="RSS or Atom URL (must be in allowlist)")
     parser.add_argument(
         "--allowlist",
         type=Path,
@@ -174,6 +186,17 @@ def main() -> int:
     parser.add_argument("--chunk-size", type=int, default=3500, help="Retrieval chunk size (chars)")
     parser.add_argument("--chunk-overlap", type=int, default=200, help="Chunk overlap (chars)")
     parser.add_argument("--fetch-timeout", type=float, default=25.0, help="HTTP timeout for page fetch")
+    parser.add_argument("--nvd-lastmod-start", help="NVD last modified window start (ISO8601)")
+    parser.add_argument("--nvd-lastmod-end", help="NVD last modified window end (ISO8601)")
+    parser.add_argument("--nvd-results-per-page", type=int, default=2000, help="NVD resultsPerPage")
+    parser.add_argument("--nvd-max-pages", type=int, default=1, help="Max NVD pages per run")
+    parser.add_argument("--nvd-keyword", help="Optional NVD keywordSearch filter")
+    parser.add_argument(
+        "--state-db",
+        type=Path,
+        default=ROOT / "lab" / "aidefend_discovery" / "discovery_state.db",
+        help="SQLite state store path for connector cursors",
+    )
     args = parser.parse_args()
 
     data = load_data_json(args.data_json)
@@ -185,7 +208,20 @@ def main() -> int:
     corpus = [r.search_text() for r in records]
     index = BM25Index(corpus)
 
-    candidates = ingest_allowlisted_feed(args.feed_url, args.allowlist)
+    if args.source == "rss":
+        if not args.feed_url:
+            print("ERROR: --feed-url is required when --source rss", file=sys.stderr)
+            return 2
+        candidates = ingest_allowlisted_feed(args.feed_url, args.allowlist)
+    else:
+        candidates = ingest_nvd_incremental(
+            lastmod_start=args.nvd_lastmod_start,
+            lastmod_end=args.nvd_lastmod_end,
+            results_per_page=args.nvd_results_per_page,
+            max_pages=args.nvd_max_pages,
+            keyword=args.nvd_keyword,
+            state_db=args.state_db,
+        )
     candidates = candidates[: max(0, args.max_items)]
 
     hosts = load_host_allowlist(args.page_fetch_allowlist)
@@ -224,6 +260,7 @@ def main() -> int:
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "data_json": str(args.data_json.resolve()),
         "feed_url": args.feed_url,
+        "source": args.source,
         "technique_records": len(records),
         "candidates": candidates,
         "gap_reports": reports,

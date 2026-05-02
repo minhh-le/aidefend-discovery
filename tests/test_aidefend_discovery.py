@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _SCRIPTS = _REPO_ROOT / "scripts"
@@ -22,6 +24,7 @@ from aidefend_discovery.entities import extract_entities, merge_entity_dicts
 from aidefend_discovery.explain import top_overlap_terms
 from aidefend_discovery.extract import chunk_text, enrich_candidate, normalize_hostname
 from aidefend_discovery.rss_ingest import entry_to_candidate, parse_feed_entries
+import run_discovery_gap
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
@@ -137,6 +140,52 @@ class TestBM25Pooled(unittest.TestCase):
 class TestHostname(unittest.TestCase):
     def test_normalize(self) -> None:
         self.assertEqual(normalize_hostname("WWW.EXAMPLE.COM:443"), "example.com")
+
+
+class TestRunDiscoveryOrchestration(unittest.TestCase):
+    def test_source_nvd_dispatch(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            report_dir = Path(td) / "reports"
+            with patch("run_discovery_gap.load_data_json", return_value={"tactics": []}), patch(
+                "run_discovery_gap.flatten_techniques"
+            ) as mock_flatten, patch("run_discovery_gap.BM25Index"), patch(
+                "run_discovery_gap.load_host_allowlist", return_value=set()
+            ), patch(
+                "run_discovery_gap.ingest_allowlisted_feed"
+            ) as mock_rss_ingest, patch(
+                "run_discovery_gap.ingest_nvd_incremental",
+                return_value=[],
+                create=True,
+            ) as mock_nvd_ingest:
+                mock_flatten.return_value = [
+                    type(
+                        "Record",
+                        (),
+                        {
+                            "search_text": lambda self: "x",
+                            "id": "AID-M-TEST",
+                            "tactic_id": "AID-T-TEST",
+                            "pillars": [],
+                            "phases": [],
+                            "threat_items": [],
+                        },
+                    )()
+                ]
+                argv = [
+                    "run_discovery_gap.py",
+                    "--source",
+                    "nvd",
+                    "--data-json",
+                    str(FIXTURES / "minimal_aidefend_data.json"),
+                    "--reports-dir",
+                    str(report_dir),
+                    "--dry-run",
+                ]
+                with patch.object(sys, "argv", argv):
+                    rc = run_discovery_gap.main()
+                self.assertEqual(rc, 0)
+                mock_nvd_ingest.assert_called_once()
+                mock_rss_ingest.assert_not_called()
 
 
 if __name__ == "__main__":
