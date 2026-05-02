@@ -30,6 +30,9 @@ class CandidateFinding(TypedDict, total=False):
     confidence: float  # 0..1 producer-side heuristic
     raw_hash: str  # sha256 of canonical raw bytes or normalized text
     feed_url: str
+    source_type: str
+    source_id: str
+    kev_flag: bool
 
 
 class GapReport(TypedDict, total=False):

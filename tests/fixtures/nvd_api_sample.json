@@ -1,0 +1,39 @@
+{
+  "resultsPerPage": 1,
+  "startIndex": 0,
+  "totalResults": 1,
+  "format": "NVD_CVE",
+  "version": "2.0",
+  "timestamp": "2026-05-02T00:00:00.000",
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-2026-1234",
+        "published": "2026-04-30T10:00:00.000",
+        "lastModified": "2026-05-01T09:00:00.000",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "A vulnerability in ExampleML allows prompt injection and model exfiltration."
+          }
+        ],
+        "weaknesses": [
+          {
+            "description": [
+              {
+                "lang": "en",
+                "value": "CWE-79"
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "url": "https://example.test/advisory/CVE-2026-1234"
+          }
+        ],
+        "cisaExploitAdd": "2026-05-01"
+      }
+    }
+  ]
+}
