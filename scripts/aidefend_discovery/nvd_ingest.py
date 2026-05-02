@@ -12,8 +12,8 @@ from typing import Any, Callable
 
 NVD_CVE_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 NVD_USER_AGENT = (
-    "persistent-agent-security-discovery/0.2 "
-    "(+https://github.com/example/persistent-agent-security; research prototype)"
+    "aidefend-discovery/0.2 "
+    "(+https://github.com/minhh-le/persistent-agent-security; research prototype)"
 )
 MAX_NVD_WINDOW_DAYS = 120
 

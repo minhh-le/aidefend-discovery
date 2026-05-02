@@ -12,8 +12,8 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 USER_AGENT = (
-    "persistent-agent-security-discovery/0.1 "
-    "(+https://github.com/example/persistent-agent-security; research prototype)"
+    "aidefend-discovery/0.1 "
+    "(+https://github.com/minhh-le/persistent-agent-security; research prototype)"
 )
 
 
