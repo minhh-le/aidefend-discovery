@@ -1,6 +1,6 @@
 # Context Index
 
-Updated: 2026-05-02 (renamed working identity to AIDEFEND Discovery)
+Updated: 2026-05-02 (promotion playbook + Phase 1 exit hardening + deferred-with-reasoning)
 
 ## Purpose
 
@@ -20,7 +20,7 @@ Repo-local continuity packet for **AIDEFEND Discovery**.
 ## Main Areas
 
 - `scripts/` — discovery automation scripts (`aidefend_discovery/` + `run_discovery_gap.py`).
-- `docs/aidefend_discovery/` — **roadmap** (`ROADMAP.md`), **discoveries/** (dated research syntheses), review contract, maintainer alignment for AIDEFEND + discovery R&D.
+- `docs/aidefend_discovery/` — **roadmap** (`ROADMAP.md`), **promotion playbook** (`PROMOTION_PLAYBOOK.md`), **discoveries/** (dated research syntheses), review contract, maintainer alignment for AIDEFEND + discovery R&D.
 - `lab/` — local lab configs; **AIDEFEND discovery** lives under `lab/aidefend_discovery/` (allowlist + README).
 - `reports/` — generated gap report examples and deliverable drafts.
 - `tests/` — tests for discovery scripts.

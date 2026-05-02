@@ -1,6 +1,6 @@
 # AIDEFEND structured + discovery — roadmap (0 → end product)
 
-Updated: 2026-05-02 (Phase 2A NVD connector + sqlite cursor baseline)
+Updated: 2026-05-02 (Phase 2A NVD connector + sqlite cursor baseline; promotion playbook + Phase 1 exit hardening + deferred-with-reasoning section)
 
 This document is the **persistent** plan for evolving from the current prototype in [`lab/aidefend_discovery/`](../../lab/aidefend_discovery/README.md) toward a governable **discovery layer** on top of the open AIDEFEND knowledge base. Companion docs: [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md), [`MAINTAINER_ALIGNMENT.md`](MAINTAINER_ALIGNMENT.md).
 
@@ -75,7 +75,7 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 
 **Goals:** Smaller, cleaner text for retrieval; entities and “why” for reviewers; measurable quality.
 
-**Exit criteria:** Reviewers spend less time decoding blobs; you can demo one credible “candidate ↔ defenses because …” story.
+**Exit criteria:** Reviewers spend less time decoding blobs; **one credible “candidate ↔ defenses because …” story is demoed AND the resulting upstream promotion PR is merged into `aidefense-framework`.** Proving the report renders is not enough — the loop must close end-to-end, otherwise we cannot tell whether `is_gap` is producing things maintainers actually want. Promotion mechanics live in [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md).
 
 #### Action items
 
@@ -87,6 +87,7 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 - [x] **Explainability:** `GapReport.nearest_lexical_overlap_terms` (query∩doc tokens ranked by corpus IDF).
 - [x] **Gold scaffold:** `lab/aidefend_discovery/gold/` + `scripts/eval_discovery_gold.py` (grow toward 20–50 labeled rows).
 - [x] **NVD + GitHub Advisory API patterns** — enumerated in [discoveries/2026-05-02-nvd-ghsa-connector-api.md](discoveries/2026-05-02-nvd-ghsa-connector-api.md) (host WebFetch of official docs; re-validate with `/codex` workers if policy requires `crwl` primary captures).
+- [ ] **Promotion playbook** ([`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md)) — concrete shape mapping `CandidateFinding` → upstream tactic-object edits; required to make the hardened exit criterion executable, and to surface any schema gap before MCP integration.
 
 ---
 
@@ -102,7 +103,7 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 - [ ] **NVD connector follow-up:** auth path (`NVD_API_KEY`), stricter AI-relevance/product allowlist tuning, and operational retry policy hardening.
 - [ ] **Bridge table v0:** CWE / ecosystem tags → suggested pillar/tactic **hints** (rules, not truth).
 - [ ] **Embeddings** over technique + `defendsAgainst` strings; optional **cross-encoder** rerank on BM25 top-20.
-- [ ] **Taxonomy anchor diff:** versioned pulls of MITRE/OWASP/NIST machine-readable artifacts → emit **regression candidates** when new upstream IDs lack AIDEFEND mapping.
+- [ ] **Taxonomy anchor diff:** versioned pulls of MITRE/OWASP/NIST machine-readable artifacts → emit **regression candidates** when new upstream IDs lack AIDEFEND mapping. **Prerequisite for resuming upstream promotions** (see [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md) soft rule); without it, accepted candidates risk forking AIDEFEND vocabulary from upstream anchors.
 - [ ] `/discover` pass on **STIX / MITRE CTI** consumption patterns if bridging to ATT&CK/ATLAS IDs.
 
 ---
@@ -142,6 +143,17 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 - [ ] Scale (streaming, GPU embeddings) **only** if Phase 2 precision targets met.
 
 ---
+
+## Deferred with reasoning
+
+These items were considered during a 2026-05-02 architecture review and consciously held. Each lists the **trigger that re-opens it**, so future-us doesn't relitigate the call.
+
+- **`is_gap` two-trigger noise.** `max_bm25 < threshold` is noise-prone on release-note candidates, and `threat_ids_in_text_but_no_framework_line_overlap` fires too eagerly because upstream `defendsAgainst` paraphrases threats rather than embedding raw IDs. **Why deferred:** the rule is tunable, and Phase 2's CWE→tactic bridge reshapes it correctly. Tightening today without the bridge would just push false-positives around. **Re-open trigger:** Phase 2 bridge-table v0 begins.
+- **BM25 vuln-shape mismatch.** Scoring CVE-style descriptions against defense-vocabulary text will reliably underperform — they live in different vocabularies. **Why deferred:** same Phase 2 fix; the architectural answer is the bridge table, not more retrieval sophistication. **Re-open trigger:** Phase 2 bridge-table v0 begins.
+- **License posture (honor-system `license_note`).** Today `license_note` is free-text; there is a host allowlist for fetching but no classifier on stored body content. **Why deferred:** fine while bodies live only in `reports/` and are reviewer-local; the risk only crystallizes when candidate text is exposed via MCP or a public surface. **Re-open trigger:** any Phase 4 work toward MCP discovery tools or a public Labs surface.
+- **Taxonomy drift.** A "novel" candidate that already exists in OWASP / MAESTRO / NIST under different wording would silently fork AIDEFEND vocabulary from its upstream anchors. **Why deferred (architecturally):** Phase 2's taxonomy anchor diff is the right fix. **Stopgap that applies now:** [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md) records a soft rule pausing upstream promotions until the diff lands. **Re-open trigger:** Phase 2 anchor-diff work begins.
+- **BM25 field weighting.** The baseline currently flattens technique `name + description + defendsAgainst` into one bag; field weights would let `defendsAgainst` matches count more or less than name matches once we trust `is_gap` enough to act on it. **Why deferred:** premature without gold rows to tune against. **Re-open trigger:** gold set reaches ~20 hand-labeled rows and `eval_discovery_gold.py` is in routine use.
+- **Body cap / chunk budget alignment.** 48 KB body cap, 12 × 3.5 KB chunks ≈ 42 KB chunked content per doc. **Why deferred:** numbers already align; nothing to fix. **No re-open trigger** — only revisit if a new connector class needs longer bodies.
 
 ## How to use this document
 

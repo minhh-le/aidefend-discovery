@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-02
+Updated: 2026-05-02 (promotion playbook + Phase 1 exit hardening)
 
 ## Repo Purpose
 
@@ -11,6 +11,7 @@ Updated: 2026-05-02
 - The repo has moved past the original empty security scaffold; its working identity is now **AIDEFEND Discovery**.
 - `scripts/run_discovery_gap.py` supports `--source rss|nvd`. NVD mode uses `scripts/aidefend_discovery/nvd_ingest.py` (CVE API query/pagination/normalization) and `scripts/aidefend_discovery/state_store.py` (sqlite cursor key `nvd_lastmod_end`).
 - Existing enrichment/scoring remains: optional Trafilatura page fetch, candidate enrichment (`summary_raw`, `body_extracted`, chunks, entities), BM25 chunk max-pool, and lexical overlap explainability in gap reports.
+- **Promotion path:** [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) gives the concrete `CandidateFinding` → upstream `tactics/*.js` shape mapping; Phase 1 exit now requires a merged upstream promotion PR. **Soft rule:** upstream promotions are paused until the Phase 2 taxonomy-anchor diff lands (avoids vocabulary drift from MITRE/OWASP/NIST anchors).
 - **Research index:** [`docs/aidefend_discovery/discoveries/`](../docs/aidefend_discovery/discoveries/) (web extraction guidance; **NVD + GitHub global advisory REST** connector enumeration).
 - No offensive targets, customer data, credentials, raw evidence, or proprietary security findings are tracked.
 - Global continuity index may still route here for cross-repo R&D.

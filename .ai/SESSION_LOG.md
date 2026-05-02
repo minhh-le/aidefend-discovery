@@ -98,6 +98,28 @@ Next:
 - Implement Phase 2B GHSA connector + CVE↔GHSA joins.
 - Add NVD auth path and stronger ingestion retry/rate-limit policy tuning.
 
+## 2026-05-02 — Architecture-edit session: promotion playbook + Phase 1 exit hardening
+
+Summary:
+Architecture review of [`docs/aidefend_discovery/ROADMAP.md`](../docs/aidefend_discovery/ROADMAP.md) and the [notes file](../../notes%20-%20aidefend%20discovery). Found no blatant wrongs in the roadmap; identified the promotion playbook as the one fix-now (bottleneck for Phase 1 exit) and codified the rest as "Deferred with reasoning" with explicit re-open triggers. Also caught and fixed stale `persistent-agent-security-discovery/*` HTTP User-Agent strings in two ingestion modules left over from before the repo rename.
+
+Changed:
+- Added `docs/aidefend_discovery/PROMOTION_PLAYBOOK.md` — pre-flight checks, Shape A vs Shape B, tactic-letter table (M/H/D/I/DV/E/R), `CandidateFinding`→technique crosswalk, schema-gap callouts, PR template, smoke-test step, soft rule pausing promotions until Phase 2 taxonomy-anchor diff lands.
+- Updated `docs/aidefend_discovery/ROADMAP.md`: Phase 1 exit now requires a merged upstream promotion PR (not just a renderable demo); new Phase 1 action item linking the playbook; Phase 2 anchor-diff line annotated as the prerequisite for resuming promotions; new "Deferred with reasoning" section listing six items with re-open triggers (is_gap two-trigger noise, BM25 vuln-shape mismatch, license posture, taxonomy drift, BM25 field weighting, body cap/chunk budget).
+- Updated `.ai/DECISIONS.md`: 2026-05-02 entry recording playbook authorship + hardened exit + deferral decisions + soft rule.
+- Updated `.ai/CONTEXT_INDEX.md`, `.ai/CURRENT.md`, `.ai/HANDOFF.md`, `.ai/OPEN_LOOPS.md` to reflect the new playbook and hardened exit.
+- Fixed `scripts/aidefend_discovery/rss_ingest.py` and `scripts/aidefend_discovery/nvd_ingest.py` HTTP User-Agent strings: project identity now `aidefend-discovery/X.Y` with the actual `minhh-le/persistent-agent-security` remote URL (was placeholder `example.com` + old project slug).
+
+Verification:
+- `.venv/bin/python -m unittest discover -s tests -v` → 22 tests pass (UA changes do not affect test fixtures).
+- `git diff --stat` → docs + two `.py` UA-string lines + `.ai/` packet, no unintended scope.
+- From `../agent-continuity`: `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` and `python3 scripts/validate_continuity.py` (run at closeout below).
+
+Next:
+- Open the first upstream promotion PR per `PROMOTION_PLAYBOOK.md` to close the hardened Phase 1 exit; this stress-tests `CandidateFinding` for promotion-time data sufficiency.
+- Begin Phase 2 taxonomy-anchor diff (prerequisite for resuming routine promotions; blocks vocabulary drift).
+- Continue Phase 2B GHSA connector + CVE↔GHSA joins; NVD auth mode follow-up.
+
 ## 2026-05-02 — Rename and continuity cleanup
 
 Summary:

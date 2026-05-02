@@ -1,0 +1,148 @@
+# Promotion playbook — discovery candidate → upstream `tactics/*.js`
+
+Updated: 2026-05-02
+
+This expands the brief promotion checklist in [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md#promotion-checklist-into-tacticsjs) with the concrete shape mapping a maintainer needs to convert an accepted `CandidateFinding` into an upstream edit. It is paired with the **soft rule** below — until the [Phase 2 taxonomy-anchor diff](ROADMAP.md#phase-2--correlation-worth-the-name) lands, **upstream promotions are paused**, even when individual candidates look ready. See [Deferred with reasoning](ROADMAP.md#deferred-with-reasoning) for why.
+
+The authoritative truth lives in the sibling `aidefense-framework` repo. This repo never touches `data/data.json` directly.
+
+---
+
+## Soft rule (read this first)
+
+**Do not open an upstream promotion PR until the taxonomy-anchor diff (Phase 2) ships.** Without it, a "novel" candidate that already exists in OWASP / MAESTRO / NIST under different wording will silently fork AIDEFEND vocabulary from its upstream anchors. Promote anyway only if the reviewer manually verifies the candidate against current MITRE ATLAS / OWASP / NIST / MAESTRO machine-readable artifacts and records the comparison in the PR.
+
+---
+
+## Pre-flight checks
+
+Every check must pass before opening a PR upstream.
+
+1. **Status & rationale.** `CandidateFinding.status == "candidate"`; reviewer has read `GapReport.gap_reason`, `nearest_technique_ids`, `nearest_lexical_overlap_terms`, and concurs.
+2. **License.** `license_note` is permissive (e.g., CC BY, public-domain, framework license that allows redistribution of summaries) **or** the upstream PR will use only metadata + paraphrased description and will not reproduce body text. CC BY content can be used with attribution.
+3. **Anchor-diff guardrail.** Either Phase 2 anchor diff has shipped, or the reviewer has manually checked upstream framework artifacts (see soft rule above).
+4. **Citations resolve.** Every URL in `source_urls` is reachable; `content_hash` matches the cited content (re-fetch and compare if in doubt).
+5. **Not already promoted.** Search the discovery JSONL for prior `promoted` rows touching the same `content_hash` or `entities.cves`/`entities.ghsas`.
+
+---
+
+## Choose the promotion shape
+
+### Shape A — Extend an existing technique's `defendsAgainst` (most common, lowest risk)
+
+**Trigger:** `GapReport.nearest_technique_ids[0]` is a confident match (high `max_bm25`, sensible `nearest_lexical_overlap_terms`) but the candidate's framework IDs / threat tokens don't appear under any `defendsAgainst.framework.items` of that technique.
+
+**What you edit:** the existing technique's `defendsAgainst` array in `aidefense-framework/tactics/<tactic>.js`. Add the upstream framework ID **verbatim** under the right `framework` block. Don't rephrase — AIDEFEND's `name`/`description`/`purpose` are canonical, but `defendsAgainst.items` mirror upstream.
+
+### Shape B — Add a new technique to a tactic file (rare)
+
+**Trigger:** No existing technique covers the behavior — `is_gap == true` with `gap_reason` `max_bm25_below_threshold(...)`, AND the reviewer agrees no top-k neighbor is the right home.
+
+**What you edit:** add a new `techniques[]` entry to the chosen `tactics/<tactic>.js`. Required fields are listed in the crosswalk below. Sub-techniques follow the dotted-id pattern (`AID-H-021.002`).
+
+---
+
+## Tactic file selection
+
+Seven tactic files; each owns its own ID prefix:
+
+| File | Tactic | ID prefix | Loose theme |
+|---|---|---|---|
+| `tactics/model.js` | Model | `AID-M-NNN` | Model-side defenses |
+| `tactics/harden.js` | Harden | `AID-H-NNN` | Pre-deployment hardening |
+| `tactics/detect.js` | Detect | `AID-D-NNN` | Runtime detection |
+| `tactics/isolate.js` | Isolate | `AID-I-NNN` | Containment |
+| `tactics/deceive.js` | Deceive | `AID-DV-NNN` | Deception (note two-letter prefix) |
+| `tactics/evict.js` | Evict | `AID-E-NNN` | Removal / response |
+| `tactics/restore.js` | Restore | `AID-R-NNN` | Recovery |
+
+`GapReport.suggested_tactic_ids` (e.g., `["harden", "model"]`) is a **hint**, not a decision. `suggested_pillars` (`app | data | infra | model`) and `suggested_phases` (`building | operation | validation`) are also hints — reviewer makes the final call by reading neighbor techniques.
+
+> **Note on file syntax.** Some tactic files (`harden.js`) use bare-key JS object literals; others (`detect.js`, `model.js`, `isolate.js`, `evict.js`, `restore.js`, `deceive.js`) use JSON-style quoted keys. Match the existing style in the file you're editing — the upstream parser in `scripts/generate-dataset.js` accepts both, but consistency matters for review.
+
+---
+
+## Crosswalk — `CandidateFinding` / `GapReport` → upstream technique object
+
+Schema source: [`scripts/aidefend_discovery/schemas.py`](../../scripts/aidefend_discovery/schemas.py).
+
+| Upstream technique field | Sourced from | Notes |
+|---|---|---|
+| `id` | reviewer-assigned | Next sequential under chosen tactic prefix; sub-technique uses `AID-X-NNN.NNN` |
+| `name` | reviewer-rephrased from `CandidateFinding.title` | AIDEFEND wording is canonical; not a verbatim copy |
+| `pillar` (string[]) | `GapReport.suggested_pillars` (hint) | Reviewer confirms by reading neighbor techniques in same file |
+| `phase` (string[]) | `GapReport.suggested_phases` (hint) | Same — confirm against neighbors |
+| `description` | reviewer-authored | May draw on `body_extracted` and `summary` for facts; do not reproduce non-permissive text verbatim |
+| `defendsAgainst[].framework` | reviewer maps from candidate context | Use exact upstream framework names (e.g., `"MITRE ATLAS"`, `"OWASP LLM Top 10 2025"`, `"MAESTRO"`, `"NIST Adversarial Machine Learning 2025"`, etc.) |
+| `defendsAgainst[].items` | `entities.cves`, `entities.ghsas`, `entities.cwes` + manual mapping to ATLAS / OWASP / NIST / MAESTRO IDs | Mirror upstream phrasing **exactly**. CVE/GHSA/CWE IDs themselves rarely belong here — translate them up to the framework-level threat name |
+| `toolsOpenSource` (string[]) | reviewer research | Not in `CandidateFinding`; gather at promotion time |
+| `toolsCommercial` (string[]) | reviewer research | Same |
+| `implementationGuidance[].implementation` | reviewer-authored | Not in `CandidateFinding`; HTML allowed in `howTo` |
+| `implementationGuidance[].howTo` | reviewer-authored | HTML; follow the prose+code style in existing entries |
+
+For Shape A, only `defendsAgainst[].items` is touched.
+
+### Schema-gap callouts
+
+`CandidateFinding` does **not** carry `toolsOpenSource`, `toolsCommercial`, or `implementationGuidance`. That's expected — these are reviewer-authored at promotion time, not extracted automatically. If, while filling out a Shape B promotion, you find a *required* technique field that has no clear source in `CandidateFinding` and is not naturally reviewer-authored, **stop the promotion and open a Phase 1 schema gap issue.** The `CandidateFinding` schema is the wire format for the whole pipeline; gaps caught at promotion time are cheaper to fix than gaps caught after MCP integration.
+
+Newer fields in `CandidateFinding` worth knowing about (added with the Phase 2A NVD connector):
+
+- `source_type` — `"rss"`, `"nvd"`, etc. Useful in PR description.
+- `source_id` — connector-native ID (e.g., the CVE ID for NVD candidates).
+- `kev_flag` — `true` if the source signals KEV (Known Exploited Vuln). Strong promotion signal; mention explicitly in PR description.
+
+---
+
+## PR description template
+
+Open the PR against `aidefense-framework`. Use this template so promotion is auditable and the discovery loop can be measured:
+
+```markdown
+## Discovery promotion — <candidate title>
+
+- **Discovery candidate:** `<candidate_id>` (`source_type=<rss|nvd|...>`, `source_id=<...>`)
+- **Source URLs:** <one bullet per source_urls entry>
+- **content_hash:** `<content_hash>`
+- **GapReport summary:**
+  - `nearest_technique_ids`: <top-5>
+  - `max_bm25`: <value>
+  - `gap_reason`: `<gap_reason>`
+  - `nearest_lexical_overlap_terms`: <flatten top-1>
+- **Promotion shape:** A (extend defendsAgainst) | B (new technique)
+- **Anchor-diff status:** shipped | manual-check-recorded-below
+- **kev_flag:** true | false
+- **Reviewer notes:** <why this shape, why this pillar/phase, any framework-ID disambiguation>
+
+Closes loop for: <discovery JSONL row id>
+```
+
+---
+
+## Step-by-step
+
+1. **Pick a candidate** from `reports/gap_run_*.json` whose paired `CandidateFinding` has `status: "candidate"`.
+2. **Pre-flight checks** above all pass.
+3. **Choose Shape A or B.**
+4. **Edit `aidefense-framework/tactics/<tactic>.js`** matching the existing file's syntax style. For Shape A: add `defendsAgainst.items` only. For Shape B: full new technique entry per crosswalk.
+5. **Regenerate** `data/data.json`:
+   ```sh
+   cd /path/to/aidefense-framework && node scripts/generate-dataset.js
+   ```
+   The generator is fail-closed on keywords (see header of `generate-dataset.js`); resolve any keyword-lock failures per upstream guidance, do not bypass.
+6. **Smoke-test from the discovery side.** Re-run the gap pipeline against the regenerated baseline; the same candidate should now resolve to the new/extended technique with `is_gap == false`:
+   ```sh
+   cd /path/to/aidefend-discovery && \
+     python scripts/run_discovery_gap.py --data-json /path/to/aidefense-framework/data/data.json \
+     --feeds lab/aidefend_discovery/feeds.allowlist \
+     --max-items 1
+   ```
+   If the candidate still reports `is_gap == true` against the same technique, the upstream edit didn't land where retrieval can see it — investigate before opening the PR.
+7. **Open the upstream PR** using the template above.
+8. **After merge,** append a `promoted` row update to the discovery JSONL with the merged PR URL and the upstream commit SHA in reviewer notes (see [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md) status workflow).
+
+---
+
+## What success looks like (Phase 1 exit)
+
+Phase 1 of the [`ROADMAP`](ROADMAP.md#phase-1--interpretable-signal) exits when **one** credible "candidate ↔ defenses *because…*" story has been demoed **and** the resulting upstream PR is merged. Not "the report rendered" — the loop closing end-to-end is the bar, because that is the only honest signal that `is_gap` produces things maintainers want.
