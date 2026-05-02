@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +40,7 @@ from aidefend_discovery.rss_ingest import (  # noqa: E402
     append_jsonl,
     ingest_allowlisted_feed,
 )
+from aidefend_discovery.state_store import get_state_value, set_state_value  # noqa: E402
 
 try:  # noqa: E402
     from aidefend_discovery.nvd_ingest import ingest_nvd_incremental
@@ -214,14 +215,33 @@ def main() -> int:
             return 2
         candidates = ingest_allowlisted_feed(args.feed_url, args.allowlist)
     else:
+        if bool(args.nvd_lastmod_start) ^ bool(args.nvd_lastmod_end):
+            print(
+                "ERROR: --nvd-lastmod-start and --nvd-lastmod-end must be provided together",
+                file=sys.stderr,
+            )
+            return 2
+        if args.nvd_lastmod_start and args.nvd_lastmod_end:
+            nvd_start = args.nvd_lastmod_start
+            nvd_end = args.nvd_lastmod_end
+        else:
+            nvd_end = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            cursor = get_state_value(args.state_db, "nvd_lastmod_end")
+            if cursor:
+                nvd_start = cursor
+            else:
+                nvd_start = (datetime.now(timezone.utc) - timedelta(days=7)).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
         candidates = ingest_nvd_incremental(
-            lastmod_start=args.nvd_lastmod_start,
-            lastmod_end=args.nvd_lastmod_end,
+            lastmod_start=nvd_start,
+            lastmod_end=nvd_end,
             results_per_page=args.nvd_results_per_page,
             max_pages=args.nvd_max_pages,
             keyword=args.nvd_keyword,
             state_db=args.state_db,
         )
+        set_state_value(args.state_db, "nvd_lastmod_end", nvd_end)
     candidates = candidates[: max(0, args.max_items)]
 
     hosts = load_host_allowlist(args.page_fetch_allowlist)
