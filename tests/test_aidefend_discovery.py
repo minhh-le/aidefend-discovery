@@ -23,6 +23,7 @@ from aidefend_discovery.bm25_index import BM25Index
 from aidefend_discovery.entities import extract_entities, merge_entity_dicts
 from aidefend_discovery.explain import top_overlap_terms
 from aidefend_discovery.extract import chunk_text, enrich_candidate, normalize_hostname
+from aidefend_discovery.nvd_ingest import nvd_cve_to_candidate
 from aidefend_discovery.rss_ingest import entry_to_candidate, parse_feed_entries
 import run_discovery_gap
 
@@ -186,6 +187,61 @@ class TestRunDiscoveryOrchestration(unittest.TestCase):
                 self.assertEqual(rc, 0)
                 mock_nvd_ingest.assert_called_once()
                 mock_rss_ingest.assert_not_called()
+
+
+class TestNvdFlowCompatibility(unittest.TestCase):
+    def test_nvd_candidates_generate_gap_report_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            report_dir = Path(td) / "reports"
+            nvd_candidate = nvd_cve_to_candidate(
+                {
+                    "cve": {
+                        "id": "CVE-2026-1234",
+                        "descriptions": [{"lang": "en", "value": "Prompt injection in model serving endpoint"}],
+                        "weaknesses": [{"description": [{"lang": "en", "value": "CWE-79"}]}],
+                        "references": [{"url": "https://example.test/CVE-2026-1234"}],
+                    }
+                },
+                retrieved_at="2026-05-02T00:00:00Z",
+            )
+            with patch("run_discovery_gap.load_data_json", return_value={"tactics": []}), patch(
+                "run_discovery_gap.flatten_techniques"
+            ) as mock_flatten, patch(
+                "run_discovery_gap.ingest_nvd_incremental", return_value=[nvd_candidate]
+            ), patch("run_discovery_gap.load_host_allowlist", return_value=set()):
+                mock_flatten.return_value = [
+                    type(
+                        "Record",
+                        (),
+                        {
+                            "search_text": lambda self: "prompt injection model serving",
+                            "id": "AID-M-TEST",
+                            "tactic_id": "AID-T-TEST",
+                            "pillars": ["model"],
+                            "phases": ["runtime"],
+                            "threat_items": ["AML.T0007"],
+                        },
+                    )()
+                ]
+                argv = [
+                    "run_discovery_gap.py",
+                    "--source",
+                    "nvd",
+                    "--data-json",
+                    str(FIXTURES / "minimal_aidefend_data.json"),
+                    "--reports-dir",
+                    str(report_dir),
+                    "--dry-run",
+                    "--no-fetch-pages",
+                ]
+                with patch.object(sys, "argv", argv):
+                    rc = run_discovery_gap.main()
+                self.assertEqual(rc, 0)
+                report_path = next(report_dir.glob("gap_run_*.json"))
+                payload = json.loads(report_path.read_text(encoding="utf-8"))
+                self.assertEqual(len(payload["candidates"]), 1)
+                self.assertEqual(len(payload["gap_reports"]), 1)
+                self.assertEqual(payload["params"]["source"], "nvd")
 
 
 if __name__ == "__main__":

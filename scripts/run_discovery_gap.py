@@ -285,6 +285,7 @@ def main() -> int:
         "candidates": candidates,
         "gap_reports": reports,
         "params": {
+            "source": args.source,
             "top_k": args.top_k,
             "gap_bm25_max": args.gap_bm25_max,
             "max_items": args.max_items,
@@ -295,6 +296,14 @@ def main() -> int:
                 "chunk_size": args.chunk_size,
                 "chunk_overlap": args.chunk_overlap,
                 "extraction": "trafilatura",
+            },
+            "nvd": {
+                "lastmod_start": args.nvd_lastmod_start,
+                "lastmod_end": args.nvd_lastmod_end,
+                "results_per_page": args.nvd_results_per_page,
+                "max_pages": args.nvd_max_pages,
+                "keyword": args.nvd_keyword,
+                "state_db": str(args.state_db),
             },
         },
     }
