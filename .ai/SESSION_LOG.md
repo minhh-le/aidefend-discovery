@@ -73,3 +73,27 @@ Aligned `.ai` HANDOFF/CURRENT/OPEN_LOOPS/DECISIONS/CONTEXT_INDEX; registered **a
 
 Next:
 - Phase 2 connector implementation + gold labels (see HANDOFF).
+
+## 2026-05-02 — Phase 2A NVD connector implementation
+
+Summary:
+Implemented Phase 2A NVD connector baseline end-to-end: source dispatch in `run_discovery_gap.py`, NVD incremental ingest/normalization module, sqlite cursor state store, compatibility tests, and operator docs.
+
+Changed:
+- Added `scripts/aidefend_discovery/nvd_ingest.py` and `scripts/aidefend_discovery/state_store.py`.
+- Extended `scripts/run_discovery_gap.py` with `--source nvd`, NVD args, cursor-backed window defaults, and source metadata in report params.
+- Added tests `tests/test_nvd_connector.py`, `tests/test_state_store.py`, and NVD flow/orchestration coverage in `tests/test_aidefend_discovery.py`.
+- Updated docs: `lab/aidefend_discovery/README.md`, `docs/aidefend_discovery/ROADMAP.md`, `docs/aidefend_discovery/discoveries/INDEX.md`.
+- Updated continuity packet: `HANDOFF`, `CURRENT`, `OPEN_LOOPS`, `DECISIONS`.
+
+Verification:
+- `PYTHONPATH=scripts .venv/bin/python -m unittest tests.test_nvd_connector -v`
+- `PYTHONPATH=scripts .venv/bin/python -m unittest tests.test_state_store -v`
+- `PYTHONPATH=scripts .venv/bin/python -m unittest tests.test_aidefend_discovery.TestRunDiscoveryOrchestration.test_source_nvd_dispatch -v`
+- `PYTHONPATH=scripts .venv/bin/python -m unittest tests.test_aidefend_discovery.TestNvdFlowCompatibility -v`
+- `PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v`
+- `python3 scripts/run_discovery_gap.py --help`
+
+Next:
+- Implement Phase 2B GHSA connector + CVE↔GHSA joins.
+- Add NVD auth path and stronger ingestion retry/rate-limit policy tuning.

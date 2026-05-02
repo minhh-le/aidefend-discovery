@@ -2,22 +2,23 @@
 
 Updated: 2026-05-02
 Updated by: Cursor Agent
-Verification: `.venv/bin/python -m pip install -r requirements.txt` then `PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v` (12 tests); `python3 scripts/validate_continuity.py` run from [`agent-continuity`](../../../agent-continuity) after global index/EFFORTS touch.
+Verification: `.venv/bin/python -m pip install -r requirements.txt`; targeted `unittest` runs for `test_nvd_connector`, `test_state_store`, `TestRunDiscoveryOrchestration`, `TestNvdFlowCompatibility`; full `PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v`; `python3 scripts/run_discovery_gap.py --help`.
 
 ## Current Goal
 
-Evolve **AIDEFEND-aligned discovery** from RSS-only toward **Phase 2 connectors** (NVD CVE 2.0 incremental + GitHub global advisories) while keeping canonical `AID-*` truth in aidefense-framework.
+Stabilize **Phase 2A NVD connector baseline** and prepare follow-on Phase 2B work (GHSA connector, auth, ranking improvements) while keeping canonical `AID-*` truth in aidefense-framework.
 
 ## Last Meaningful Work
 
-- **Phase 1:** Trafilatura fetch behind [`lab/aidefend_discovery/page_fetch.allowlist`](../lab/aidefend_discovery/page_fetch.allowlist); chunked **max-pool BM25**; **CVE/GHSA/CWE** entities; **`nearest_lexical_overlap_terms`** on gap reports; [`requirements.txt`](../requirements.txt) + gold eval scaffold ([`scripts/eval_discovery_gold.py`](../scripts/eval_discovery_gold.py)).
-- **Planning:** [`docs/aidefend_discovery/ROADMAP.md`](../docs/aidefend_discovery/ROADMAP.md) per-phase checklists; discover notes in [`docs/aidefend_discovery/discoveries/`](../docs/aidefend_discovery/discoveries/) including [NVD + GitHub API enumeration](../docs/aidefend_discovery/discoveries/2026-05-02-nvd-ghsa-connector-api.md).
-- **Continuity:** Session started from **agent-continuity** validator + pickup via **AGENTS.md** / **CONTEXT_INDEX**; durable state remains in this repo’s `.ai/` packet.
+- **Phase 2A implementation shipped:** `scripts/run_discovery_gap.py` supports `--source nvd`; new `scripts/aidefend_discovery/nvd_ingest.py` handles NVD query/pagination/normalization; `scripts/aidefend_discovery/state_store.py` persists sqlite cursor (`nvd_lastmod_end`).
+- **Tests added:** `tests/test_nvd_connector.py`, `tests/test_state_store.py`, plus NVD orchestration/flow coverage in `tests/test_aidefend_discovery.py`.
+- **Docs updated:** `lab/aidefend_discovery/README.md` now includes NVD explicit-window and cursor-driven commands; `docs/aidefend_discovery/ROADMAP.md` marks Phase 2A NVD baseline complete.
 
 ## Next Recommended Action
 
-- **This repo:** Implement **Phase 2** connectors per [NVD + GitHub API enumeration](../docs/aidefend_discovery/discoveries/2026-05-02-nvd-ghsa-connector-api.md) (NVD `lastMod*` windows + `apiKey`; GitHub `GET /advisories` with `ecosystem` + cursor + PAT); persist cursors in SQLite; grow [`lab/aidefend_discovery/gold/`](../lab/aidefend_discovery/gold/) labels.
-- **Global index:** **agent-continuity** [`.ai/EFFORTS.md`](../../../agent-continuity/.ai/EFFORTS.md) effort `aidefend-discovery-mesh` mirrors routing for the same next step.
+- **This repo:** Implement **Phase 2B GHSA connector** (`GET /advisories` list/detail with cursor + PAT path), then wire CVE↔GHSA enrichment joins and improve AI-relevance filters.
+- **This repo:** Add optional NVD auth mode (`NVD_API_KEY`) and stronger retry/backoff policy tuning.
+- **Global index:** **agent-continuity** [`.ai/EFFORTS.md`](../../../agent-continuity/.ai/EFFORTS.md) effort `aidefend-discovery-mesh` should mirror the new Phase 2B next action.
 
 ## Known Pitfalls
 

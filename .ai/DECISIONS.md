@@ -19,3 +19,9 @@ Rationale: Keeps the canonical KB in aidefense-framework while proving ingestion
 Decision: Ship Trafilatura-based page extract (host allowlist only), entity extraction, chunk max-pool BM25, lexical overlap explainability, and persist NVD/GitHub REST connector enumeration as dated discovery docs—not crawl4ai for now.
 
 Rationale: Official APIs and static HTML extractors match maintainer alignment; crawl4ai deferred until JS-rendered sources dominate.
+
+## 2026-05-02 — Phase 2A NVD-first delivery boundary
+
+Decision: Implement NVD incremental ingestion first (anonymous mode), with explicit `--source nvd` dispatch, CVE/CWE normalization, and sqlite cursor persistence, while deferring GHSA ingestion and auth-enabled connector paths.
+
+Rationale: Delivers a stable vertical slice with minimal moving parts, validates connector-state plumbing in production code, and preserves clear follow-up boundaries for GHSA, auth, and ranking improvements.

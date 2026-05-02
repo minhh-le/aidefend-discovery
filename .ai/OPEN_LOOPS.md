@@ -10,7 +10,9 @@ Updated: 2026-05-02
 
 ## Medium Priority
 
-- [ ] **Implement** NVD + GitHub global advisory connectors (design enumerated in `docs/aidefend_discovery/discoveries/2026-05-02-nvd-ghsa-connector-api.md`; align with `MAINTAINER_ALIGNMENT.md` source policy).
+- [ ] **Implement GHSA connector** (`GET /advisories` list/detail, cursor, PAT mode) and CVE↔GHSA enrichment joins.
+- [ ] Add NVD authenticated mode (`NVD_API_KEY`) and tune retry/backoff policy for sustained runs.
+- [ ] Add stricter AI-relevance/product allowlist filtering for vuln-shaped candidate quality.
 - [ ] Optional aidefend-mcp extension: namespaced candidate tools.
 - [ ] Choose initial tooling/test stack for broader repo work.
 - [ ] Add templates for findings and lab notes.
@@ -18,3 +20,4 @@ Updated: 2026-05-02
 ## Resolved
 
 - [x] Initialize safe repo-local `.ai` scaffold.
+- [x] Phase 2A NVD connector baseline (anonymous mode + sqlite cursor) integrated into discovery pipeline.
