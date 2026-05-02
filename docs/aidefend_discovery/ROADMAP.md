@@ -1,6 +1,6 @@
 # AIDEFEND structured + discovery — roadmap (0 → end product)
 
-Updated: 2026-05-02 (Phase 1 Trafilatura + chunking + entities + overlap explainability)
+Updated: 2026-05-02 (Phase 2A NVD connector + sqlite cursor baseline)
 
 This document is the **persistent** plan for evolving from the current prototype in [`lab/aidefend_discovery/`](../../lab/aidefend_discovery/README.md) toward a governable **discovery layer** on top of the open AIDEFEND knowledge base. Companion docs: [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md), [`MAINTAINER_ALIGNMENT.md`](MAINTAINER_ALIGNMENT.md).
 
@@ -98,7 +98,8 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 
 #### Action items
 
-- [ ] **NVD connector** (official API JSON): parse CVE, CWE, descriptions; AI-relevance filter (keyword + optional product allowlist).
+- [x] **NVD connector (Phase 2A baseline)** (official API JSON): parse CVE, CWE, descriptions; anonymous mode; incremental `lastMod*` windows + pagination + sqlite cursor checkpoint.
+- [ ] **NVD connector follow-up:** auth path (`NVD_API_KEY`), stricter AI-relevance/product allowlist tuning, and operational retry policy hardening.
 - [ ] **Bridge table v0:** CWE / ecosystem tags → suggested pillar/tactic **hints** (rules, not truth).
 - [ ] **Embeddings** over technique + `defendsAgainst` strings; optional **cross-encoder** rerank on BM25 top-20.
 - [ ] **Taxonomy anchor diff:** versioned pulls of MITRE/OWASP/NIST machine-readable artifacts → emit **regression candidates** when new upstream IDs lack AIDEFEND mapping.
