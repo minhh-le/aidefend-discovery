@@ -32,3 +32,6 @@ tmp/
 # AIDEFEND discovery prototype outputs
 lab/aidefend_discovery/candidates.jsonl
 reports/gap_run_*.json
+
+# Local isolated worktrees
+.worktrees/
