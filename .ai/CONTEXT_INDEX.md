@@ -1,6 +1,6 @@
 # Context Index
 
-Updated: 2026-04-30
+Updated: 2026-05-02 (session closeout: HANDOFF/CURRENT/OPEN_LOOPS/DECISIONS aligned)
 
 ## Purpose
 
@@ -19,9 +19,10 @@ Repo-local continuity packet for Persistent Agent Security.
 
 ## Main Areas
 
-- `scripts/` — security automation scripts.
+- `scripts/` — security automation scripts (includes `aidefend_discovery/` + `run_discovery_gap.py`).
+- `docs/aidefend_discovery/` — **roadmap** (`ROADMAP.md`), **discoveries/** (dated research syntheses), review contract, maintainer alignment for AIDEFEND + discovery R&D.
+- `lab/` — local lab configs; **AIDEFEND discovery** lives under `lab/aidefend_discovery/` (allowlist + README).
 - `detections/` — detection logic/rules.
-- `lab/` — local lab infrastructure/configs.
 - `reports/` — deliverable/report drafts.
 - `findings/` — finding writeups.
 - `evidence-redacted/` — sanitized evidence only.

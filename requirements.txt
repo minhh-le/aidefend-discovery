@@ -1,0 +1,2 @@
+# Discovery / Phase 1 extraction
+trafilatura>=1.8.0

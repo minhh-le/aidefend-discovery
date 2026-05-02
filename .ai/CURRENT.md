@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-04-30
+Updated: 2026-05-02
 
 ## Repo Purpose
 
@@ -9,16 +9,18 @@ Persistent Agent Security is a scaffold for future agent-assisted security engin
 ## Current Status
 
 - Initialized as an empty/safe scaffold.
-- No targets, findings, customer data, credentials, raw evidence, or project-specific security details are present.
-- Global continuity index should point here as the next planned project.
+- **AIDEFEND discovery lab:** `scripts/run_discovery_gap.py` loads `data.json`, ingests allowlisted RSS/Atom, optionally **fetches article pages** (Trafilatura + `page_fetch.allowlist`), enriches candidates (`summary_raw`, `body_extracted`, chunks, **entities**, `retrieval_chunk_queries`), then BM25 (**chunk max-pool**) + **`nearest_lexical_overlap_terms`** in gap reports. See `lab/aidefend_discovery/README.md` and [`docs/aidefend_discovery/ROADMAP.md`](../docs/aidefend_discovery/ROADMAP.md).
+- **Research index:** [`docs/aidefend_discovery/discoveries/`](../docs/aidefend_discovery/discoveries/) (web extraction guidance; **NVD + GitHub global advisory REST** connector enumeration).
+- No offensive targets, customer data, credentials, raw evidence, or proprietary security findings are tracked by default.
+- Global continuity index may still route here for cross-repo R&D.
 
 ## Facts vs Assumptions
 
 Facts:
 - This repo is intended to prove the `.ai` continuity scaffold can be replicated to a new project.
+- Discovery output is **candidate-only** until promoted in upstream aidefense-framework `tactics/*.js`.
 
 Needs definition later:
-- First real security line of effort.
-- Scope/authorization boundaries.
-- Evidence storage policy.
-- Tooling/test stack.
+- First dedicated defensive/offensive security line of effort beyond AIDEFEND R&D.
+- Scope/authorization boundaries for any active testing.
+- Evidence storage policy for non–AIDEFEND work.

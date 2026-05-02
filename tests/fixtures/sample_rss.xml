@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test</title>
+    <item>
+      <title>Supply chain risks for ML pipelines</title>
+      <link>https://example.test/article/1</link>
+      <description>Discussion of AML.T0007 and inventory gaps.</description>
+    </item>
+    <item>
+      <title>No framework ids here</title>
+      <link>https://example.test/article/2</link>
+      <description>ZZZ_UNIQUE_TOKEN_ALPHA_BRAVO unrelated text.</description>
+    </item>
+  </channel>
+</rss>

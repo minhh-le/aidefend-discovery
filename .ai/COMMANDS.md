@@ -9,6 +9,23 @@ git status --short --branch
 find . -maxdepth 3 -type f | sort
 ```
 
+## AIDEFEND discovery slice
+
+```bash
+cd /path/to/persistent-agent-security
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v
+python3 scripts/run_discovery_gap.py \
+  --data-json ../aidefense-framework/data/data.json \
+  --feed-url https://github.com/langchain-ai/langchain/releases.atom \
+  --allowlist lab/aidefend_discovery/feeds.allowlist \
+  --max-items 15
+# Add hosts to lab/aidefend_discovery/page_fetch.allowlist for Trafilatura fetch.
+# Feed-only (no HTTP to article pages): add --no-fetch-pages
+python3 scripts/eval_discovery_gold.py --report reports/gap_run_YYYYMMDD.json \
+  --gold lab/aidefend_discovery/gold/example_labels.jsonl
+```
+
 ## Safety Checks
 
 ```bash

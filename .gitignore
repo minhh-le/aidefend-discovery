@@ -28,3 +28,7 @@ venv/
 .DS_Store
 tmp/
 .tmp/
+
+# AIDEFEND discovery prototype outputs
+lab/aidefend_discovery/candidates.jsonl
+reports/gap_run_*.json

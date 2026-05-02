@@ -1,0 +1,3 @@
+# Hostnames allowed for optional HTML fetch (one per line, no scheme).
+# Used only when run_discovery_gap.py fetches source_urls (not the RSS feed URL).
+github.com

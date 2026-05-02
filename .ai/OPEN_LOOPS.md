@@ -1,6 +1,6 @@
 # Open Loops
 
-Updated: 2026-04-30
+Updated: 2026-05-02
 
 ## High Priority
 
@@ -10,7 +10,9 @@ Updated: 2026-04-30
 
 ## Medium Priority
 
-- [ ] Choose initial tooling/test stack.
+- [ ] **Implement** NVD + GitHub global advisory connectors (design enumerated in `docs/aidefend_discovery/discoveries/2026-05-02-nvd-ghsa-connector-api.md`; align with `MAINTAINER_ALIGNMENT.md` source policy).
+- [ ] Optional aidefend-mcp extension: namespaced candidate tools.
+- [ ] Choose initial tooling/test stack for broader repo work.
 - [ ] Add templates for findings and lab notes.
 
 ## Resolved

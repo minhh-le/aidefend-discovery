@@ -1,0 +1,37 @@
+{
+  "version": {"schemaVersion": "2.0"},
+  "tactics": [
+    {
+      "id": "model",
+      "name": "Model",
+      "description": "Model tactic",
+      "techniques": [
+        {
+          "id": "AID-M-TEST",
+          "name": "Test inventory technique",
+          "description": "Catalog AI assets for visibility.",
+          "pillar": ["infra"],
+          "phase": ["scoping"],
+          "keywords": ["inventory", "catalog"],
+          "defendsAgainst": [
+            {
+              "framework": "MITRE ATLAS",
+              "items": ["AML.T0007 Discover AI Artifacts"]
+            }
+          ],
+          "subTechniques": [
+            {
+              "id": "AID-M-TEST.001",
+              "name": "Sub inventory",
+              "description": "Nested inventory detail.",
+              "pillar": ["infra"],
+              "phase": ["operation"],
+              "keywords": ["gpu"],
+              "defendsAgainst": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

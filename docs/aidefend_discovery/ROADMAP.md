@@ -1,0 +1,154 @@
+# AIDEFEND structured + discovery — roadmap (0 → end product)
+
+Updated: 2026-05-02 (Phase 1 Trafilatura + chunking + entities + overlap explainability)
+
+This document is the **persistent** plan for evolving from the current prototype in [`lab/aidefend_discovery/`](../../lab/aidefend_discovery/README.md) toward a governable **discovery layer** on top of the open AIDEFEND knowledge base. Companion docs: [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md), [`MAINTAINER_ALIGNMENT.md`](MAINTAINER_ALIGNMENT.md).
+
+### Related research (discover)
+
+- [`discoveries/INDEX.md`](discoveries/INDEX.md) — dated synthesis notes.
+- [2026-05-02 — Web extraction pipeline](discoveries/2026-05-02-web-extraction-pipeline.md) — crawl4ai vs Trafilatura-first vs hybrid; sources and disregard list.
+- [2026-05-02 — NVD + GitHub global advisory APIs](discoveries/2026-05-02-nvd-ghsa-connector-api.md) — connector enumeration (CVE 2.0, rate limits, GHSA list/detail, auth).
+
+**Ongoing best-practice loop:** Run a full **Cursor `/discover`** pass (with **`/codex`** workers per skill contract) when you need wide primary-source coverage; merge outcomes here as new dated entries. This host session used WebSearch/WebFetch only—sufficient for the extraction stack decision, not a substitute for deep vendor/MITRE primary reads.
+
+---
+
+## North star
+
+**Structured layer:** The CC BY knowledge base (authoritative tactic modules → generated [`data/data.json`](https://github.com/edward-playground/aidefense-framework/blob/main/data/data.json)), mappings, site, and MCP remain the **source of approved truth**.
+
+**Discovery layer:** Continuous, **cited** signals from the outside world become **candidates**; humans (and later policy-gated automation) **promote** only what belongs in that truth. Nothing discovered silently overwrites the framework.
+
+This roadmap answers how we move from a toy pipeline to that **operating model** at scale.
+
+---
+
+## End state (what “done” looks like)
+
+### Product
+
+- **Dual namespaces everywhere:** Official `AID-*` records and curated mappings are never confused with **candidate** records (IDs, labels, MCP tool names). No accidental equivalence.
+- **Ingestion mesh:** Multiple **connector types** (taxonomy anchors, NVD/CVE with filters, GitHub advisories, vendor feeds, academic feeds with variance flags)—each with **allowlists**, rate limits, license posture, and **per-source metadata**.
+- **Normalization:** Candidates carry a **stable schema**, **dedupe keys**, **citations**, **confidence**, and optional **extracted entities** (CVE, CWE, package, version ranges)—not only large unstructured summaries.
+- **Correlation engine (mature):** Layered retrieval beyond raw BM25: lexical → optional embeddings → **explicit bridges** (e.g. CVE/CWE/product hints → tactic hints); outputs are **ranked hypotheses** with **explainability** (matched terms, shared IDs, overlap with `defendsAgainst` lines).
+- **Review queue:** Triage workflow (statuses, rejection reasons, assignment), lightweight metrics (throughput, precision proxies), and **promotion** into upstream [`tactics/*.js`](https://github.com/edward-playground/aidefense-framework/tree/main/tactics) plus `node scripts/generate-dataset.js`.
+- **Distribution:** **Extend [aidefend-mcp](https://github.com/edward-playground/aidefend-mcp)** with optional, **strictly labeled** discovery tools (`search_discovery_candidates`, `explain_candidate_mapping`, etc.). Optional **Labs** or filtered web surfacing—policy decision with founder.
+
+### Operations and trust
+
+- **Governance:** Written **source policy**, **CC BY / redistribution** rules for summaries, **community-contributed** thresholds with **maintainer merge gate** on promotion.
+- **Safety:** No automatic write to canonical `data.json`; **audit trail** on promotion; ingestion abuse considered (untrusted feed content).
+
+### Evidence of value
+
+Maintainers use the queue to **prioritize** taxonomy updates; integrators use MCP (and optionally the site) to separate **novel vs already mapped** hypotheses—with **calibrated** expectations (hypotheses, not ground truth).
+
+---
+
+## Phased roadmap
+
+Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and official downloads** over scraping where [`MAINTAINER_ALIGNMENT.md`](MAINTAINER_ALIGNMENT.md) already mandates it.
+
+### Phase 0 — Current baseline
+
+**Where we are:** Allowlisted RSS/Atom → **CandidateFinding** → BM25 vs flattened baseline → **GapReport** JSON ([`scripts/run_discovery_gap.py`](../../scripts/run_discovery_gap.py)).
+
+**What it proves:** End-to-end plumbing and review-friendly artifacts.
+
+**What it does not prove:** Reliable CVE ↔ technique semantics (BM25 is lexical similarity; threat-ID overlap only fires when IDs appear in text).
+
+**Exit criteria:** Agreement that schemas and review vocabulary merit deeper investment.
+
+#### Action items
+
+- [x] Baseline loader over `data.json` (flatten `AID-*`, `defendsAgainst`, keywords).
+- [x] Allowlisted RSS/Atom ingest + `CandidateFinding` JSONL append path.
+- [x] BM25 gap reports + dated `reports/gap_run_*.json`.
+- [x] Unit tests for baseline, BM25, RSS fixture parsing.
+- [x] `REVIEW_CONTRACT`, `MAINTAINER_ALIGNMENT`, this roadmap.
+- [ ] Document default **feed URLs** that 404 or drift; pin smoke-test feed in `lab/` README (ongoing hygiene).
+
+---
+
+### Phase 1 — Interpretable signal
+
+**Goals:** Smaller, cleaner text for retrieval; entities and “why” for reviewers; measurable quality.
+
+**Exit criteria:** Reviewers spend less time decoding blobs; you can demo one credible “candidate ↔ defenses because …” story.
+
+#### Action items
+
+- [x] **Fetch + extract** for each `source_url`: **Trafilatura** on static HTML; cap body (`--body-max-kb`, default 48); `body_truncated` / `body_retrieval_truncated` flags (`scripts/aidefend_discovery/extract.py`, `run_discovery_gap.py`).
+- [ ] **crawl4ai / Playwright path** — deferred (out of scope until needed); see [discovery note](discoveries/2026-05-02-web-extraction-pipeline.md).
+- [x] **Dual fields:** `summary_raw`, `body_extracted`, `body_retrieval`, `retrieval_chunks` + `retrieval_chunk_queries` on candidates.
+- [x] **Chunking** for retrieval queries; each chunk records `source_url`, `char_start` / `char_end`.
+- [x] **Entity extraction v0:** CVE, GHSA, CWE via regex (`entities.py`); version-range regex still open.
+- [x] **Explainability:** `GapReport.nearest_lexical_overlap_terms` (query∩doc tokens ranked by corpus IDF).
+- [x] **Gold scaffold:** `lab/aidefend_discovery/gold/` + `scripts/eval_discovery_gold.py` (grow toward 20–50 labeled rows).
+- [x] **NVD + GitHub Advisory API patterns** — enumerated in [discoveries/2026-05-02-nvd-ghsa-connector-api.md](discoveries/2026-05-02-nvd-ghsa-connector-api.md) (host WebFetch of official docs; re-validate with `/codex` workers if policy requires `crwl` primary captures).
+
+---
+
+### Phase 2 — Correlation worth the name
+
+**Goals:** Vuln-shaped hypotheses with explicit bridges, not only lexical neighbors.
+
+**Exit criteria:** For vuln-shaped candidates, show **CVE + neighbor techniques + bridge rationale** more often than raw BM25 on release-note noise.
+
+#### Action items
+
+- [ ] **NVD connector** (official API JSON): parse CVE, CWE, descriptions; AI-relevance filter (keyword + optional product allowlist).
+- [ ] **Bridge table v0:** CWE / ecosystem tags → suggested pillar/tactic **hints** (rules, not truth).
+- [ ] **Embeddings** over technique + `defendsAgainst` strings; optional **cross-encoder** rerank on BM25 top-20.
+- [ ] **Taxonomy anchor diff:** versioned pulls of MITRE/OWASP/NIST machine-readable artifacts → emit **regression candidates** when new upstream IDs lack AIDEFEND mapping.
+- [ ] `/discover` pass on **STIX / MITRE CTI** consumption patterns if bridging to ATT&CK/ATLAS IDs.
+
+---
+
+### Phase 3 — Productized loop
+
+**Exit criteria:** Weekly runs without babysitting one-off scripts.
+
+#### Action items
+
+- [ ] **SQLite** (or small service): candidates, runs, cursors, dedupe keys, statuses.
+- [ ] **Idempotent runs:** hash `(feed_url, entry_id|link, retrieved_window)`; skip duplicates.
+- [ ] **Scheduler:** GitHub Actions or cron per connector class; secrets for API keys in env only.
+- [ ] **Review export:** CSV/Parquet with `candidate_id`, `status`, `reject_reason`, `reviewer`, `source_urls`, `gap_summary`.
+- [ ] **Metrics:** % candidates with `is_gap`; median review time; promotion count per month.
+
+---
+
+### Phase 4 — Ecosystem integration
+
+**Exit criteria:** External consumers have a **documented contract** for “what might be missing” vs “what AIDEFEND officially says.”
+
+#### Action items
+
+- [ ] **aidefend-mcp:** add optional tools (`search_discovery_candidates`, `explain_candidate_mapping`, …) with **separate tool names + response schema** from official technique tools.
+- [ ] **Contract tests:** agent prompts cannot satisfy “list official defenses” using only discovery tool responses without `AID-*` disclaimer.
+- [ ] **Public surface decision** with founder (site vs labs vs MCP-only); legal review if candidate text is shown verbatim.
+
+---
+
+### Phase 5 — Maturity
+
+#### Action items
+
+- [ ] Community PR path for **connector allowlists** and **threshold** defaults (maintainer merge).
+- [ ] Quarterly **quality audit** against gold set + incident case studies.
+- [ ] Scale (streaming, GPU embeddings) **only** if Phase 2 precision targets met.
+
+---
+
+## How to use this document
+
+| Phase   | Primary question |
+|---------|------------------|
+| 0 → 1 | Is the direction worth scaling? |
+| 2     | Can we defend “correlation” for vuln-shaped intel? |
+| 3 → 4 | Is it operable and shippable beside AIDEFEND? |
+| 5     | Is it durable under community and maintainer load? |
+
+Update this file when phases complete or priorities shift; link significant decisions in [`.ai/DECISIONS.md`](../../.ai/DECISIONS.md).

@@ -1,0 +1,3 @@
+# One URL per line. Only listed feeds may be fetched by scripts/run_discovery_gap.py
+# LangChain releases Atom — OSS supply-chain / ML-agent adjacent signal (official GitHub feed).
+https://github.com/langchain-ai/langchain/releases.atom
