@@ -10,7 +10,7 @@ Method: Host-side discover (WebFetch of official NIST + GitHub docs). **Not** a 
 | Field | Content |
 |--------|---------|
 | Subject | REST patterns for **NVD CVE 2.0** and **GitHub Security Advisories** suitable for discovery connectors |
-| Context | `persistent-agent-security` Phase 2 roadmap; candidates today come from RSS + Trafilatura |
+| Context | AIDEFEND Discovery Phase 2 roadmap; candidates today come from RSS + Trafilatura |
 | Decision supported | Which endpoints, parameters, pagination, and auth to implement first; what to avoid |
 | Assumptions | Read-only public data; no scraping HTML when JSON APIs exist; comply with NVD attribution and GitHub rate limits |
 

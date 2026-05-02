@@ -9,10 +9,10 @@ git status --short --branch
 find . -maxdepth 3 -type f | sort
 ```
 
-## AIDEFEND discovery slice
+## AIDEFEND Discovery
 
 ```bash
-cd /path/to/persistent-agent-security
+cd /path/to/aidefend-discovery
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v
 python3 scripts/run_discovery_gap.py \

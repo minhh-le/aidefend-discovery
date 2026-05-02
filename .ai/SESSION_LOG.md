@@ -97,3 +97,24 @@ Verification:
 Next:
 - Implement Phase 2B GHSA connector + CVE↔GHSA joins.
 - Add NVD auth path and stronger ingestion retry/rate-limit policy tuning.
+
+## 2026-05-02 — Rename and continuity cleanup
+
+Summary:
+Renamed the repo's working identity to **AIDEFEND Discovery** in user-facing docs and pruned stale `.ai` placeholder loops that no longer matched the active discovery work.
+
+Changed:
+- Updated `README.md`, `AGENTS.md`, `.ai/CONTEXT_INDEX.md`, `.ai/CURRENT.md`, `.ai/HANDOFF.md`, `.ai/OPEN_LOOPS.md`, `.ai/DECISIONS.md`, `.ai/COMMANDS.md`, `.ai/FINDINGS_INDEX.md`, and `.ai/THREAT_MODEL.md`.
+- Replaced the placeholder threat model with a discovery-specific risk model for public source ingestion, candidate records, API tokens, and overclaiming risk.
+- Updated dated discovery note context lines to use AIDEFEND Discovery as the project name.
+- Updated local checkout references to `aidefend-discovery` and ignored generated `lab/aidefend_discovery/discovery_state.db`.
+
+Verification:
+- `git diff --check`
+- `PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v` (22 tests)
+- `python3 scripts/validate_continuity.py` from `../agent-continuity`
+- `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` from `../agent-continuity`
+
+Next:
+- Continue Phase 2B GHSA connector work.
+- Decide later whether to rename the GitHub repo after the docs/local identity stabilizes.

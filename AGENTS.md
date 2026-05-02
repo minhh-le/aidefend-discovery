@@ -1,4 +1,4 @@
-# Agent Instructions: Persistent Agent Security
+# Agent Instructions: AIDEFEND Discovery
 
 This repo uses a repo-local `.ai` continuity packet.
 
@@ -15,8 +15,8 @@ Before work:
 Security rules:
 
 - Never commit secrets, credentials, private keys, tokens, cookies, customer data, raw sensitive logs, malware samples, packet captures, or exploit target details unless the user explicitly approves a storage policy.
-- Prefer `evidence-redacted/` plus external evidence references.
-- Keep findings factual and distinguish confirmed evidence from hypotheses.
+- Prefer public API metadata, redacted notes, and external source references over storing raw sensitive evidence.
+- Keep candidate records factual and distinguish confirmed evidence from hypotheses.
 - If a task could affect third-party systems, pause and get explicit scope/authorization.
 
 Closeout:

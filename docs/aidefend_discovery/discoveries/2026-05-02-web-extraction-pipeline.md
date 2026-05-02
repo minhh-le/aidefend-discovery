@@ -18,7 +18,7 @@ For **feed URL → clean text → BM25/embeddings**, the best default is usually
 | Field | Content |
 |--------|---------|
 | Subject | Tooling choices to replace noisy RSS/HTML with retrieval-friendly text |
-| Context | `persistent-agent-security` discovery prototype; roadmap Phase 1 (chunk, entity extract, explainability) |
+| Context | AIDEFEND Discovery prototype; roadmap Phase 1 (chunk, entity extract, explainability) |
 | Decision supported | Whether to standardize on crawl4ai vs lighter extractors vs hybrid |
 | Assumptions | Sources remain allowlisted; legal/ToS respected; no auto-promotion to AIDEFEND |
 

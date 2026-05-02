@@ -4,7 +4,7 @@ Updated: 2026-05-02
 
 ## 2026-04-30 — Start as safe empty scaffold
 
-Decision: Initialize Persistent Agent Security with only continuity structure and safety policy, no project-specific content.
+Decision: Initialize the repo with only continuity structure and safety policy, no project-specific content.
 
 Rationale: Security work needs explicit scope and evidence handling rules before tooling, targets, or findings are added.
 
@@ -25,3 +25,9 @@ Rationale: Official APIs and static HTML extractors match maintainer alignment; 
 Decision: Implement NVD incremental ingestion first (anonymous mode), with explicit `--source nvd` dispatch, CVE/CWE normalization, and sqlite cursor persistence, while deferring GHSA ingestion and auth-enabled connector paths.
 
 Rationale: Delivers a stable vertical slice with minimal moving parts, validates connector-state plumbing in production code, and preserves clear follow-up boundaries for GHSA, auth, and ranking improvements.
+
+## 2026-05-02 — Rename working identity to AIDEFEND Discovery
+
+Decision: Treat **AIDEFEND Discovery** as the user-facing project name and clean stale security-scaffold continuity docs around the actual discovery pipeline. Keep the local checkout/repo slug unchanged for now.
+
+Rationale: The repo's useful work is now centered on AIDEFEND candidate discovery, public advisory ingestion, and gap-review tooling. The previous broad scaffold name and placeholder security-project loops no longer described current work.

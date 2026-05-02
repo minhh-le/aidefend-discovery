@@ -1,10 +1,10 @@
 # Context Index
 
-Updated: 2026-05-02 (session closeout: HANDOFF/CURRENT/OPEN_LOOPS/DECISIONS aligned)
+Updated: 2026-05-02 (renamed working identity to AIDEFEND Discovery)
 
 ## Purpose
 
-Repo-local continuity packet for Persistent Agent Security.
+Repo-local continuity packet for **AIDEFEND Discovery**.
 
 ## Startup Order
 
@@ -19,12 +19,9 @@ Repo-local continuity packet for Persistent Agent Security.
 
 ## Main Areas
 
-- `scripts/` — security automation scripts (includes `aidefend_discovery/` + `run_discovery_gap.py`).
+- `scripts/` — discovery automation scripts (`aidefend_discovery/` + `run_discovery_gap.py`).
 - `docs/aidefend_discovery/` — **roadmap** (`ROADMAP.md`), **discoveries/** (dated research syntheses), review contract, maintainer alignment for AIDEFEND + discovery R&D.
 - `lab/` — local lab configs; **AIDEFEND discovery** lives under `lab/aidefend_discovery/` (allowlist + README).
-- `detections/` — detection logic/rules.
-- `reports/` — deliverable/report drafts.
-- `findings/` — finding writeups.
-- `evidence-redacted/` — sanitized evidence only.
-- `tests/` — tests for scripts/detections.
+- `reports/` — generated gap report examples and deliverable drafts.
+- `tests/` — tests for discovery scripts.
 - `docs/` — supporting documentation.
