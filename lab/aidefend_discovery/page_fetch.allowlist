@@ -1,3 +1,9 @@
 # Hostnames allowed for optional HTML fetch (one per line, no scheme).
 # Used only when run_discovery_gap.py fetches source_urls (not the RSS feed URL).
 github.com
+# NVD advisory pages — referenced by NVD source_urls.
+nvd.nist.gov
+# Common advisory hosts referenced by GHSA / CVE source_urls.
+huntr.com
+huntr.dev
+security.snyk.io

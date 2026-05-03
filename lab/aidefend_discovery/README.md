@@ -29,13 +29,24 @@ python3 scripts/run_discovery_gap.py \
 
 Tune `--gap-bm25-max` if almost every item flags as a gap or none do.
 
-## Run (NVD mode, anonymous-only in Phase 2A)
+## Feed allowlist hygiene
 
-Phase 2A supports NVD ingestion without API key handling yet. Keep request volume low to respect NVD public limits.
-
-### Explicit window run
+Audit feed reachability before a run; emits `reports/feed_audit_YYYYMMDD.json`:
 
 ```bash
+python3 scripts/audit_feeds.py --allowlist lab/aidefend_discovery/feeds.allowlist
+```
+
+Exit code: `0` if ≥1 feed reachable, `1` if all dead. Pin one stable feed in CI as the smoke-test target — currently **LangChain releases atom** (the longest-lived in the allowlist).
+
+## Run (NVD mode)
+
+NVD authenticated mode is now supported. Set `NVD_API_KEY` in env to lift the rate limit from 5 req/30s (anonymous) to 50 req/30s. Without the key, the connector still works at the lower limit. Retries on 403/429/5xx use exponential backoff with jitter; capped at 5 attempts; honors `Retry-After`.
+
+### Explicit window run (authenticated)
+
+```bash
+NVD_API_KEY=$NVD_API_KEY \
 python3 scripts/run_discovery_gap.py \
   --source nvd \
   --data-json /path/to/aidefense-framework/data/data.json \

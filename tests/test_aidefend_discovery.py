@@ -89,6 +89,26 @@ class TestEntities(unittest.TestCase):
         self.assertEqual(len(m["cves"]), 1)
         self.assertEqual(len(m["ghsas"]), 1)
 
+    def test_version_constraints_comparator(self) -> None:
+        got = extract_entities("affected versions: < 2.0.1, fixed in 2.0.2")
+        self.assertIn("< 2.0.1", got["version_constraints"])
+        self.assertIn("fixed_in:2.0.2", got["version_constraints"])
+
+    def test_version_constraints_interval(self) -> None:
+        got = extract_entities("Range 1.0.0 - 2.0.1 is vulnerable; >= 1.4 also impacted.")
+        self.assertIn("1.0.0 - 2.0.1", got["version_constraints"])
+        self.assertIn(">= 1.4", got["version_constraints"])
+
+    def test_version_constraints_dedup_and_normalize(self) -> None:
+        got = extract_entities("Affected: 1.0.0; affected: 1.0.0; = 2.0; == 2.0")
+        # affected normalized once; comparator '=' rewritten to '=='; dedup applied
+        self.assertEqual(got["version_constraints"].count("affected:1.0.0"), 1)
+        self.assertEqual(got["version_constraints"].count("== 2.0"), 1)
+
+    def test_version_constraints_empty_when_absent(self) -> None:
+        got = extract_entities("Plain prose with no versions whatsoever.")
+        self.assertEqual(got["version_constraints"], [])
+
 
 class TestExtractChunking(unittest.TestCase):
     def test_chunk_overlap(self) -> None:

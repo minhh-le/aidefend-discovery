@@ -1,3 +1,17 @@
 # One URL per line. Only listed feeds may be fetched by scripts/run_discovery_gap.py
+# Comments (#) and blanks are ignored. Audit reachability with scripts/audit_feeds.py.
+#
 # LangChain releases Atom — OSS supply-chain / ML-agent adjacent signal (official GitHub feed).
 https://github.com/langchain-ai/langchain/releases.atom
+
+# vLLM releases Atom — high-throughput LLM serving runtime; security/maintenance changes flow here.
+https://github.com/vllm-project/vllm/releases.atom
+
+# LlamaIndex (LlamaIndex.TS / Python) releases Atom — RAG/agent stack adjacent.
+https://github.com/run-llama/llama_index/releases.atom
+
+# Open-WebUI releases Atom — popular self-hosted LLM frontend; vuln-flavored advisories possible.
+https://github.com/open-webui/open-webui/releases.atom
+
+# AutoGPT releases Atom — autonomous-agent stack; agent-security adjacent.
+https://github.com/Significant-Gravitas/AutoGPT/releases.atom

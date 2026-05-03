@@ -33,6 +33,11 @@ tmp/
 lab/aidefend_discovery/candidates.jsonl
 lab/aidefend_discovery/discovery_state.db
 reports/gap_run_*.json
+reports/feed_audit_*.json
+reports/anchor_diff_*.json
+reports/review_*.csv
+reports/metrics_*.json
+lab/aidefend_discovery/taxonomy_anchors/.cache/
 
 # Local isolated worktrees
 .worktrees/

@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import random
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -16,6 +19,31 @@ NVD_USER_AGENT = (
     "(+https://github.com/minhh-le/persistent-agent-security; research prototype)"
 )
 MAX_NVD_WINDOW_DAYS = 120
+
+# Retry policy: NVD signals rate-limit with HTTP 403 (not 429); transient with 5xx.
+# Authenticated tier is 50 req / 30s; anonymous is 5 / 30s. Cap retries to fail loudly.
+NVD_RETRY_STATUSES = frozenset({403, 429, 500, 502, 503, 504})
+NVD_MAX_RETRIES = 5
+NVD_BACKOFF_BASE_S = 1.5
+NVD_BACKOFF_CAP_S = 60.0
+
+
+def _nvd_api_key() -> str | None:
+    """Read NVD_API_KEY at call time so tests can monkey-patch env."""
+    key = os.environ.get("NVD_API_KEY")
+    return key.strip() if key and key.strip() else None
+
+
+def _backoff_seconds(attempt: int, retry_after: str | None) -> float:
+    """Exponential with jitter, but obey Retry-After verbatim if the server set it."""
+    if retry_after:
+        try:
+            return min(NVD_BACKOFF_CAP_S, max(0.0, float(retry_after.strip())))
+        except ValueError:
+            pass
+    base = NVD_BACKOFF_BASE_S * (2 ** max(0, attempt))
+    jitter = random.uniform(0, base * 0.25)
+    return min(NVD_BACKOFF_CAP_S, base + jitter)
 
 
 def _parse_iso8601(value: str) -> datetime:
@@ -58,15 +86,50 @@ def build_nvd_query(
     return query
 
 
-def fetch_nvd_page(query: dict[str, Any], timeout_s: float = 30.0) -> dict[str, Any]:
+def fetch_nvd_page(
+    query: dict[str, Any],
+    timeout_s: float = 30.0,
+    *,
+    sleep_fn: Callable[[float], None] | None = None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    """Fetch one NVD page with auth + retry/backoff.
+
+    Auth: pass `api_key` explicitly or set `NVD_API_KEY` in the env. Anonymous
+    requests are rate-limited at 5/30s; authenticated at 50/30s. We retry on
+    NVD_RETRY_STATUSES with exponential backoff + jitter, honoring `Retry-After`.
+    """
+    sleeper = sleep_fn or time.sleep
+    key = api_key if api_key is not None else _nvd_api_key()
+    headers = {"User-Agent": NVD_USER_AGENT}
+    if key:
+        headers["apiKey"] = key
     params = urllib.parse.urlencode(query)
-    req = urllib.request.Request(
-        f"{NVD_CVE_API_URL}?{params}",
-        headers={"User-Agent": NVD_USER_AGENT},
-    )
-    with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-        body = resp.read()
-    return json.loads(body.decode("utf-8"))
+    url = f"{NVD_CVE_API_URL}?{params}"
+
+    last_exc: Exception | None = None
+    for attempt in range(NVD_MAX_RETRIES + 1):
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+                body = resp.read()
+            return json.loads(body.decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            last_exc = e
+            if e.code in NVD_RETRY_STATUSES and attempt < NVD_MAX_RETRIES:
+                retry_after = e.headers.get("Retry-After") if e.headers else None
+                delay = _backoff_seconds(attempt, retry_after)
+                sleeper(delay)
+                continue
+            raise
+        except urllib.error.URLError as e:
+            last_exc = e
+            if attempt < NVD_MAX_RETRIES:
+                sleeper(_backoff_seconds(attempt, None))
+                continue
+            raise
+    # Should be unreachable, but be explicit.
+    raise RuntimeError(f"NVD fetch exhausted retries: {last_exc!r}")
 
 
 def _extract_cwe_ids(cve: dict[str, Any]) -> list[str]:
