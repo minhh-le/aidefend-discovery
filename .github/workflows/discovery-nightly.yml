@@ -1,0 +1,192 @@
+# Nightly AIDEFEND Discovery pipeline.
+#
+# Runs the NVD + GHSA + RSS + anchor-diff workflow on a fixed schedule and
+# opens a PR with new dated reports. Never auto-merges — preserves the
+# discovery layer's "no silent overwrites" principle.
+#
+# Secrets required (set via `gh secret set`):
+#   NVD_API_KEY        — authenticated NVD CVE API access (50 req/30s)
+#   GH_PAT_FOR_GHSA    — fine-grained PAT with `Public repository: read` for
+#                        the `/advisories` endpoint (also bumps the GHSA
+#                        rate limit from 60/hr unauth to 5000/hr).
+#
+# Manual trigger: `gh workflow run discovery-nightly.yml`.
+
+name: discovery-nightly
+
+on:
+  schedule:
+    # 09:00 UTC daily — early enough that NVD's daily refresh is settled.
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      max_items:
+        description: "Cap candidates per source (NVD/GHSA/RSS)"
+        type: string
+        default: "50"
+      lookback_days:
+        description: "How many days back to query NVD/GHSA"
+        type: string
+        default: "7"
+
+permissions:
+  contents: write       # commit reports
+  pull-requests: write  # open the auto-PR
+
+concurrency:
+  group: discovery-nightly
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AIDEFENSE_FRAMEWORK_REF: main
+      MAX_ITEMS: ${{ github.event.inputs.max_items || '50' }}
+      LOOKBACK_DAYS: ${{ github.event.inputs.lookback_days || '7' }}
+    steps:
+      - name: Checkout aidefend-discovery
+        uses: actions/checkout@v4
+
+      - name: Checkout aidefense-framework (read-only — needed for data.json)
+        uses: actions/checkout@v4
+        with:
+          repository: edward-playground/aidefense-framework
+          ref: ${{ env.AIDEFENSE_FRAMEWORK_REF }}
+          path: aidefense-framework
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests (smoke)
+        run: |
+          python -m unittest discover -s tests -v
+
+      - name: Compute date window
+        id: window
+        run: |
+          end=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          start=$(date -u -d "${LOOKBACK_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
+          echo "start=$start" >> "$GITHUB_OUTPUT"
+          echo "end=$end" >> "$GITHUB_OUTPUT"
+          echo "stamp=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Audit feeds
+        run: python scripts/audit_feeds.py
+
+      - name: NVD pull (authenticated)
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          python scripts/run_discovery_gap.py \
+            --source nvd \
+            --data-json aidefense-framework/data/data.json \
+            --state-db lab/aidefend_discovery/discovery_state.db \
+            --nvd-lastmod-start "${{ steps.window.outputs.start }}" \
+            --nvd-lastmod-end "${{ steps.window.outputs.end }}" \
+            --nvd-results-per-page 200 --nvd-max-pages 2 \
+            --nvd-keyword "machine learning" \
+            --max-items "${MAX_ITEMS}" --no-fetch-pages \
+            --reports-dir reports/nvd
+
+      - name: GHSA pull (authenticated)
+        env:
+          GH_PAT_FOR_GHSA: ${{ secrets.GH_PAT_FOR_GHSA }}
+        run: |
+          python scripts/run_discovery_gap.py \
+            --source ghsa \
+            --data-json aidefense-framework/data/data.json \
+            --state-db lab/aidefend_discovery/discovery_state.db \
+            --ghsa-updated-after "${{ steps.window.outputs.start }}" \
+            --ghsa-per-page 100 --ghsa-max-pages 3 \
+            --ghsa-severity high \
+            --max-items "${MAX_ITEMS}" --no-fetch-pages \
+            --reports-dir reports/ghsa
+
+      - name: RSS pull
+        run: |
+          while IFS= read -r feed; do
+            [[ -z "$feed" || "$feed" =~ ^# ]] && continue
+            echo "::group::$feed"
+            python scripts/run_discovery_gap.py \
+              --source rss --feed-url "$feed" \
+              --data-json aidefense-framework/data/data.json \
+              --state-db lab/aidefend_discovery/discovery_state.db \
+              --max-items 25 \
+              --reports-dir reports/rss || echo "::warning::$feed pull failed (continuing)"
+            echo "::endgroup::"
+          done < lab/aidefend_discovery/feeds.allowlist
+
+      - name: Anchor diff
+        run: |
+          python scripts/anchor_diff.py \
+            --data-json aidefense-framework/data/data.json \
+            --output reports/anchor_diff_${{ steps.window.outputs.stamp }}.json
+
+      - name: Export review CSV
+        run: |
+          python scripts/export_review.py \
+            --state-db lab/aidefend_discovery/discovery_state.db \
+            --output reports/review_${{ steps.window.outputs.stamp }}.csv
+
+      - name: Discovery metrics
+        run: |
+          python scripts/discovery_metrics.py \
+            --state-db lab/aidefend_discovery/discovery_state.db \
+            --output reports/metrics_${{ steps.window.outputs.stamp }}.json
+
+      - name: Stage reports for PR
+        id: stage
+        run: |
+          # The default .gitignore excludes reports/{gap_run,feed_audit,
+          # anchor_diff,review,metrics}_*.json. For the auto-PR, force-add
+          # under a dated subfolder so changes are visible.
+          mkdir -p reports/auto/${{ steps.window.outputs.stamp }}
+          cp -r reports/nvd reports/ghsa reports/rss reports/auto/${{ steps.window.outputs.stamp }}/ 2>/dev/null || true
+          cp reports/anchor_diff_${{ steps.window.outputs.stamp }}.json reports/auto/${{ steps.window.outputs.stamp }}/ 2>/dev/null || true
+          cp reports/review_${{ steps.window.outputs.stamp }}.csv reports/auto/${{ steps.window.outputs.stamp }}/ 2>/dev/null || true
+          cp reports/metrics_${{ steps.window.outputs.stamp }}.json reports/auto/${{ steps.window.outputs.stamp }}/ 2>/dev/null || true
+          echo "report_dir=reports/auto/${{ steps.window.outputs.stamp }}" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR with new reports
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: discovery-nightly/${{ steps.window.outputs.stamp }}
+          title: "discovery-nightly: ${{ steps.window.outputs.stamp }}"
+          commit-message: |
+            chore(discovery): nightly run ${{ steps.window.outputs.stamp }}
+
+            Automated PR from .github/workflows/discovery-nightly.yml
+            Window: ${{ steps.window.outputs.start }} → ${{ steps.window.outputs.end }}
+          body: |
+            ## Discovery nightly — ${{ steps.window.outputs.stamp }}
+
+            Window: `${{ steps.window.outputs.start }} → ${{ steps.window.outputs.end }}`.
+
+            ### Artifacts
+            - `${{ steps.stage.outputs.report_dir }}/` — per-source gap reports + anchor diff + review CSV + metrics
+
+            ### Review checklist (from `PROMOTION_PLAYBOOK.md`)
+            - [ ] Inspect `metrics_*.json` for is_gap rate, promotion rate.
+            - [ ] Skim `review_*.csv`; tag rejection reasons in the discovery state DB.
+            - [ ] If anchor-diff surfaces new regressions, run anchor_diff workflow + open Shape-A promotion PRs upstream.
+            - [ ] DO NOT merge without human review — discovery layer is hypothesis-only.
+
+            Soft rule (`PROMOTION_PLAYBOOK.md`): consult anchor diff before opening any upstream promotion PR.
+          base: main
+          add-paths: |
+            ${{ steps.stage.outputs.report_dir }}/**
+          delete-branch: true
+          labels: |
+            discovery
+            automated

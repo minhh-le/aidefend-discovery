@@ -138,9 +138,9 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 
 #### Action items
 
-- [ ] Community PR path for **connector allowlists** and **threshold** defaults (maintainer merge).
-- [ ] Quarterly **quality audit** against gold set + incident case studies.
-- [ ] Scale (streaming, GPU embeddings) **only** if Phase 2 precision targets met.
+- [x] Community PR path for **connector allowlists** and **threshold** defaults — `.github/PULL_REQUEST_TEMPLATE.md` (generic) + `.github/PULL_REQUEST_TEMPLATE/discovery_promotion.md` (upstream-promotion specialised) carry the audit-trail requirements.
+- [x] Quarterly **quality audit** template — [`QUALITY_AUDIT_CHECKLIST.md`](QUALITY_AUDIT_CHECKLIST.md). Run is the maintenance ritual; output PR is `audit:Q<N>`.
+- [ ] Scale (streaming, GPU embeddings) **only** if Phase 2 precision targets met (see "Deferred with reasoning" embeddings re-open trigger).
 
 ---
 
