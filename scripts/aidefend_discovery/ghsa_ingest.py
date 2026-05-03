@@ -100,7 +100,7 @@ def fetch_ghsa_page(
     timeout_s: float = 30.0,
     *,
     sleep_fn: Callable[[float], None] | None = None,
-    token: str | None = None,
+    token: "str | None" = None,  # [REDACTED] — pulled from GH_PAT_FOR_GHSA env at call time
 ) -> tuple[list[dict[str, Any]], str | None]:
     """Fetch one GHSA page; return (items, next_url).
 

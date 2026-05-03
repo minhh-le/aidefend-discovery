@@ -160,7 +160,7 @@ jobs:
       - name: Open PR with new reports
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: "${{ secrets.GITHUB_TOKEN }}"
           branch: discovery-nightly/${{ steps.window.outputs.stamp }}
           title: "discovery-nightly: ${{ steps.window.outputs.stamp }}"
           commit-message: |

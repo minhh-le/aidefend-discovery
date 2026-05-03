@@ -98,6 +98,87 @@ Next:
 - Implement Phase 2B GHSA connector + CVE↔GHSA joins.
 - Add NVD auth path and stronger ingestion retry/rate-limit policy tuning.
 
+## 2026-05-03 — Architecture-edit session: full roadmap build-out (Blocks A→J)
+
+Summary:
+End-to-end implementation of the remaining roadmap. User authorized full-scope
+work with credentials in-band (NVD_API_KEY + GH_PAT_FOR_GHSA), the upstream
+`aidefend-mcp` repo in scope, and `/discover` available. Eight execution
+blocks (A through J) shipped as per-theme commits with passing tests.
+
+Changed (this repo, in commit order):
+- `4632242` Block A: NVD auth + version-range entities + feed audit script.
+  Diversified `feeds.allowlist` to 5 AI-stack feeds (LangChain, vLLM,
+  LlamaIndex, Open-WebUI, AutoGPT — all 200/reachable). Page-fetch allowlist
+  added nvd.nist.gov + huntr + snyk hosts.
+- `82a0972` Block C: state_store v1 schema (runs/candidates/gap_reports/
+  seen_window) + INSERT OR IGNORE idempotency keyed on content_hash;
+  `scripts/export_review.py` (CSV) + `scripts/discovery_metrics.py` (JSON);
+  `run_discovery_gap.py` writes sqlite alongside JSONL. Drive-by fix: dedupe
+  NVD reference URLs (NVD returns each twice when tags differ).
+- `09ed4e8` Block G: GHSA connector (`scripts/aidefend_discovery/ghsa_ingest.py`)
+  with PAT auth via `GH_PAT_FOR_GHSA`/`GITHUB_TOKEN` fallback; cursor
+  pagination via Link header `rel="next"`; CVE↔GHSA join. `--source ghsa`
+  route + 5 new GHSA-specific CLI flags.
+- `dc2db82` Block B: CWE→tactic bridge (26 seeded CWEs with citations + per-
+  entry confidence in `lab/aidefend_discovery/bridges/cwe_to_tactic.yaml`);
+  `GapReport.bridge_rationales` field. Taxonomy anchor diff (`scripts/anchor_diff.py`)
+  + 9 vendored anchor YAMLs (MITRE ATLAS / OWASP LLM/ML/Agentic / NIST AI
+  100-2 / MAESTRO / SAIF / DASF / Cisco AITech). Soft promotion-pause rule
+  in `PROMOTION_PLAYBOOK.md` lifted. Bug fix in `extract.py`: connector-
+  supplied entities (e.g., GHSA CWE list) now MERGE into text-extracted
+  entities instead of being clobbered.
+- `d9e6b11` Block I: 25 hand-labeled gold rows
+  (`lab/aidefend_discovery/gold/example_labels.jsonl`) — 19 covered / 6 gaps;
+  `eval_discovery_gold.py` upgraded with prefix matching + precision/recall/
+  F1; `labeling_log.md` per-row audit table.
+- This commit (Blocks E + H): `.github/PULL_REQUEST_TEMPLATE.md` + specialised
+  `discovery_promotion.md`; `docs/aidefend_discovery/QUALITY_AUDIT_CHECKLIST.md`
+  8-section quarterly ritual; `.github/workflows/discovery-nightly.yml`
+  (cron 09:00 UTC; opens auto-PR, never auto-merges); secrets `NVD_API_KEY`
+  and `GH_PAT_FOR_GHSA` provisioned via `gh secret set` (values piped from
+  env, never echoed).
+
+Changed (companion repo `aidefend-mcp`, locally committed only):
+- `app/discovery/{__init__,store}.py` — read-only sqlite client with
+  AID-* sidecar enforcement.
+- `app/tools/{search_discovery_candidates,explain_candidate_mapping,list_anchor_diff}.py`
+  — three namespace-walled tools.
+- `app/config.py` — `DISCOVERY_DB_PATH` + `DISCOVERY_REPORTS_PATH`
+  Optional[Path] fields.
+- `mcp_server.py` — register Tool definitions + dispatch.
+- `tests/test_discovery_tools.py` — 14 contract tests asserting AID-* IDs
+  only in `references_aid` sidecar; every response carries
+  `discovery_namespace: true` + disclaimer; graceful "not configured" when
+  unset.
+
+Verification:
+- `aidefend-discovery`: 59/59 unit tests pass (was 22 → 30 → 35 → 45 → 54 → 59
+  across the blocks). Live authenticated NVD pull (10 CVEs in 4.2s) and
+  GHSA pull (10 advisories with 5 CVEs + 10 CWEs); end-to-end with sqlite
+  store + bridge_rationales populated for 5/6 GHSA candidates; anchor diff
+  surfaces 40 regression candidates across 9 frameworks; gold eval
+  is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00, recall_is_gap=0.0.
+- `aidefend-mcp`: 14/14 discovery contract tests pass; 305 pre-existing unit
+  tests still pass; 2 unrelated pre-existing failures
+  (test_defenses_for_threat_fix) require populated LanceDB sync.
+- Workflow YAML parses cleanly (15 steps); `gh secret list` shows
+  `NVD_API_KEY` + `GH_PAT_FOR_GHSA` present on
+  `minhh-le/persistent-agent-security`.
+- Closeout validators (run from `../agent-continuity`):
+  `closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` PASS;
+  `validate_continuity.py` PASS.
+
+Next:
+- Open the first upstream promotion PR per `PROMOTION_PLAYBOOK.md` to close
+  the hardened Phase 1 exit. Recommended candidate: `GHSA-324q-cwx9-7crr`
+  (KubeAI command injection → AID-H Shape-A).
+- Run `gh workflow run discovery-nightly.yml` once manually, review auto-PR.
+- Evaluate embeddings + cross-encoder rerank (re-open trigger fired:
+  `recall_is_gap=0.0` on out-of-scope gap detection).
+- **User: rotate `NVD_API_KEY` and `GH_PAT_FOR_GHSA` that appeared in chat
+  transcripts**; update GH secrets after rotation.
+
 ## 2026-05-02 — Architecture-edit session: promotion playbook + Phase 1 exit hardening
 
 Summary:

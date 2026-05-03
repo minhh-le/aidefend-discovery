@@ -91,7 +91,7 @@ def fetch_nvd_page(
     timeout_s: float = 30.0,
     *,
     sleep_fn: Callable[[float], None] | None = None,
-    api_key: str | None = None,
+    api_key: "str | None" = None,  # [REDACTED] — pulled from NVD_API_KEY env at call time
 ) -> dict[str, Any]:
     """Fetch one NVD page with auth + retry/backoff.
 

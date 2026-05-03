@@ -26,6 +26,33 @@ Decision: Implement NVD incremental ingestion first (anonymous mode), with expli
 
 Rationale: Delivers a stable vertical slice with minimal moving parts, validates connector-state plumbing in production code, and preserves clear follow-up boundaries for GHSA, auth, and ranking improvements.
 
+## 2026-05-03 — Full roadmap build-out (Blocks A→J)
+
+Decision: Ship the remainder of the AIDEFEND Discovery roadmap end-to-end in one
+session, gated on user-provided NVD API key, GitHub PAT, and access to the
+companion `aidefend-mcp` repo. Eight per-theme commits cover:
+authenticated NVD ingest with retry/backoff, version-range entity regex,
+feed audit script, sqlite candidate/run/gap-report store with idempotency
+on `content_hash`, review CSV + metrics emitters, GHSA connector mirroring
+NVD pattern, CWE→tactic bridge with citation-backed seed table (26 CWEs),
+taxonomy anchor diff with 9 vendored YAMLs, hand-labeled 25-row gold corpus
+with precision/recall/F1 eval upgrade, MCP discovery tools with namespace
+wall + 14 contract tests, governance templates + quarterly audit checklist,
+nightly GitHub Actions workflow with secret provisioning.
+
+Rationale: User authorized full scope ("max-level founder gate"); the roadmap's
+phase ordering was honored (A→C→G→B→I→F→E+H→J) so each block could be smoke-
+tested against live data before the next was layered. Bridge precedes embeddings
+deliberately — gold-eval baseline (recall_is_gap=0.0) confirms the embeddings
+re-open trigger now fires, but with measurable signal rather than guesswork.
+The MCP tools are isolated behind `DISCOVERY_DB_PATH`; namespace wall enforced
+via contract tests so the discovery layer cannot blur into AIDEFEND truth even
+when both surfaces ship together.
+
+Out-of-scope deliberately: pushing `aidefend-mcp` Block-F changes upstream
+(third-party repo; user steers PR copy per memory); rotating credentials that
+appeared in chat transcripts (user-side action).
+
 ## 2026-05-02 — Promotion playbook + Phase 1 exit hardening + deferred-with-reasoning
 
 Decision: Author [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) as the concrete shape mapping `CandidateFinding` → upstream `tactics/*.js` edits; harden Phase 1's exit criterion in [`ROADMAP.md`](../docs/aidefend_discovery/ROADMAP.md#phase-1--interpretable-signal) to require a **merged upstream promotion PR**, not just a renderable demo story; codify a "Deferred with reasoning" section listing six items consciously held with explicit re-open triggers; record a soft rule pausing upstream promotions until the Phase 2 taxonomy-anchor diff lands.
