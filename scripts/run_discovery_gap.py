@@ -54,6 +54,12 @@ except ModuleNotFoundError:  # pragma: no cover - implemented in Phase 2 tasks
     def ingest_nvd_incremental(*args, **kwargs):  # type: ignore[no-redef]
         raise NotImplementedError("NVD connector is not implemented yet")
 
+try:  # noqa: E402
+    from aidefend_discovery.ghsa_ingest import ingest_ghsa_incremental
+except ModuleNotFoundError:  # pragma: no cover
+    def ingest_ghsa_incremental(*args, **kwargs):  # type: ignore[no-redef]
+        raise NotImplementedError("GHSA connector is not implemented yet")
+
 
 def _threat_overlap(candidate_text: str, records: list[TechniqueRecord]) -> tuple[list[str], list[str]]:
     """Return (candidate_ids_found, technique_ids_with_item_overlap)."""
@@ -147,7 +153,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--source",
-        choices=("rss", "nvd"),
+        choices=("rss", "nvd", "ghsa"),
         default="rss",
         help="Candidate ingestion source",
     )
@@ -198,6 +204,11 @@ def main() -> int:
     parser.add_argument("--nvd-results-per-page", type=int, default=2000, help="NVD resultsPerPage")
     parser.add_argument("--nvd-max-pages", type=int, default=1, help="Max NVD pages per run")
     parser.add_argument("--nvd-keyword", help="Optional NVD keywordSearch filter")
+    parser.add_argument("--ghsa-updated-after", help="GHSA updated_at lower bound (ISO8601)")
+    parser.add_argument("--ghsa-per-page", type=int, default=100, help="GHSA per_page (max 100)")
+    parser.add_argument("--ghsa-max-pages", type=int, default=1, help="Max GHSA pages per run")
+    parser.add_argument("--ghsa-severity", help="GHSA severity filter (low|medium|high|critical)")
+    parser.add_argument("--ghsa-cwes", help="GHSA CWE filter (comma-separated CWE IDs)")
     parser.add_argument(
         "--state-db",
         type=Path,
@@ -220,6 +231,22 @@ def main() -> int:
             print("ERROR: --feed-url is required when --source rss", file=sys.stderr)
             return 2
         candidates = ingest_allowlisted_feed(args.feed_url, args.allowlist)
+    elif args.source == "ghsa":
+        # Cursor-driven by default: pick up where the last GHSA run left off.
+        ghsa_after = args.ghsa_updated_after or get_state_value(args.state_db, "ghsa_updated_after")
+        candidates = ingest_ghsa_incremental(
+            updated_after=ghsa_after,
+            max_pages=args.ghsa_max_pages,
+            per_page=args.ghsa_per_page,
+            severity=args.ghsa_severity,
+            cwes=args.ghsa_cwes,
+        )
+        if candidates:
+            # Advance cursor past the latest item we observed.
+            latest = max(
+                (c.get("retrieved_at") or "") for c in candidates
+            )
+            set_state_value(args.state_db, "ghsa_updated_after", latest)
     else:
         if bool(args.nvd_lastmod_start) ^ bool(args.nvd_lastmod_end):
             print(

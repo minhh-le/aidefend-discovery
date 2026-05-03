@@ -59,7 +59,35 @@ python3 scripts/run_discovery_gap.py \
   --max-items 20
 ```
 
-### Cursor-driven run
+## Run (GHSA mode)
+
+GitHub Security Advisory ingestion. Set `GH_PAT_FOR_GHSA` in env (preferred) or
+`GITHUB_TOKEN` (fallback). Anonymous calls hit the 60 req/hr unauthenticated
+limit and are not recommended.
+
+```bash
+GH_PAT_FOR_GHSA=$GH_PAT \
+python3 scripts/run_discovery_gap.py \
+  --source ghsa \
+  --data-json /path/to/aidefense-framework/data/data.json \
+  --state-db lab/aidefend_discovery/discovery_state.db \
+  --ghsa-updated-after 2026-04-01T00:00:00Z \
+  --ghsa-per-page 100 \
+  --ghsa-max-pages 3 \
+  --ghsa-severity high \
+  --no-fetch-pages \
+  --max-items 50
+```
+
+Cursor-driven (no `--ghsa-updated-after`): the runner reads
+`connector_state.ghsa_updated_after` from the state DB, ingests forward, and
+advances the cursor to the most recent `retrieved_at` after a successful run.
+
+GHSA candidates carry `entities.cves`, `entities.cwes`, `entities.version_constraints`
+(`vulnerable:<range>` and `patched:<version>`), `ghsa_packages` (ecosystem:name),
+and `ghsa_severity`.
+
+### Cursor-driven run (NVD)
 
 When `--nvd-lastmod-start` and `--nvd-lastmod-end` are omitted, the runner uses:
 - `connector_state.nvd_lastmod_end` from `--state-db` as window start when present
