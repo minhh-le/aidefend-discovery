@@ -1,0 +1,35 @@
+# OWASP Agentic AI Security Top 10 — 2026
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "OWASP Agentic AI Top 10 2026" items.
+# Source: https://owasp.org/www-project-agentic-ai/
+# Snapshot date: 2026-05-03
+#
+# Note: upstream AIDEFEND uses the "ASI##:2026" prefix (Agentic Security Issues),
+# so this anchor mirrors that convention exactly. Earlier OWASP drafts used "AAI##".
+
+framework: "OWASP Agentic AI Top 10 2026"
+version: "2026"
+source_url: "https://owasp.org/www-project-agentic-ai/"
+snapshot_date: "2026-05-03"
+
+items:
+  - id: "ASI01:2026"
+    title: "Agent Goal Hijack"
+  - id: "ASI02:2026"
+    title: "Tool Misuse and Exploitation"
+  - id: "ASI03:2026"
+    title: "Identity and Privilege Abuse"
+  - id: "ASI04:2026"
+    title: "Agentic Supply Chain Vulnerabilities"
+  - id: "ASI05:2026"
+    title: "Unexpected Code Execution"
+  - id: "ASI06:2026"
+    title: "Memory & Context Poisoning"
+  - id: "ASI07:2026"
+    title: "Insecure Inter-Agent Communication"
+  - id: "ASI08:2026"
+    title: "Cascading Failures"
+  - id: "ASI09:2026"
+    title: "Human-Agent Trust Exploitation"
+  - id: "ASI10:2026"
+    title: "Rogue Agents"

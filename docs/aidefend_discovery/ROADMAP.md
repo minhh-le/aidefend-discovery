@@ -101,9 +101,9 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 
 - [x] **NVD connector (Phase 2A baseline)** (official API JSON): parse CVE, CWE, descriptions; anonymous mode; incremental `lastMod*` windows + pagination + sqlite cursor checkpoint.
 - [ ] **NVD connector follow-up:** auth path (`NVD_API_KEY`), stricter AI-relevance/product allowlist tuning, and operational retry policy hardening.
-- [ ] **Bridge table v0:** CWE / ecosystem tags → suggested pillar/tactic **hints** (rules, not truth).
+- [x] **Bridge table v0:** CWE / ecosystem tags → suggested pillar/tactic **hints** (rules, not truth). Implemented in `scripts/aidefend_discovery/bridge.py` + `lab/aidefend_discovery/bridges/cwe_to_tactic.yaml` (26 CWEs with citations + per-entry confidence). Wired into `GapReport.bridge_rationales` / `suggested_pillars` / `suggested_phases` / `suggested_tactic_ids`.
 - [ ] **Embeddings** over technique + `defendsAgainst` strings; optional **cross-encoder** rerank on BM25 top-20.
-- [ ] **Taxonomy anchor diff:** versioned pulls of MITRE/OWASP/NIST machine-readable artifacts → emit **regression candidates** when new upstream IDs lack AIDEFEND mapping. **Prerequisite for resuming upstream promotions** (see [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md) soft rule); without it, accepted candidates risk forking AIDEFEND vocabulary from upstream anchors.
+- [x] **Taxonomy anchor diff:** vendored YAMLs at `lab/aidefend_discovery/taxonomy_anchors/` (MITRE ATLAS, OWASP LLM/ML/Agentic, NIST AI 100-2, MAESTRO, SAIF, Databricks DASF, Cisco AITech) diffed against `data.json` defendsAgainst by `scripts/anchor_diff.py`. Emits `reports/anchor_diff_YYYYMMDD.json` with regression candidates. **Lifts the soft pause** on upstream promotions (see [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md)) — reviewers consult the diff to confirm an anchor isn't already known under different wording before promoting.
 - [ ] `/discover` pass on **STIX / MITRE CTI** consumption patterns if bridging to ATT&CK/ATLAS IDs.
 
 ---

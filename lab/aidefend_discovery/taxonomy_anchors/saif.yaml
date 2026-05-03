@@ -1,0 +1,45 @@
+# Google Secure AI Framework (SAIF) 2.0 — Risks
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "Google Secure AI Framework 2.0 - Risks" items.
+# Source: https://saif.google/secure-ai-framework
+# Snapshot date: 2026-05-03
+
+framework: "Google Secure AI Framework 2.0 - Risks"
+version: "2.0"
+source_url: "https://saif.google/secure-ai-framework"
+snapshot_date: "2026-05-03"
+
+# SAIF risks use 3-letter abbreviations. AIDEFEND mirrors them as
+# "<ABBR>: <Full Name>" in defendsAgainst entries.
+
+items:
+  - id: "DP: Data Poisoning"
+    title: "Data Poisoning"
+  - id: "UTD: Unauthorized Training Data"
+    title: "Unauthorized Training Data"
+  - id: "MST: Model Source Tampering"
+    title: "Model Source Tampering"
+  - id: "EDH: Excessive Data Handling"
+    title: "Excessive Data Handling"
+  - id: "MEX: Model Exfiltration"
+    title: "Model Exfiltration"
+  - id: "MDT: Model Deployment Tampering"
+    title: "Model Deployment Tampering"
+  - id: "DDA: Denial of ML Service"
+    title: "Denial of ML Service"
+  - id: "MRE: Model Reverse Engineering"
+    title: "Model Reverse Engineering"
+  - id: "IMS: Insecure Integrated Component"
+    title: "Insecure Integrated Component"
+  - id: "PIJ: Prompt Injection"
+    title: "Prompt Injection"
+  - id: "MEV: Model Evasion"
+    title: "Model Evasion"
+  - id: "SDD: Sensitive Data Disclosure"
+    title: "Sensitive Data Disclosure"
+  - id: "ISD: Inferred Sensitive Data"
+    title: "Inferred Sensitive Data"
+  - id: "IMO: Insecure Model Output"
+    title: "Insecure Model Output"
+  - id: "RA: Rogue Actions"
+    title: "Rogue Actions"

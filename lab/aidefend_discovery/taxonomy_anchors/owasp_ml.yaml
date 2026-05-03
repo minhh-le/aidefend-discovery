@@ -1,0 +1,32 @@
+# OWASP Machine Learning Security Top 10 — 2023 edition
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "OWASP ML Top 10 2023" items.
+# Source: https://owasp.org/www-project-machine-learning-security-top-10/
+# Snapshot date: 2026-05-03
+
+framework: "OWASP ML Top 10 2023"
+version: "2023"
+source_url: "https://owasp.org/www-project-machine-learning-security-top-10/"
+snapshot_date: "2026-05-03"
+
+items:
+  - id: "ML01:2023"
+    title: "Input Manipulation Attack"
+  - id: "ML02:2023"
+    title: "Data Poisoning Attack"
+  - id: "ML03:2023"
+    title: "Model Inversion Attack"
+  - id: "ML04:2023"
+    title: "Membership Inference Attack"
+  - id: "ML05:2023"
+    title: "Model Theft"
+  - id: "ML06:2023"
+    title: "AI Supply Chain Attacks"
+  - id: "ML07:2023"
+    title: "Transfer Learning Attack"
+  - id: "ML08:2023"
+    title: "Model Skewing"
+  - id: "ML09:2023"
+    title: "Output Integrity Attack"
+  - id: "ML10:2023"
+    title: "Model Poisoning"

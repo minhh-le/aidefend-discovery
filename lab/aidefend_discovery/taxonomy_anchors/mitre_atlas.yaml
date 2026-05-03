@@ -1,0 +1,55 @@
+# MITRE ATLAS — Adversarial Threat Landscape for AI Systems
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "MITRE ATLAS" items.
+# IDs follow ATLAS's AML.T#### convention.
+# Source: https://atlas.mitre.org/matrices/ATLAS / https://github.com/mitre-atlas/atlas-data
+# Snapshot date: 2026-05-03
+#
+# This is a hand-curated subset of the most-cited ATLAS techniques. The full
+# matrix has 100+ entries; refresh from upstream JSON quarterly via the
+# anchor_diff.py --pull-atlas option (when available).
+
+framework: "MITRE ATLAS"
+version: "4.7.0-snapshot"
+source_url: "https://atlas.mitre.org/matrices/ATLAS"
+snapshot_date: "2026-05-03"
+
+items:
+  - id: "AML.T0007"
+    title: "Search Application Repositories"
+  - id: "AML.T0010"
+    title: "ML Supply Chain Compromise"
+  - id: "AML.T0015"
+    title: "Evade AI Model"
+  - id: "AML.T0017"
+    title: "Develop Capabilities"
+  - id: "AML.T0019"
+    title: "Publish Poisoned Datasets"
+  - id: "AML.T0020"
+    title: "Poison Training Data"
+  - id: "AML.T0024"
+    title: "Exfiltration via AI Inference API"
+  - id: "AML.T0029"
+    title: "Denial of AI Service"
+  - id: "AML.T0031"
+    title: "Erode AI Model Integrity"
+  - id: "AML.T0040"
+    title: "AI Model Inference API Access"
+  - id: "AML.T0043"
+    title: "Craft Adversarial Data"
+  - id: "AML.T0048"
+    title: "External Harms"
+  - id: "AML.T0051"
+    title: "LLM Prompt Injection"
+  - id: "AML.T0052"
+    title: "Phishing"
+  - id: "AML.T0053"
+    title: "LLM Plugin Compromise"
+  - id: "AML.T0054"
+    title: "LLM Jailbreak"
+  - id: "AML.T0057"
+    title: "LLM Data Leakage"
+  - id: "AML.T0066"
+    title: "Retrieval Tool Poisoning"
+  - id: "AML.T0107"
+    title: "Exploitation for Defense Evasion"

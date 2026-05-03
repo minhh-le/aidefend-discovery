@@ -10,7 +10,15 @@ The authoritative truth lives in the sibling `aidefense-framework` repo. This re
 
 ## Soft rule (read this first)
 
-**Do not open an upstream promotion PR until the taxonomy-anchor diff (Phase 2) ships.** Without it, a "novel" candidate that already exists in OWASP / MAESTRO / NIST under different wording will silently fork AIDEFEND vocabulary from its upstream anchors. Promote anyway only if the reviewer manually verifies the candidate against current MITRE ATLAS / OWASP / NIST / MAESTRO machine-readable artifacts and records the comparison in the PR.
+The taxonomy anchor diff has shipped (`scripts/anchor_diff.py` + vendored YAMLs in `lab/aidefend_discovery/taxonomy_anchors/`). **Promotions are now allowed**, with one mandatory pre-flight: run the diff and consult its output before opening any upstream PR. Without that step, a "novel" candidate that already exists in OWASP / MAESTRO / NIST under different wording would silently fork AIDEFEND vocabulary from its upstream anchors.
+
+```sh
+python3 scripts/anchor_diff.py \
+  --data-json /path/to/aidefense-framework/data/data.json \
+  --output reports/anchor_diff_$(date -u +%Y%m%d).json
+```
+
+Inspect the report's `present_in_aidefend[]` for the framework you're touching. If the candidate's threat name already maps to a present anchor ID, your promotion is a `defendsAgainst` extension (Shape A), not a new technique (Shape B). The vendored anchor YAMLs are point-in-time snapshots — refresh them quarterly per `QUALITY_AUDIT_CHECKLIST.md`.
 
 ---
 

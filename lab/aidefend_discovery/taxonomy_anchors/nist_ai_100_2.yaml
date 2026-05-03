@@ -1,0 +1,46 @@
+# NIST AI 100-2 (2025): Adversarial Machine Learning — A Taxonomy and
+# Terminology of Attacks and Mitigations
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "NIST Adversarial Machine Learning 2025" items.
+# Source: https://csrc.nist.gov/pubs/ai/100/2/final
+# Snapshot date: 2026-05-03
+
+framework: "NIST Adversarial Machine Learning 2025"
+version: "AI-100-2-2025"
+source_url: "https://csrc.nist.gov/pubs/ai/100/2/final"
+snapshot_date: "2026-05-03"
+
+# IDs follow AIDEFEND's existing NISTAML.### convention as already used in
+# aidefense-framework tactic files. Refresh after each NIST AI 100-2 update.
+
+items:
+  - id: "NISTAML.001"
+    title: "Availability Breakdown — Untargeted Poisoning"
+  - id: "NISTAML.002"
+    title: "Availability Breakdown — Targeted Poisoning"
+  - id: "NISTAML.003"
+    title: "Availability Breakdown — Backdoor Poisoning"
+  - id: "NISTAML.010"
+    title: "Integrity Breakdown — Targeted Poisoning"
+  - id: "NISTAML.011"
+    title: "Integrity Breakdown — Indiscriminate Poisoning"
+  - id: "NISTAML.020"
+    title: "Privacy Breakdown — Membership Inference"
+  - id: "NISTAML.021"
+    title: "Privacy Breakdown — Reconstruction"
+  - id: "NISTAML.022"
+    title: "Evasion"
+  - id: "NISTAML.023"
+    title: "Targeted Evasion"
+  - id: "NISTAML.024"
+    title: "White-box Evasion"
+  - id: "NISTAML.025"
+    title: "Black-box Evasion"
+  - id: "NISTAML.030"
+    title: "Prompt Injection — Direct"
+  - id: "NISTAML.031"
+    title: "Prompt Injection — Indirect"
+  - id: "NISTAML.040"
+    title: "Supply Chain Compromise — Model"
+  - id: "NISTAML.041"
+    title: "Supply Chain Compromise — Data"

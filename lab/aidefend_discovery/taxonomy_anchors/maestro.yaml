@@ -1,0 +1,41 @@
+# MAESTRO — Cloud Security Alliance threat model for agentic AI systems.
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "MAESTRO" items.
+# IDs follow MAESTRO's layer convention (L1..L7) as already used in aidefense-framework.
+# Source: https://cloudsecurityalliance.org/research/working-groups/ai-safety/
+# Snapshot date: 2026-05-03
+
+framework: "MAESTRO"
+version: "1.0"
+source_url: "https://cloudsecurityalliance.org/artifacts/maestro-multi-agent-environment-security-threat-risk-and-outcome-framework"
+snapshot_date: "2026-05-03"
+
+# MAESTRO threats are layered. AIDEFEND's defendsAgainst entries cite specific
+# threat names with their (L#) layer suffix. We mirror that convention here so
+# the diff matches the upstream phrasing exactly.
+
+items:
+  - id: "Adversarial Examples (L1)"
+    title: "Adversarial Examples — Foundation Models layer"
+  - id: "Data Poisoning (L2)"
+    title: "Data Poisoning — Data Operations layer"
+  - id: "Model Theft (L3)"
+    title: "Model Theft — Agent Frameworks layer"
+  - id: "Tool Manipulation (L3)"
+    title: "Tool Manipulation — Agent Frameworks layer"
+  - id: "Memory Poisoning (L3)"
+    title: "Memory Poisoning — Agent Frameworks layer"
+  - id: "Inference DoS (L4)"
+    title: "Inference Denial-of-Service — Deployment layer"
+  - id: "Container Escape (L4)"
+    title: "Container Escape — Deployment layer"
+  - id: "Compromised Evaluation (L5)"
+    title: "Compromised Evaluation — Evaluation layer"
+  - id: "Evasion of Security AI Agents (L6)"
+    title: "Evasion of Security AI Agents — Security & Compliance layer"
+  - id: "Audit Tampering (L6)"
+    title: "Audit Tampering — Security & Compliance layer"
+  - id: "Goal Manipulation (L7)"
+    title: "Goal Manipulation — Agent Ecosystem layer"
+  - id: "Identity Spoofing (L7)"
+    title: "Identity Spoofing — Agent Ecosystem layer"

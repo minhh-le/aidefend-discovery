@@ -51,6 +51,7 @@ class GapReport(TypedDict, total=False):
     suggested_phases: list[str]
     rationale: str
     nearest_lexical_overlap_terms: list[list[str]]
+    bridge_rationales: list[str]
 
 
 # Review contract enums (see docs/aidefend_discovery/REVIEW_CONTRACT.md)

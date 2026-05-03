@@ -1,0 +1,236 @@
+# CWE → AIDEFEND tactic/pillar/phase bridge table
+#
+# Each entry maps a CWE ID to AIDEFEND tactic *hints* (not authoritative
+# mappings). The bridge runs after entity extraction; results populate
+# GapReport.bridge_rationales / suggested_pillars / suggested_phases /
+# suggested_tactic_ids.
+#
+# Field meanings:
+#   cwe_id: canonical "CWE-NNN" form
+#   pillar: subset of {app, data, infra, model}
+#   phase: subset of {building, operation, validation}
+#   suggested_tactic_ids: subset of {model, harden, detect, isolate, deceive, evict, restore}
+#   rationale: one-line "X because Y" so review queue is auditable
+#   confidence: 0..1 (heuristic only; reviewer override expected)
+#   source: citation URL (CWE definition is the default; AI-specific CWEs cite NIST/OWASP)
+#
+# Confidence calibration:
+#   0.85+ — direct mechanism overlap (e.g., CWE-1427 prompt injection → harden)
+#   0.70  — strong but transitive (e.g., CWE-78 command injection → harden+isolate)
+#   0.55  — class-level (e.g., CWE-20 input validation → harden)
+#
+# Maintenance: add entries via PR; reviewer must confirm citation and
+# rationale. Avoid adding speculative CWEs — empty table is better than
+# noisy one. Refresh this file as part of the QUALITY_AUDIT_CHECKLIST.
+
+version: "0.1"
+generated_at: "2026-05-02"
+
+bridges:
+  - cwe_id: CWE-20
+    pillar: [app, data]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "Input validation gaps reach AI systems via untrusted prompts, tool args, and ingestion pipelines; harden boundary checks, detect malformed inputs at runtime."
+    confidence: 0.55
+    source: "https://cwe.mitre.org/data/definitions/20.html"
+
+  - cwe_id: CWE-22
+    pillar: [app, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, isolate]
+    rationale: "Path traversal in model-loading or RAG-document paths can read arbitrary files; harden path normalization, isolate the filesystem view."
+    confidence: 0.70
+    source: "https://cwe.mitre.org/data/definitions/22.html"
+
+  - cwe_id: CWE-77
+    pillar: [app, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, isolate]
+    rationale: "Command injection via LLM-tool wrappers (shell, code-exec) is high-impact; harden tool input templates, isolate execution sandbox."
+    confidence: 0.80
+    source: "https://cwe.mitre.org/data/definitions/77.html"
+
+  - cwe_id: CWE-78
+    pillar: [app, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, isolate]
+    rationale: "OS command injection — common in agent shell tools; harden argv construction, isolate via sandboxes/jails."
+    confidence: 0.85
+    source: "https://cwe.mitre.org/data/definitions/78.html"
+
+  - cwe_id: CWE-79
+    pillar: [app]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "XSS in AI-app frontends (chat UIs, dashboards) and rendered LLM output; harden output encoding, detect script-injection patterns."
+    confidence: 0.70
+    source: "https://cwe.mitre.org/data/definitions/79.html"
+
+  - cwe_id: CWE-89
+    pillar: [data]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "SQL injection via LLM-generated queries or NL2SQL pipelines; harden parameterization, detect anomalous queries."
+    confidence: 0.75
+    source: "https://cwe.mitre.org/data/definitions/89.html"
+
+  - cwe_id: CWE-94
+    pillar: [app, model]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, isolate]
+    rationale: "Code injection via LLM-generated code execution and prompt injection; harden code-eval boundaries, isolate execution context."
+    confidence: 0.85
+    source: "https://cwe.mitre.org/data/definitions/94.html"
+
+  - cwe_id: CWE-200
+    pillar: [data, model]
+    phase: [operation, validation]
+    suggested_tactic_ids: [isolate, detect]
+    rationale: "Sensitive information exposure — model memorization, system-prompt leak, training-data inference; isolate sensitive context, detect exfil patterns."
+    confidence: 0.75
+    source: "https://cwe.mitre.org/data/definitions/200.html"
+
+  - cwe_id: CWE-285
+    pillar: [app, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [isolate, harden]
+    rationale: "Improper authorization — agent permission boundaries (tool gating, MCP scope); isolate per-tool capability, harden access checks."
+    confidence: 0.75
+    source: "https://cwe.mitre.org/data/definitions/285.html"
+
+  - cwe_id: CWE-287
+    pillar: [app, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden]
+    rationale: "Improper authentication on inference servers and agent endpoints; harden auth boundary."
+    confidence: 0.70
+    source: "https://cwe.mitre.org/data/definitions/287.html"
+
+  - cwe_id: CWE-306
+    pillar: [infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden]
+    rationale: "Missing authentication on critical functions — common in self-hosted inference servers (Ollama, vLLM, etc.); harden default-deny."
+    confidence: 0.80
+    source: "https://cwe.mitre.org/data/definitions/306.html"
+
+  - cwe_id: CWE-352
+    pillar: [app]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden]
+    rationale: "CSRF on AI-app management endpoints; harden via SameSite + token checks."
+    confidence: 0.65
+    source: "https://cwe.mitre.org/data/definitions/352.html"
+
+  - cwe_id: CWE-400
+    pillar: [infra, model]
+    phase: [operation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "Resource exhaustion — denial-of-wallet on LLM inference (long contexts, ReDoS, recursive prompt loops); harden quotas, detect anomalous spend."
+    confidence: 0.75
+    source: "https://cwe.mitre.org/data/definitions/400.html"
+
+  - cwe_id: CWE-502
+    pillar: [model, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, isolate]
+    rationale: "Deserialization of untrusted data — pickle attacks on model weights, joblib/numpy artifacts; harden via safetensors, isolate load context."
+    confidence: 0.85
+    source: "https://cwe.mitre.org/data/definitions/502.html"
+
+  - cwe_id: CWE-611
+    pillar: [data, app]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden]
+    rationale: "XXE in XML parsers used by document-ingestion pipelines (RAG); harden via secure parser config."
+    confidence: 0.70
+    source: "https://cwe.mitre.org/data/definitions/611.html"
+
+  - cwe_id: CWE-732
+    pillar: [infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden]
+    rationale: "Incorrect permission assignment — model files, API keys, secrets directories; harden least-privilege defaults."
+    confidence: 0.70
+    source: "https://cwe.mitre.org/data/definitions/732.html"
+
+  - cwe_id: CWE-770
+    pillar: [infra, model]
+    phase: [operation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "Allocation without limits — concurrent inference requests, batch sizes, context lengths; harden quotas, detect spike patterns."
+    confidence: 0.75
+    source: "https://cwe.mitre.org/data/definitions/770.html"
+
+  - cwe_id: CWE-798
+    pillar: [app, infra]
+    phase: [building]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "Hardcoded credentials — pervasive in AI/ML repos (API keys in notebooks, model configs); harden via secret-scanning, detect in CI."
+    confidence: 0.80
+    source: "https://cwe.mitre.org/data/definitions/798.html"
+
+  - cwe_id: CWE-862
+    pillar: [app, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [isolate, harden]
+    rationale: "Missing authorization on critical functions; isolate function-level access, harden default-deny."
+    confidence: 0.75
+    source: "https://cwe.mitre.org/data/definitions/862.html"
+
+  - cwe_id: CWE-918
+    pillar: [infra, app]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, isolate]
+    rationale: "SSRF — inference servers and agents that fetch arbitrary URLs (RAG, tool-use); harden URL allowlists, isolate egress."
+    confidence: 0.80
+    source: "https://cwe.mitre.org/data/definitions/918.html"
+
+  - cwe_id: CWE-1188
+    pillar: [infra]
+    phase: [building]
+    suggested_tactic_ids: [harden]
+    rationale: "Insecure default initialization — open inference endpoints, debug modes left on; harden secure defaults."
+    confidence: 0.70
+    source: "https://cwe.mitre.org/data/definitions/1188.html"
+
+  - cwe_id: CWE-1284
+    pillar: [app, model]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden]
+    rationale: "Improper validation of specified quantity — agent input bounds, token counts, max steps; harden bounds checks."
+    confidence: 0.65
+    source: "https://cwe.mitre.org/data/definitions/1284.html"
+
+  - cwe_id: CWE-1333
+    pillar: [app, infra]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "Inefficient regex complexity (ReDoS) — input parsers in tokenizers, content filters; harden via re2 / static analysis, detect long evals."
+    confidence: 0.70
+    source: "https://cwe.mitre.org/data/definitions/1333.html"
+
+  - cwe_id: CWE-1426
+    pillar: [model, app]
+    phase: [operation, validation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "Improper validation of generative AI output (CWE-1426) — direct AI CWE; harden output filters, detect anomalous generations."
+    confidence: 0.90
+    source: "https://cwe.mitre.org/data/definitions/1426.html"
+
+  - cwe_id: CWE-1427
+    pillar: [model, app]
+    phase: [operation]
+    suggested_tactic_ids: [harden, detect]
+    rationale: "Improper neutralization of input used for LLM prompting (CWE-1427) — direct AI CWE for prompt injection; harden prompt boundaries, detect injection patterns. Maps to OWASP LLM01:2025 Prompt Injection."
+    confidence: 0.95
+    source: "https://cwe.mitre.org/data/definitions/1427.html"
+
+  - cwe_id: CWE-915
+    pillar: [app, model]
+    phase: [building, operation]
+    suggested_tactic_ids: [harden]
+    rationale: "Improperly controlled modification of dynamic object attributes (prototype pollution / __dict__ tampering); harden via attribute allowlists."
+    confidence: 0.65
+    source: "https://cwe.mitre.org/data/definitions/915.html"

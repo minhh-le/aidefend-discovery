@@ -153,7 +153,10 @@ def enrich_candidate(
     candidate["summary_raw"] = candidate.get("summary_raw") or summary
 
     base_text = f"{title}\n\n{summary}".strip()
-    entities = extract_entities(base_text)
+    # Preserve connector-supplied entities (NVD CWEs, GHSA package CWEs, etc.)
+    # by merging text-extracted entities INTO whatever the connector populated.
+    pre_entities = candidate.get("entities") or {}
+    entities = merge_entity_dicts(pre_entities, extract_entities(base_text))
     body_extracted = ""
     body_fetch_error: str | None = None
     fetch_skipped_reason: str | None = None

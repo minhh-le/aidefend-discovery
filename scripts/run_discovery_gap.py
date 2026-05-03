@@ -30,6 +30,11 @@ from aidefend_discovery.baseline import (  # noqa: E402
     flatten_techniques,
     load_data_json,
 )
+from aidefend_discovery.bridge import (  # noqa: E402
+    default_bridge_path,
+    load_bridge,
+    suggest_from_entities,
+)
 from aidefend_discovery.bm25_index import BM25Index  # noqa: E402
 from aidefend_discovery.explain import top_overlap_terms  # noqa: E402
 from aidefend_discovery.extract import (  # noqa: E402
@@ -86,6 +91,7 @@ def build_gap_report(
     *,
     top_k: int,
     gap_bm25_max: float,
+    bridges: list | None = None,
 ) -> dict:
     queries = candidate.get("retrieval_chunk_queries") or []
     if not queries:
@@ -126,6 +132,14 @@ def build_gap_report(
             sugg_pillars.update(r.pillars)
             sugg_phases.update(r.phases)
 
+    bridge_rationales: list[str] = []
+    if bridges:
+        bridge_out = suggest_from_entities(candidate.get("entities") or {}, bridges)
+        sugg_pillars.update(bridge_out["pillars"])
+        sugg_phases.update(bridge_out["phases"])
+        sugg_tactics.update(bridge_out["suggested_tactic_ids"])
+        bridge_rationales = bridge_out["rationales"]
+
     return {
         "candidate_id": candidate["id"],
         "nearest_technique_ids": nearest_ids,
@@ -139,7 +153,8 @@ def build_gap_report(
         "suggested_tactic_ids": sorted(sugg_tactics),
         "suggested_pillars": sorted(sugg_pillars),
         "suggested_phases": sorted(sugg_phases),
-        "rationale": "BM25 top-k (max-pooled over chunk queries) vs AIDEFEND techniques; threat IDs vs defendsAgainst; lexical overlap terms for review.",
+        "bridge_rationales": bridge_rationales,
+        "rationale": "BM25 top-k (max-pooled over chunk queries) vs AIDEFEND techniques; threat IDs vs defendsAgainst; lexical overlap terms for review; CWE→tactic bridge hints when entities present.",
     }
 
 
@@ -209,6 +224,17 @@ def main() -> int:
     parser.add_argument("--ghsa-max-pages", type=int, default=1, help="Max GHSA pages per run")
     parser.add_argument("--ghsa-severity", help="GHSA severity filter (low|medium|high|critical)")
     parser.add_argument("--ghsa-cwes", help="GHSA CWE filter (comma-separated CWE IDs)")
+    parser.add_argument(
+        "--bridge",
+        type=Path,
+        default=default_bridge_path(),
+        help="CWE→tactic bridge YAML (default: lab/aidefend_discovery/bridges/cwe_to_tactic.yaml)",
+    )
+    parser.add_argument(
+        "--no-bridge",
+        action="store_true",
+        help="Disable bridge hints even if the YAML file is present.",
+    )
     parser.add_argument(
         "--state-db",
         type=Path,
@@ -291,6 +317,15 @@ def main() -> int:
             fetch_timeout_s=args.fetch_timeout,
         )
 
+    bridges: list = []
+    if not args.no_bridge:
+        try:
+            if args.bridge and Path(args.bridge).exists():
+                bridges = load_bridge(args.bridge)
+                print(f"INFO: loaded {len(bridges)} CWE bridge entries from {args.bridge}", file=sys.stderr)
+        except Exception as e:
+            print(f"WARN: bridge load failed ({e}); continuing without bridge hints", file=sys.stderr)
+
     reports: list[dict] = []
     for c in candidates:
         reports.append(
@@ -300,6 +335,7 @@ def main() -> int:
                 index,
                 top_k=args.top_k,
                 gap_bm25_max=args.gap_bm25_max,
+                bridges=bridges,
             )
         )
 

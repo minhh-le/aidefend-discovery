@@ -1,2 +1,5 @@
 # Discovery / Phase 1 extraction
 trafilatura>=1.8.0
+
+# Phase 2 bridge + anchor diff (YAML for vendored taxonomy snapshots and CWE bridge)
+pyyaml>=6.0

@@ -1,0 +1,45 @@
+# Databricks AI Security Framework (DASF)
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "Databricks AI Security Framework 3.0" items.
+# IDs follow DASF's stage-based hierarchy: <Stage> <N.M>: <Threat>
+# Source: https://www.databricks.com/resources/whitepaper/databricks-ai-security-framework-dasf
+# Snapshot date: 2026-05-03
+
+framework: "Databricks AI Security Framework 3.0"
+version: "3.0"
+source_url: "https://www.databricks.com/resources/whitepaper/databricks-ai-security-framework-dasf"
+snapshot_date: "2026-05-03"
+
+# Hand-curated subset of the most-cited DASF threats. AIDEFEND mirrors the
+# upstream phrasing exactly in defendsAgainst entries; refresh this list
+# from the latest DASF whitepaper quarterly.
+
+items:
+  - id: "Raw data 1.1: Insufficient access controls"
+    title: "Raw data — insufficient access controls"
+  - id: "Raw data 1.4: Lack of data versioning"
+    title: "Raw data — lack of data versioning"
+  - id: "Data prep 2.3: Data poisoning"
+    title: "Data prep — data poisoning"
+  - id: "Datasets 3.5: Label flipping"
+    title: "Datasets — label flipping"
+  - id: "Data and AI governance 4.1: Lack of MLOps"
+    title: "Data and AI governance — lack of MLOps"
+  - id: "Algorithms 5.2: Model drift"
+    title: "Algorithms — model drift"
+  - id: "Evaluation 6.1: Evaluation data poisoning"
+    title: "Evaluation — evaluation data poisoning"
+  - id: "Model 7.1: Model theft"
+    title: "Model — model theft"
+  - id: "Model serving 8.1: Lack of access controls"
+    title: "Model serving — lack of access controls"
+  - id: "Model Serving - Inference requests 9.1: Prompt inject"
+    title: "Inference requests — prompt injection"
+  - id: "Model Serving - Inference requests 9.3: Model breakout"
+    title: "Inference requests — model breakout"
+  - id: "Model Serving - Inference response 10.5: Black-box attacks"
+    title: "Inference response — black-box attacks"
+  - id: "Operations 11.2: Output integrity"
+    title: "Operations — output integrity"
+  - id: "Platform 12.1: Lack of platform isolation"
+    title: "Platform — lack of platform isolation"

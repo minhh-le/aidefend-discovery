@@ -1,0 +1,43 @@
+# Cisco Integrated AI Security and Safety Framework — AITech taxonomy
+#
+# Anchor for AIDEFEND defendsAgainst[*].framework == "Cisco Integrated AI Security and Safety Framework" items.
+# IDs follow Cisco's AITech-N.M and AISubtech-N.M.K convention.
+# Source: https://www.cisco.com/c/en/us/products/security/integrated-ai-security-safety-framework.html
+# Snapshot date: 2026-05-03
+
+framework: "Cisco Integrated AI Security and Safety Framework"
+version: "1.0"
+source_url: "https://www.cisco.com/c/en/us/products/security/integrated-ai-security-safety-framework.html"
+snapshot_date: "2026-05-03"
+
+items:
+  - id: "AITech-1.1 Prompt Injection"
+    title: "Prompt Injection"
+  - id: "AITech-1.2 Direct Prompt Injection"
+    title: "Direct Prompt Injection"
+  - id: "AITech-1.3 Indirect Prompt Injection"
+    title: "Indirect Prompt Injection"
+  - id: "AITech-2.1 Data Poisoning"
+    title: "Data Poisoning"
+  - id: "AITech-3.1 Model Extraction"
+    title: "Model Extraction"
+  - id: "AITech-4.1 Sensitive Data Exfiltration"
+    title: "Sensitive Data Exfiltration"
+  - id: "AITech-5.1 Model Inversion"
+    title: "Model Inversion"
+  - id: "AITech-6.1 Membership Inference"
+    title: "Membership Inference"
+  - id: "AITech-7.1 Backdoor Attack"
+    title: "Backdoor Attack"
+  - id: "AITech-8.1 Tool Misuse"
+    title: "Tool Misuse"
+  - id: "AITech-9.1 Excessive Agency"
+    title: "Excessive Agency"
+  - id: "AITech-10.1 Model Supply Chain"
+    title: "Model Supply Chain"
+  - id: "AITech-11.1 Environment-Aware Evasion"
+    title: "Environment-Aware Evasion"
+  - id: "AITech-11.2 Model-Selective Evasion"
+    title: "Model-Selective Evasion"
+  - id: "AISubtech-11.1.1 Agent-Specific Evasion"
+    title: "Agent-Specific Evasion"
