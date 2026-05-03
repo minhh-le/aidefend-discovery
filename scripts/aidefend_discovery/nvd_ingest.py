@@ -154,10 +154,13 @@ def _extract_description(cve: dict[str, Any]) -> str:
 
 
 def _extract_reference_urls(cve: dict[str, Any]) -> list[str]:
+    """De-duplicated reference URLs preserving first-seen order."""
+    seen: set[str] = set()
     urls: list[str] = []
     for ref in cve.get("references", []):
         url = str(ref.get("url", "")).strip()
-        if url:
+        if url and url not in seen:
+            seen.add(url)
             urls.append(url)
     return urls
 

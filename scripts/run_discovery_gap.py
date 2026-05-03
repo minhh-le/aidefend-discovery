@@ -40,7 +40,13 @@ from aidefend_discovery.rss_ingest import (  # noqa: E402
     append_jsonl,
     ingest_allowlisted_feed,
 )
-from aidefend_discovery.state_store import get_state_value, set_state_value  # noqa: E402
+from aidefend_discovery.state_store import (  # noqa: E402
+    get_state_value,
+    record_gap_report,
+    record_run,
+    set_state_value,
+    upsert_candidate,
+)
 
 try:  # noqa: E402
     from aidefend_discovery.nvd_ingest import ingest_nvd_incremental
@@ -273,6 +279,29 @@ def main() -> int:
     if not args.dry_run:
         append_jsonl(args.candidates_out, candidates)
 
+    # Persist into sqlite alongside JSONL/JSON outputs. Idempotent: candidates
+    # with content_hash already in the store are no-ops (last_seen_run is bumped).
+    new_count = 0
+    if not args.dry_run:
+        run_params = {
+            "source": args.source,
+            "feed_url": args.feed_url,
+            "max_items": args.max_items,
+            "top_k": args.top_k,
+            "gap_bm25_max": args.gap_bm25_max,
+            "data_json": str(args.data_json.resolve()),
+        }
+        run_id = record_run(args.state_db, source=args.source, params=run_params)
+        for c in candidates:
+            try:
+                if upsert_candidate(args.state_db, c, run_id=run_id):
+                    new_count += 1
+            except ValueError:
+                # Candidate without content_hash (e.g., enrichment failed) — skip sqlite write.
+                continue
+        for r in reports:
+            record_gap_report(args.state_db, run_id=run_id, gap_report=r)
+
     args.reports_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
     report_path = args.reports_dir / f"gap_run_{stamp}.json"
@@ -311,6 +340,7 @@ def main() -> int:
     print(f"Wrote {report_path}")
     if not args.dry_run:
         print(f"Appended {len(candidates)} candidates to {args.candidates_out}")
+        print(f"Recorded {new_count} new candidate(s) in {args.state_db} (run_id={run_id})")
     return 0
 
 
