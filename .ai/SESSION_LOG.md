@@ -221,3 +221,21 @@ Verification:
 Next:
 - Continue Phase 2B GHSA connector work.
 - Decide later whether to rename the GitHub repo after the docs/local identity stabilizes.
+
+## 2026-05-05 — Repository slug/path alignment
+
+Summary:
+Aligned the VPS checkout and repo metadata with the renamed GitHub repository, `minhh-le/aidefend-discovery`, and removed machine-specific `/home/minh/...` routing from global continuity state.
+
+Changed:
+- Updated GitHub slug references from `minhh-le/persistent-agent-security` to `minhh-le/aidefend-discovery` in docs and User-Agent strings.
+- Updated global active effort routing for `aidefend-discovery-mesh` to `local_path: repo://aidefend-discovery`.
+- Updated continuity UI examples to use `$HOME/repos` instead of `/home/minh/Desktop/repos`.
+- Renamed the VPS checkout directory from `persistent-agent-security` to `aidefend-discovery` and repointed `origin` to the renamed GitHub repo.
+
+Verification:
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (59 tests pass).
+- From `../agent-continuity`: `python3 -m py_compile scripts/*.py`; `python3 -m unittest discover -s tests -v` (29 tests pass); `python3 scripts/validate_continuity.py` PASS; `python3 scripts/agent_init.py --effort aidefend-discovery-mesh` resolves to `/home/ubuntu/repos/aidefend-discovery`; `python3 scripts/closeout_check.py /home/ubuntu/repos/aidefend-discovery` PASS.
+
+Next:
+- Continue first upstream promotion PR / nightly workflow / embeddings-rerank work from `HANDOFF.md`.

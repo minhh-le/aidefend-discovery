@@ -88,7 +88,7 @@ If `is_gap_accuracy` < 0.70 or `recall_is_gap` < 0.50:
 
 - [ ] `.ai/CURRENT.md`, `.ai/HANDOFF.md`, `.ai/OPEN_LOOPS.md` reflect actual repo state.
 - [ ] `agent-continuity/.ai/EFFORTS.md` `aidefend-discovery-mesh` `next_action` is current.
-- [ ] `python3 ../agent-continuity/scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` returns PASS.
+- [ ] `python3 ../agent-continuity/scripts/closeout_check.py "$HOME/repos/aidefend-discovery"` returns PASS.
 - [ ] `python3 ../agent-continuity/scripts/validate_continuity.py` returns PASS.
 
 ## Section 8 — Output

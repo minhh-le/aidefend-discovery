@@ -1,6 +1,6 @@
 # Decisions
 
-Updated: 2026-05-02
+Updated: 2026-05-05
 
 ## 2026-04-30 — Start as safe empty scaffold
 
@@ -64,3 +64,9 @@ Rationale: Without a concrete promotion shape doc, Phase 1's exit ("demo one cre
 Decision: Treat **AIDEFEND Discovery** as the user-facing project name and clean stale security-scaffold continuity docs around the actual discovery pipeline. Keep the local checkout/repo slug unchanged for now.
 
 Rationale: The repo's useful work is now centered on AIDEFEND candidate discovery, public advisory ingestion, and gap-review tooling. The previous broad scaffold name and placeholder security-project loops no longer described current work.
+
+## 2026-05-05 — Align repository slug and paths
+
+Decision: Align the VPS checkout, Git remote, GitHub slug references, and global continuity routing on `aidefend-discovery`; use `repo://aidefend-discovery` instead of machine-specific `/home/minh/...` paths in active effort state.
+
+Rationale: The GitHub repository has been renamed to `minhh-le/aidefend-discovery`, and agents run from both VPS and local machines. Machine-agnostic `repo://` paths avoid false preserve/continuity warnings and keep the global substrate portable.

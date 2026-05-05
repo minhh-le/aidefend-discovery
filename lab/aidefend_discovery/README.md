@@ -111,14 +111,14 @@ python3 scripts/run_discovery_gap.py \
 09:00 UTC and opens an auto-PR with the new dated reports. Manual trigger:
 
 ```bash
-gh workflow run discovery-nightly.yml --repo minhh-le/persistent-agent-security
-gh run watch --repo minhh-le/persistent-agent-security
+gh workflow run discovery-nightly.yml --repo minhh-le/aidefend-discovery
+gh run watch --repo minhh-le/aidefend-discovery
 ```
 
 Required repo secrets (provision once):
 ```bash
-printf "%s" "$NVD_API_KEY"     | gh secret set NVD_API_KEY     --repo minhh-le/persistent-agent-security
-printf "%s" "$GH_PAT_FOR_GHSA" | gh secret set GH_PAT_FOR_GHSA --repo minhh-le/persistent-agent-security
+printf "%s" "$NVD_API_KEY"     | gh secret set NVD_API_KEY     --repo minhh-le/aidefend-discovery
+printf "%s" "$GH_PAT_FOR_GHSA" | gh secret set GH_PAT_FOR_GHSA --repo minhh-le/aidefend-discovery
 ```
 
 The workflow opens but never auto-merges PRs — preserves the discovery layer's

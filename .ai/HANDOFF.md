@@ -1,8 +1,8 @@
 # Handoff
 
-Updated: 2026-05-03 (architecture-edit session, full roadmap build-out: Blocks A→J)
-Updated by: Claude Code (Opus 4.7)
-Verification: `.venv/bin/python -m unittest discover -s tests -v` (59 tests, all pass — was 22); aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests pass); live authenticated NVD + GHSA pulls; gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00); from `../agent-continuity`: `python3 scripts/validate_continuity.py`, `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery`.
+Updated: 2026-05-05 (repository slug/path alignment)
+Updated by: Hermes Agent
+Verification: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (59 tests pass); from `../agent-continuity`: `python3 -m py_compile scripts/*.py`, `python3 -m unittest discover -s tests -v` (29 tests pass), `python3 scripts/validate_continuity.py` (PASS), `python3 scripts/agent_init.py --effort aidefend-discovery-mesh` (resolves to `/home/ubuntu/repos/aidefend-discovery`), `python3 scripts/closeout_check.py /home/ubuntu/repos/aidefend-discovery` (PASS). Previous full-build verification also included aidefend-mcp tests, live authenticated NVD + GHSA pulls, and gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
 
 ## Current Goal
 

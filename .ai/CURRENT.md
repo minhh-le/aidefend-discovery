@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-03 (full build-out: Phase 1 hygiene + Phase 2 bridge & anchor-diff + Phase 2A NVD auth + Phase 2B GHSA + Phase 3 sqlite/exports + Phase 4 MCP integration + Phase 5 governance + scheduler + gold corpus)
+Updated: 2026-05-05 (repository slug/path aligned to aidefend-discovery)
 
 ## Repo Purpose
 
@@ -28,9 +28,8 @@ Updated: 2026-05-03 (full build-out: Phase 1 hygiene + Phase 2 bridge & anchor-d
 Facts:
 - Discovery output is **candidate-only** until promoted in upstream aidefense-framework `tactics/*.js`.
 - Phase 2A NVD baseline is implemented in anonymous mode; auth and GHSA are follow-on work.
-- The local checkout is now `aidefend-discovery`; the GitHub remote may still be `minhh-le/persistent-agent-security` until the remote repository is renamed.
+- The local checkout and GitHub remote are now `aidefend-discovery`; stale `persistent-agent-security` references should be treated as legacy rename debt.
 
 Needs definition later:
-- Whether to rename the GitHub repository after the docs/local identity stabilizes.
 - Public surface decision for candidate output: labs, MCP-only, website, or another channel.
 - Redistribution rules for third-party advisory summaries beyond cited metadata.

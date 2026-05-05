@@ -1,11 +1,11 @@
 # Open Loops
 
-Updated: 2026-05-03 (full build-out: Blocks A→J of the architecture-edit session)
+Updated: 2026-05-05 (repository slug/path alignment)
 
 ## High Priority
 
 - [ ] **Open the first upstream promotion PR** per [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) to close the hardened Phase 1 exit. Use a Shape-A candidate from `lab/aidefend_discovery/gold/labeling_log.md` (e.g., `GHSA-324q-cwx9-7crr` KubeAI command-injection).
-- [ ] **Run the nightly workflow once manually** (`gh workflow run discovery-nightly.yml --repo minhh-le/persistent-agent-security`) and review the auto-PR's exports.
+- [ ] **Run the nightly workflow once manually** (`gh workflow run discovery-nightly.yml --repo minhh-le/aidefend-discovery`) and review the auto-PR's exports.
 - [ ] **Embeddings + cross-encoder rerank** — re-open trigger fired (gold `recall_is_gap=0.0`); evaluate adding a scope classifier or rerank on BM25 top-20.
 - [ ] **Rotate credentials**: revoke and re-issue `NVD_API_KEY` and `GH_PAT_FOR_GHSA` that appeared in chat transcripts. Update `gh secret set` after rotation.
 - [ ] Add stricter AI-relevance/product allowlist filtering for vuln-shaped candidate quality (intersects with embeddings rerank).

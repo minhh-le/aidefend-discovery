@@ -27,7 +27,7 @@ from pathlib import Path
 
 DEFAULT_USER_AGENT = (
     "aidefend-discovery-feed-audit/0.1 "
-    "(+https://github.com/minhh-le/persistent-agent-security; research prototype)"
+    "(+https://github.com/minhh-le/aidefend-discovery; research prototype)"
 )
 
 
