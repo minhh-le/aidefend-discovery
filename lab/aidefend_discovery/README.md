@@ -1,6 +1,6 @@
 # AIDEFEND discovery lab
 
-Prototype slice for **structured baseline + discovery**: ingest either an allowlisted RSS/Atom source or NVD CVE API source, append **CandidateFinding** rows to `candidates.jsonl` (gitignored by default), and write a dated **GapReport** bundle under `reports/`.
+Prototype slice for **structured baseline + discovery**: ingest allowlisted RSS/Atom, NVD CVE API, or GitHub Security Advisory API sources, append **CandidateFinding** rows to `candidates.jsonl` (gitignored by default), persist reviewed state in SQLite, and write dated **GapReport** bundles under `reports/`.
 
 ## Prerequisites
 
@@ -111,19 +111,19 @@ python3 scripts/run_discovery_gap.py \
 09:00 UTC and opens an auto-PR with the new dated reports. Manual trigger:
 
 ```bash
-gh workflow run discovery-nightly.yml --repo minhh-le/persistent-agent-security
-gh run watch --repo minhh-le/persistent-agent-security
+gh workflow run discovery-nightly.yml --repo minhh-le/aidefend-discovery
+gh run watch --repo minhh-le/aidefend-discovery
 ```
 
 Required repo secrets (provision once):
 ```bash
-printf "%s" "$NVD_API_KEY"     | gh secret set NVD_API_KEY     --repo minhh-le/persistent-agent-security
-printf "%s" "$GH_PAT_FOR_GHSA" | gh secret set GH_PAT_FOR_GHSA --repo minhh-le/persistent-agent-security
+printf "%s" "$NVD_API_KEY"     | gh secret set NVD_API_KEY     --repo minhh-le/aidefend-discovery
+printf "%s" "$GH_PAT_FOR_GHSA" | gh secret set GH_PAT_FOR_GHSA --repo minhh-le/aidefend-discovery
 ```
 
 The workflow opens but never auto-merges PRs — preserves the discovery layer's
 "no silent overwrites" principle. Reviewer follows
-[`PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md).
+[`PROMOTION_PLAYBOOK.md`](../../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md).
 
 ## Outputs
 
@@ -133,4 +133,4 @@ The workflow opens but never auto-merges PRs — preserves the discovery layer's
 | Run bundle (candidates + gap_reports + params) | `reports/gap_run_YYYYMMDD.json` |
 | Connector cursor state (SQLite) | `lab/aidefend_discovery/discovery_state.db` |
 
-Long-term plan: [docs/aidefend_discovery/ROADMAP.md](../docs/aidefend_discovery/ROADMAP.md) (per-phase checklists). Research index: [docs/aidefend_discovery/discoveries/INDEX.md](../docs/aidefend_discovery/discoveries/INDEX.md). Review workflow: [docs/aidefend_discovery/REVIEW_CONTRACT.md](../docs/aidefend_discovery/REVIEW_CONTRACT.md).
+Technical overview: [docs/aidefend_discovery/TECHNICAL_OVERVIEW.md](../../docs/aidefend_discovery/TECHNICAL_OVERVIEW.md). Long-term plan: [docs/aidefend_discovery/ROADMAP.md](../../docs/aidefend_discovery/ROADMAP.md) (per-phase checklists). Research index: [docs/aidefend_discovery/discoveries/INDEX.md](../../docs/aidefend_discovery/discoveries/INDEX.md). Review workflow: [docs/aidefend_discovery/REVIEW_CONTRACT.md](../../docs/aidefend_discovery/REVIEW_CONTRACT.md).

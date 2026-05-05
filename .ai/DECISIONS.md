@@ -1,6 +1,6 @@
 # Decisions
 
-Updated: 2026-05-02
+Updated: 2026-05-05
 
 ## 2026-04-30 — Start as safe empty scaffold
 
@@ -64,3 +64,9 @@ Rationale: Without a concrete promotion shape doc, Phase 1's exit ("demo one cre
 Decision: Treat **AIDEFEND Discovery** as the user-facing project name and clean stale security-scaffold continuity docs around the actual discovery pipeline. Keep the local checkout/repo slug unchanged for now.
 
 Rationale: The repo's useful work is now centered on AIDEFEND candidate discovery, public advisory ingestion, and gap-review tooling. The previous broad scaffold name and placeholder security-project loops no longer described current work.
+
+## 2026-05-05 — Rename GitHub repository and consolidate loose discovery docs
+
+Decision: Rename the GitHub repository from `minhh-le/persistent-agent-security` to `minhh-le/aidefend-discovery`, update local `origin`, and consolidate loose discovery notes from `~/Desktop/repos` into `docs/aidefend_discovery/NOTES.md` and `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`.
+
+Rationale: The project identity has stabilized around AIDEFEND Discovery. Keeping the GitHub slug, local checkout, continuity routing, and docs aligned prevents agents from routing to the old security scaffold name and keeps architecture/provenance notes under version control with the implementation.

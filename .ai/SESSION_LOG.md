@@ -221,3 +221,49 @@ Verification:
 Next:
 - Continue Phase 2B GHSA connector work.
 - Decide later whether to rename the GitHub repo after the docs/local identity stabilizes.
+
+## 2026-05-03 PM — Repo rename + notes consolidation + doc audit
+
+Summary:
+Closed the long-standing "decide later" item from 2026-05-02: renamed the GitHub repo to match the local identity, pulled the loose architecture-sketch notes file into the repo, and audited docs against the actual Phase 1–5 build-out so the roadmap and README stop claiming work that already shipped is upcoming.
+
+Changed:
+- `gh repo rename minhh-le/persistent-agent-security` → `aidefend-discovery`; updated local `origin` URL.
+- Moved `~/Desktop/repos/notes - aidefend discovery` → `docs/aidefend_discovery/NOTES.md` with a status banner pointing readers to current state, and updated the historical "prototype home" line from a question to the decided answer.
+- Replaced `persistent-agent-security` references in 7 active files: User-Agent strings in `scripts/aidefend_discovery/{rss,nvd,ghsa}_ingest.py` + `scripts/audit_feeds.py`; `gh workflow run` / `gh secret set` examples in `lab/aidefend_discovery/README.md`; the workflow command in `.ai/OPEN_LOOPS.md`; and the rename-status fact in `.ai/CURRENT.md`. Historical `.ai/SESSION_LOG.md` entries left intact as factual record.
+- Audited `docs/aidefend_discovery/ROADMAP.md`: flipped Phase 1 promotion-playbook checkbox; flipped Phase 2 NVD-auth + GHSA checkboxes; flipped Phase 3 sqlite/idempotency/scheduler/export/metrics checkboxes (all shipped); flipped Phase 4 MCP-tools + contract-tests checkboxes; annotated embeddings entry with the fired re-open trigger from the gold eval; marked taxonomy-drift deferral resolved (anchor diff shipped); updated header date.
+- Rewrote `README.md` "Scope" section so it reflects shipped state (NVD+GHSA auth, bridges, anchor diff, sqlite, exports, scheduler, MCP) instead of describing Phase 2 as upcoming.
+- Reviewed `MAINTAINER_ALIGNMENT.md`, `REVIEW_CONTRACT.md`, `PROMOTION_PLAYBOOK.md`, `QUALITY_AUDIT_CHECKLIST.md` — already aligned with current state, no edits needed.
+
+Verification:
+- `python3 scripts/validate_continuity.py` from `../agent-continuity` (PASS)
+- `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` from `../agent-continuity`
+- `.venv/bin/python -m unittest discover -s tests` after the User-Agent string changes
+- `git ls-remote origin HEAD` after remote URL change (resolves)
+
+Next:
+- Push branch `cleanup/rename-and-consolidate` (paused per "pause before upstream PRs" — confirm with user first).
+- Open the first upstream promotion PR per `PROMOTION_PLAYBOOK.md` (high-priority open loop).
+- Run nightly workflow once manually, review auto-PR exports.
+
+## 2026-05-05 — Codex cleanup closeout + cross-repo sync
+
+Summary:
+Finished the interrupted cleanup session: consolidated the remaining loose technical overview into the repo, aligned active docs with the shipped Phase 1-5 state, and synced `agent-continuity` routing to the renamed GitHub repository.
+
+Changed:
+- Moved `~/Desktop/repos/explanation of discovery.md` → `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`.
+- Updated `PROMOTION_PLAYBOOK.md` and `.ai/CURRENT.md` to say promotions are allowed after the required anchor-diff pre-flight; removed active wording that implied promotions were still paused.
+- Updated `README.md`, `lab/aidefend_discovery/README.md`, `.ai/CONTEXT_INDEX.md`, `.ai/COMMANDS.md`, `.ai/DECISIONS.md`, `.ai/HANDOFF.md`, `.ai/OPEN_LOOPS.md`, and `docs/aidefend_discovery/discoveries/INDEX.md` so shipped NVD/GHSA/sqlite/export/metrics/scheduler/MCP/anchor-diff state and open work agree.
+- Updated `agent-continuity` global routing files so `aidefend-discovery` points at `https://github.com/minhh-le/aidefend-discovery`.
+
+Verification:
+- `python3 scripts/validate_continuity.py` from `../agent-continuity`
+- `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` from `../agent-continuity`
+- `.venv/bin/python -m unittest discover -s tests -v`
+- `gh repo view minhh-le/aidefend-discovery --json name,url`
+
+Next:
+- Open the first upstream promotion PR per `PROMOTION_PLAYBOOK.md`.
+- Run the nightly workflow manually once and review the auto-PR exports.
+- Continue embeddings + cross-encoder rerank evaluation after the `recall_is_gap=0.0` gold-corpus trigger.

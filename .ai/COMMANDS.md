@@ -1,6 +1,6 @@
 # Commands
 
-Updated: 2026-04-30
+Updated: 2026-05-05
 
 ## Orientation
 
@@ -20,10 +20,25 @@ python3 scripts/run_discovery_gap.py \
   --feed-url https://github.com/langchain-ai/langchain/releases.atom \
   --allowlist lab/aidefend_discovery/feeds.allowlist \
   --max-items 15
+python3 scripts/run_discovery_gap.py \
+  --source nvd \
+  --data-json ../aidefense-framework/data/data.json \
+  --state-db lab/aidefend_discovery/discovery_state.db \
+  --no-fetch-pages \
+  --max-items 20
+python3 scripts/run_discovery_gap.py \
+  --source ghsa \
+  --data-json ../aidefense-framework/data/data.json \
+  --state-db lab/aidefend_discovery/discovery_state.db \
+  --ghsa-severity high \
+  --no-fetch-pages \
+  --max-items 20
 # Add hosts to lab/aidefend_discovery/page_fetch.allowlist for Trafilatura fetch.
 # Feed-only (no HTTP to article pages): add --no-fetch-pages
 python3 scripts/eval_discovery_gold.py --report reports/gap_run_YYYYMMDD.json \
   --gold lab/aidefend_discovery/gold/example_labels.jsonl
+python3 scripts/export_review.py --state-db lab/aidefend_discovery/discovery_state.db --output reports/review_export.csv
+python3 scripts/discovery_metrics.py --state-db lab/aidefend_discovery/discovery_state.db --output reports/discovery_metrics.json
 ```
 
 ## Safety Checks

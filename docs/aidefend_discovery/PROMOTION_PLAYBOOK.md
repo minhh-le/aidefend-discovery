@@ -1,14 +1,14 @@
 # Promotion playbook — discovery candidate → upstream `tactics/*.js`
 
-Updated: 2026-05-02
+Updated: 2026-05-05
 
-This expands the brief promotion checklist in [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md#promotion-checklist-into-tacticsjs) with the concrete shape mapping a maintainer needs to convert an accepted `CandidateFinding` into an upstream edit. It is paired with the **soft rule** below — until the [Phase 2 taxonomy-anchor diff](ROADMAP.md#phase-2--correlation-worth-the-name) lands, **upstream promotions are paused**, even when individual candidates look ready. See [Deferred with reasoning](ROADMAP.md#deferred-with-reasoning) for why.
+This expands the brief promotion checklist in [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md#promotion-checklist-into-tacticsjs) with the concrete shape mapping a maintainer needs to convert an accepted `CandidateFinding` into an upstream edit. It is paired with the **anchor-diff pre-flight** below: before promoting, reviewers must run the shipped taxonomy anchor diff and confirm the candidate does not already exist in upstream anchors under different wording.
 
 The authoritative truth lives in the sibling `aidefense-framework` repo. This repo never touches `data/data.json` directly.
 
 ---
 
-## Soft rule (read this first)
+## Anchor-diff pre-flight (read this first)
 
 The taxonomy anchor diff has shipped (`scripts/anchor_diff.py` + vendored YAMLs in `lab/aidefend_discovery/taxonomy_anchors/`). **Promotions are now allowed**, with one mandatory pre-flight: run the diff and consult its output before opening any upstream PR. Without that step, a "novel" candidate that already exists in OWASP / MAESTRO / NIST under different wording would silently fork AIDEFEND vocabulary from its upstream anchors.
 
@@ -28,7 +28,7 @@ Every check must pass before opening a PR upstream.
 
 1. **Status & rationale.** `CandidateFinding.status == "candidate"`; reviewer has read `GapReport.gap_reason`, `nearest_technique_ids`, `nearest_lexical_overlap_terms`, and concurs.
 2. **License.** `license_note` is permissive (e.g., CC BY, public-domain, framework license that allows redistribution of summaries) **or** the upstream PR will use only metadata + paraphrased description and will not reproduce body text. CC BY content can be used with attribution.
-3. **Anchor-diff guardrail.** Either Phase 2 anchor diff has shipped, or the reviewer has manually checked upstream framework artifacts (see soft rule above).
+3. **Anchor-diff guardrail.** Run the shipped Phase 2 anchor diff and record whether the candidate is a `defendsAgainst` extension (Shape A) or a genuinely new technique candidate (Shape B).
 4. **Citations resolve.** Every URL in `source_urls` is reachable; `content_hash` matches the cited content (re-fetch and compare if in doubt).
 5. **Not already promoted.** Search the discovery JSONL for prior `promoted` rows touching the same `content_hash` or `entities.cves`/`entities.ghsas`.
 

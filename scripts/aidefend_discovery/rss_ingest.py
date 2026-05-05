@@ -13,7 +13,7 @@ from xml.etree import ElementTree as ET
 
 USER_AGENT = (
     "aidefend-discovery/0.1 "
-    "(+https://github.com/minhh-le/persistent-agent-security; research prototype)"
+    "(+https://github.com/minhh-le/aidefend-discovery; research prototype)"
 )
 
 

@@ -1,6 +1,6 @@
 # AIDEFEND structured + discovery — roadmap (0 → end product)
 
-Updated: 2026-05-02 (Phase 2A NVD connector + sqlite cursor baseline; promotion playbook + Phase 1 exit hardening + deferred-with-reasoning section)
+Updated: 2026-05-03 (Phases 1, 2A, 2B, 3, 4, 5 scaffolded end-to-end; embeddings re-open trigger fired on gold eval; remaining work is precision tuning + operationalisation + first upstream promotion PR)
 
 This document is the **persistent** plan for evolving from the current prototype in [`lab/aidefend_discovery/`](../../lab/aidefend_discovery/README.md) toward a governable **discovery layer** on top of the open AIDEFEND knowledge base. Companion docs: [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md), [`MAINTAINER_ALIGNMENT.md`](MAINTAINER_ALIGNMENT.md).
 
@@ -87,7 +87,7 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 - [x] **Explainability:** `GapReport.nearest_lexical_overlap_terms` (query∩doc tokens ranked by corpus IDF).
 - [x] **Gold scaffold:** `lab/aidefend_discovery/gold/` + `scripts/eval_discovery_gold.py` (grow toward 20–50 labeled rows).
 - [x] **NVD + GitHub Advisory API patterns** — enumerated in [discoveries/2026-05-02-nvd-ghsa-connector-api.md](discoveries/2026-05-02-nvd-ghsa-connector-api.md) (host WebFetch of official docs; re-validate with `/codex` workers if policy requires `crwl` primary captures).
-- [ ] **Promotion playbook** ([`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md)) — concrete shape mapping `CandidateFinding` → upstream tactic-object edits; required to make the hardened exit criterion executable, and to surface any schema gap before MCP integration.
+- [x] **Promotion playbook** ([`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md)) — Shape A / Shape B mapping `CandidateFinding` → upstream tactic-object edits; soft pause lifted now that anchor diff has shipped. Phase 1 still exits on a **merged** upstream PR — open loop tracked in [`.ai/OPEN_LOOPS.md`](../../.ai/OPEN_LOOPS.md).
 
 ---
 
@@ -100,9 +100,10 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 #### Action items
 
 - [x] **NVD connector (Phase 2A baseline)** (official API JSON): parse CVE, CWE, descriptions; anonymous mode; incremental `lastMod*` windows + pagination + sqlite cursor checkpoint.
-- [ ] **NVD connector follow-up:** auth path (`NVD_API_KEY`), stricter AI-relevance/product allowlist tuning, and operational retry policy hardening.
+- [x] **NVD connector follow-up:** `NVD_API_KEY` auth + retry/backoff with jitter respecting `Retry-After` (Block A). Stricter AI-relevance/product allowlist tuning still open — tracked under embeddings rerank since they intersect.
+- [x] **GHSA connector (Phase 2B):** `scripts/aidefend_discovery/ghsa_ingest.py` mirrors NVD pattern; `GH_PAT_FOR_GHSA` Bearer auth; cursor pagination via Link header; CVE↔GHSA join via `entities`; `--source ghsa` route.
 - [x] **Bridge table v0:** CWE / ecosystem tags → suggested pillar/tactic **hints** (rules, not truth). Implemented in `scripts/aidefend_discovery/bridge.py` + `lab/aidefend_discovery/bridges/cwe_to_tactic.yaml` (26 CWEs with citations + per-entry confidence). Wired into `GapReport.bridge_rationales` / `suggested_pillars` / `suggested_phases` / `suggested_tactic_ids`.
-- [ ] **Embeddings** over technique + `defendsAgainst` strings; optional **cross-encoder** rerank on BM25 top-20.
+- [ ] **Embeddings** over technique + `defendsAgainst` strings; optional **cross-encoder** rerank on BM25 top-20. **Re-open trigger fired (2026-05-03):** 25-row gold corpus eval shows `recall_is_gap=0.0` (out-of-scope detection broken). Active follow-up; see [Deferred with reasoning](#deferred-with-reasoning).
 - [x] **Taxonomy anchor diff:** vendored YAMLs at `lab/aidefend_discovery/taxonomy_anchors/` (MITRE ATLAS, OWASP LLM/ML/Agentic, NIST AI 100-2, MAESTRO, SAIF, Databricks DASF, Cisco AITech) diffed against `data.json` defendsAgainst by `scripts/anchor_diff.py`. Emits `reports/anchor_diff_YYYYMMDD.json` with regression candidates. **Lifts the soft pause** on upstream promotions (see [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md)) — reviewers consult the diff to confirm an anchor isn't already known under different wording before promoting.
 - [ ] `/discover` pass on **STIX / MITRE CTI** consumption patterns if bridging to ATT&CK/ATLAS IDs.
 
@@ -114,11 +115,11 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 
 #### Action items
 
-- [ ] **SQLite** (or small service): candidates, runs, cursors, dedupe keys, statuses.
-- [ ] **Idempotent runs:** hash `(feed_url, entry_id|link, retrieved_window)`; skip duplicates.
-- [ ] **Scheduler:** GitHub Actions or cron per connector class; secrets for API keys in env only.
-- [ ] **Review export:** CSV/Parquet with `candidate_id`, `status`, `reject_reason`, `reviewer`, `source_urls`, `gap_summary`.
-- [ ] **Metrics:** % candidates with `is_gap`; median review time; promotion count per month.
+- [x] **SQLite** at `lab/aidefend_discovery/discovery_state.db` — `state_store.py` v1 schema (runs / candidates / gap_reports / seen_window).
+- [x] **Idempotent runs:** `INSERT OR IGNORE` on `content_hash`; sqlite cursor checkpoint per connector.
+- [x] **Scheduler:** [`.github/workflows/discovery-nightly.yml`](../../.github/workflows/discovery-nightly.yml) (cron 09:00 UTC); `NVD_API_KEY` + `GH_PAT_FOR_GHSA` provisioned as repo secrets; opens auto-PR, never auto-merges.
+- [x] **Review export:** [`scripts/export_review.py`](../../scripts/export_review.py) → CSV with `candidate_id`, `status`, `reject_reason`, `reviewer`, `source_urls`, `gap_summary`.
+- [x] **Metrics:** [`scripts/discovery_metrics.py`](../../scripts/discovery_metrics.py) → JSON (% candidates with `is_gap`, throughput, promotion counts).
 
 ---
 
@@ -128,9 +129,9 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 
 #### Action items
 
-- [ ] **aidefend-mcp:** add optional tools (`search_discovery_candidates`, `explain_candidate_mapping`, …) with **separate tool names + response schema** from official technique tools.
-- [ ] **Contract tests:** agent prompts cannot satisfy “list official defenses” using only discovery tool responses without `AID-*` disclaimer.
-- [ ] **Public surface decision** with founder (site vs labs vs MCP-only); legal review if candidate text is shown verbatim.
+- [x] **aidefend-mcp:** `app/discovery/store.py` (read-only sqlite client) + 3 namespace-walled tools (`search_discovery_candidates`, `explain_candidate_mapping`, `list_anchor_diff`); every response carries `discovery_namespace: true` + disclaimer; graceful "not configured" when `DISCOVERY_DB_PATH` unset. Locally committed in companion repo; awaiting smoke test + upstream PR copy steering.
+- [x] **Contract tests:** 14 tests in `aidefend-mcp/tests/test_discovery_tools.py` assert `AID-*` IDs only appear in `references_aid` sidecar (never as primary IDs).
+- [ ] **Public surface decision** with founder (site vs labs vs MCP-only); legal review if candidate text is shown verbatim. License-posture upgrade gated on this — see [Deferred with reasoning](#deferred-with-reasoning).
 
 ---
 
@@ -151,8 +152,8 @@ These items were considered during a 2026-05-02 architecture review and consciou
 - **`is_gap` two-trigger noise.** `max_bm25 < threshold` is noise-prone on release-note candidates, and `threat_ids_in_text_but_no_framework_line_overlap` fires too eagerly because upstream `defendsAgainst` paraphrases threats rather than embedding raw IDs. **Why deferred:** the rule is tunable, and Phase 2's CWE→tactic bridge reshapes it correctly. Tightening today without the bridge would just push false-positives around. **Re-open trigger:** Phase 2 bridge-table v0 begins.
 - **BM25 vuln-shape mismatch.** Scoring CVE-style descriptions against defense-vocabulary text will reliably underperform — they live in different vocabularies. **Why deferred:** same Phase 2 fix; the architectural answer is the bridge table, not more retrieval sophistication. **Re-open trigger:** Phase 2 bridge-table v0 begins.
 - **License posture (honor-system `license_note`).** Today `license_note` is free-text; there is a host allowlist for fetching but no classifier on stored body content. **Why deferred:** fine while bodies live only in `reports/` and are reviewer-local; the risk only crystallizes when candidate text is exposed via MCP or a public surface. **Re-open trigger:** any Phase 4 work toward MCP discovery tools or a public Labs surface.
-- **Taxonomy drift.** A "novel" candidate that already exists in OWASP / MAESTRO / NIST under different wording would silently fork AIDEFEND vocabulary from its upstream anchors. **Why deferred (architecturally):** Phase 2's taxonomy anchor diff is the right fix. **Stopgap that applies now:** [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md) records a soft rule pausing upstream promotions until the diff lands. **Re-open trigger:** Phase 2 anchor-diff work begins.
-- **BM25 field weighting.** The baseline currently flattens technique `name + description + defendsAgainst` into one bag; field weights would let `defendsAgainst` matches count more or less than name matches once we trust `is_gap` enough to act on it. **Why deferred:** premature without gold rows to tune against. **Re-open trigger:** gold set reaches ~20 hand-labeled rows and `eval_discovery_gold.py` is in routine use.
+- **Taxonomy drift.** A "novel" candidate that already exists in OWASP / MAESTRO / NIST under different wording would silently fork AIDEFEND vocabulary from its upstream anchors. **Resolved (2026-05-03):** Phase 2 anchor diff shipped — 9 vendored YAMLs in `lab/aidefend_discovery/taxonomy_anchors/` + `scripts/anchor_diff.py`. Soft pause on upstream promotions lifted in [`PROMOTION_PLAYBOOK.md`](PROMOTION_PLAYBOOK.md); pre-flight requires consulting the diff.
+- **BM25 field weighting.** The baseline currently flattens technique `name + description + defendsAgainst` into one bag; field weights would let `defendsAgainst` matches count more or less than name matches once we trust `is_gap` enough to act on it. **Why deferred:** premature without gold rows to tune against. **Re-open trigger:** gold set reaches ~50 hand-labeled rows (currently 25 — partial) and `eval_discovery_gold.py` is in routine use.
 - **Body cap / chunk budget alignment.** 48 KB body cap, 12 × 3.5 KB chunks ≈ 42 KB chunked content per doc. **Why deferred:** numbers already align; nothing to fix. **No re-open trigger** — only revisit if a new connector class needs longer bodies.
 
 ## How to use this document

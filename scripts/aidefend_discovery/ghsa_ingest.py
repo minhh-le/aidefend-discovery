@@ -30,7 +30,7 @@ from typing import Any, Callable
 GHSA_API_URL = "https://api.github.com/advisories"
 GHSA_USER_AGENT = (
     "aidefend-discovery/0.3 "
-    "(+https://github.com/minhh-le/persistent-agent-security; research prototype)"
+    "(+https://github.com/minhh-le/aidefend-discovery; research prototype)"
 )
 GHSA_RETRY_STATUSES = frozenset({403, 429, 500, 502, 503, 504})
 GHSA_MAX_RETRIES = 5

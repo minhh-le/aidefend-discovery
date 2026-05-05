@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-03 (full build-out: Phase 1 hygiene + Phase 2 bridge & anchor-diff + Phase 2A NVD auth + Phase 2B GHSA + Phase 3 sqlite/exports + Phase 4 MCP integration + Phase 5 governance + scheduler + gold corpus)
+Updated: 2026-05-05 (repo rename/docs sync complete; loose notes + technical overview consolidated; active docs aligned with Phase 1-5 scaffolded state)
 
 ## Repo Purpose
 
@@ -18,7 +18,7 @@ Updated: 2026-05-03 (full build-out: Phase 1 hygiene + Phase 2 bridge & anchor-d
 - **MCP integration** in `aidefend-mcp` repo: `app/discovery/store.py` + 3 namespace-walled tools (`search_discovery_candidates`, `explain_candidate_mapping`, `list_anchor_diff`). 14 contract tests asserting AID-* IDs only in `references_aid` sidecar.
 - **Gold corpus**: 25 hand-labeled rows (19 covered / 6 gaps) in `lab/aidefend_discovery/gold/`. Eval baseline: is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00, recall_is_gap=0.0 (embeddings re-open trigger fired).
 - Existing enrichment/scoring remains: optional Trafilatura page fetch, candidate enrichment (`summary_raw`, `body_extracted`, chunks, entities), BM25 chunk max-pool, and lexical overlap explainability in gap reports.
-- **Promotion path:** [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) gives the concrete `CandidateFinding` → upstream `tactics/*.js` shape mapping; Phase 1 exit now requires a merged upstream promotion PR. **Soft rule:** upstream promotions are paused until the Phase 2 taxonomy-anchor diff lands (avoids vocabulary drift from MITRE/OWASP/NIST anchors).
+- **Promotion path:** [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) gives the concrete `CandidateFinding` → upstream `tactics/*.js` shape mapping; Phase 1 exit now requires a merged upstream promotion PR. The Phase 2 taxonomy anchor diff has shipped, so promotions are allowed after the required anchor-diff pre-flight.
 - **Research index:** [`docs/aidefend_discovery/discoveries/`](../docs/aidefend_discovery/discoveries/) (web extraction guidance; **NVD + GitHub global advisory REST** connector enumeration).
 - No offensive targets, customer data, credentials, raw evidence, or proprietary security findings are tracked.
 - Global continuity index may still route here for cross-repo R&D.
@@ -27,10 +27,11 @@ Updated: 2026-05-03 (full build-out: Phase 1 hygiene + Phase 2 bridge & anchor-d
 
 Facts:
 - Discovery output is **candidate-only** until promoted in upstream aidefense-framework `tactics/*.js`.
-- Phase 2A NVD baseline is implemented in anonymous mode; auth and GHSA are follow-on work.
-- The local checkout is now `aidefend-discovery`; the GitHub remote may still be `minhh-le/persistent-agent-security` until the remote repository is renamed.
+- NVD ingest is authenticated (`NVD_API_KEY` + retry/backoff); GHSA ingest is authenticated (`GH_PAT_FOR_GHSA` + cursor pagination).
+- Local checkout and GitHub remote are both `aidefend-discovery` — repository was renamed from `persistent-agent-security` on 2026-05-03.
+- Loose architecture-sketch notes were consolidated into `docs/aidefend_discovery/NOTES.md` on 2026-05-03 (was `~/Desktop/repos/notes - aidefend discovery`).
+- Loose technical overview was consolidated into `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md` on 2026-05-05 (was `~/Desktop/repos/explanation of discovery.md`).
 
 Needs definition later:
-- Whether to rename the GitHub repository after the docs/local identity stabilizes.
 - Public surface decision for candidate output: labs, MCP-only, website, or another channel.
 - Redistribution rules for third-party advisory summaries beyond cited metadata.

@@ -1,11 +1,11 @@
 # Open Loops
 
-Updated: 2026-05-03 (full build-out: Blocks A→J of the architecture-edit session)
+Updated: 2026-05-05 (cleanup closeout: repo rename + loose docs consolidation + global routing sync)
 
 ## High Priority
 
 - [ ] **Open the first upstream promotion PR** per [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) to close the hardened Phase 1 exit. Use a Shape-A candidate from `lab/aidefend_discovery/gold/labeling_log.md` (e.g., `GHSA-324q-cwx9-7crr` KubeAI command-injection).
-- [ ] **Run the nightly workflow once manually** (`gh workflow run discovery-nightly.yml --repo minhh-le/persistent-agent-security`) and review the auto-PR's exports.
+- [ ] **Run the nightly workflow once manually** (`gh workflow run discovery-nightly.yml --repo minhh-le/aidefend-discovery`) and review the auto-PR's exports.
 - [ ] **Embeddings + cross-encoder rerank** — re-open trigger fired (gold `recall_is_gap=0.0`); evaluate adding a scope classifier or rerank on BM25 top-20.
 - [ ] **Rotate credentials**: revoke and re-issue `NVD_API_KEY` and `GH_PAT_FOR_GHSA` that appeared in chat transcripts. Update `gh secret set` after rotation.
 - [ ] Add stricter AI-relevance/product allowlist filtering for vuln-shaped candidate quality (intersects with embeddings rerank).
@@ -17,7 +17,16 @@ Updated: 2026-05-03 (full build-out: Blocks A→J of the architecture-edit sessi
 - [ ] Grow `lab/aidefend_discovery/gold/example_labels.jsonl` from 25 → 50+ rows; unlocks BM25 field-weighting work.
 - [ ] Push `aidefend-mcp` Block-F changes upstream (locally committed, awaiting smoke test + PR copy steering).
 
-## Resolved this session (2026-05-03)
+## Resolved this session (2026-05-03 PM cleanup)
+
+- [x] Renamed GitHub repo `persistent-agent-security` → `aidefend-discovery`; updated local `origin` URL.
+- [x] Consolidated loose `~/Desktop/repos/notes - aidefend discovery` into `docs/aidefend_discovery/NOTES.md`.
+- [x] Consolidated loose `~/Desktop/repos/explanation of discovery.md` into `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`.
+- [x] Purged stale `persistent-agent-security` references from active files (User-Agents, `gh` examples, `.ai/OPEN_LOOPS.md`, `.ai/CURRENT.md`).
+- [x] Audited `docs/aidefend_discovery/ROADMAP.md` and `README.md` against current state; flipped Phase 1/2/3/4 checkboxes that had shipped, annotated embeddings re-open trigger, marked taxonomy-drift deferral resolved.
+- [x] Updated `agent-continuity` global routing to the renamed GitHub repo.
+
+## Resolved earlier (2026-05-03 architecture build-out)
 
 - [x] Block A: Phase 1 hygiene + NVD auth (commit `4632242`).
 - [x] Block C: sqlite candidate store + idempotency + export (commit `82a0972`).
@@ -27,7 +36,7 @@ Updated: 2026-05-03 (full build-out: Blocks A→J of the architecture-edit sessi
 - [x] Block F: MCP discovery tools in `aidefend-mcp` (locally committed; not pushed).
 - [x] Blocks E + H: governance templates + nightly scheduler workflow + secret provisioning.
 
-## Resolved earlier
+## Resolved earlier (pre-2026-05-03)
 
 - [x] Initialize safe repo-local `.ai` scaffold.
 - [x] Phase 2A NVD connector baseline (anonymous mode + sqlite cursor) integrated into discovery pipeline.

@@ -1,8 +1,8 @@
 # Handoff
 
-Updated: 2026-05-03 (architecture-edit session, full roadmap build-out: Blocks A→J)
-Updated by: Claude Code (Opus 4.7)
-Verification: `.venv/bin/python -m unittest discover -s tests -v` (59 tests, all pass — was 22); aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests pass); live authenticated NVD + GHSA pulls; gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00); from `../agent-continuity`: `python3 scripts/validate_continuity.py`, `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery`.
+Updated: 2026-05-05 (Codex cleanup closeout: repo rename/docs sync, loose docs consolidated, global continuity routing updated)
+Updated by: Codex
+Verification: from `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS); `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS); `.venv/bin/python -m unittest discover -s tests -v` (59 tests). Remote verified with `gh repo view minhh-le/aidefend-discovery --json name,url`. Prior architecture build-out verification: aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests), live authenticated NVD + GHSA pulls, gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
 
 ## Current Goal
 
@@ -13,7 +13,15 @@ on the gold-corpus precision plateau the eval just confirmed) plus
 upstream promotion PR via `PROMOTION_PLAYBOOK.md`, refresh vendored anchor
 YAMLs quarterly).
 
-## Last Meaningful Work — full build-out (Blocks A→J)
+## Last Meaningful Work — cleanup closeout (2026-05-05)
+
+- **GitHub repo renamed** `minhh-le/persistent-agent-security` → `minhh-le/aidefend-discovery` via `gh repo rename`. Local `origin` remote URL updated.
+- **Loose docs consolidated:** `~/Desktop/repos/notes - aidefend discovery` moved into `docs/aidefend_discovery/NOTES.md`; `~/Desktop/repos/explanation of discovery.md` moved into `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`.
+- **Stale `persistent-agent-security` references purged** from 7 active files (User-Agent strings in `rss_ingest.py`/`nvd_ingest.py`/`ghsa_ingest.py`/`audit_feeds.py`, `gh workflow run`/`gh secret set` examples in `lab/aidefend_discovery/README.md`, the workflow command in `.ai/OPEN_LOOPS.md`, and the rename-status fact in `.ai/CURRENT.md`). `.ai/SESSION_LOG.md` historical entries left intact as record of prior state.
+- **Docs audit:** `docs/aidefend_discovery/ROADMAP.md`, `PROMOTION_PLAYBOOK.md`, `discoveries/INDEX.md`, `README.md`, `lab/aidefend_discovery/README.md`, and `.ai/*` reconciled with actual state — shipped Phase 1/2/3/4 items marked complete, anchor-diff pause lifted, active open loops preserved.
+- **Global continuity routing:** `agent-continuity` now routes `aidefend-discovery` to `https://github.com/minhh-le/aidefend-discovery`.
+
+## Prior Meaningful Work — full build-out (Blocks A→J)
 
 - **Block A (Phase 1 hygiene):** version-range entity regex (CVE/GHSA-style
   prose); `NVD_API_KEY` auth + retry/backoff with jitter respecting Retry-After;
