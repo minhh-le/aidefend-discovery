@@ -1,0 +1,154 @@
+{
+  "generated_at": "2026-05-05T00:00:00Z",
+  "source": "sample",
+  "technique_records": 2,
+  "params": {
+    "gap_bm25_max": 10.0
+  },
+  "candidates": [
+    {
+      "id": "cand-promote",
+      "status": "candidate",
+      "title": "Critical Model Loader Deserialization",
+      "summary": "A reviewed advisory describes deserialization of untrusted model artifacts that can execute code during model loading.",
+      "source_urls": ["https://github.com/advisories/GHSA-aaaa-bbbb-cccc"],
+      "retrieved_at": "2026-05-05T00:00:00Z",
+      "license_note": "Sample public advisory metadata.",
+      "confidence": 0.9,
+      "source_type": "ghsa_api",
+      "source_id": "GHSA-aaaa-bbbb-cccc",
+      "entities": {
+        "cves": ["CVE-2026-0001"],
+        "ghsas": ["ghsa-aaaa-bbbb-cccc"],
+        "cwes": ["CWE-502"],
+        "version_constraints": ["vulnerable:< 1.2.3"]
+      },
+      "ghsa_severity": "high",
+      "ghsa_packages": ["pypi:model-loader"]
+    },
+    {
+      "id": "cand-merge",
+      "status": "candidate",
+      "title": "Known Prompt Injection Variant",
+      "summary": "A high severity advisory provides extra evidence for behavior already well covered by nearby AIDEFEND techniques.",
+      "source_urls": ["https://nvd.nist.gov/vuln/detail/CVE-2026-0002"],
+      "retrieved_at": "2026-05-05T00:00:00Z",
+      "license_note": "Sample NVD metadata.",
+      "confidence": 0.8,
+      "source_type": "nvd_api",
+      "source_id": "CVE-2026-0002",
+      "entities": {
+        "cves": ["CVE-2026-0002"],
+        "ghsas": [],
+        "cwes": ["CWE-79"]
+      },
+      "severity": "high"
+    },
+    {
+      "id": "cand-monitor",
+      "status": "candidate",
+      "title": "Medium Risk Dependency Disclosure",
+      "summary": "A medium severity advisory has identifiers but lower urgency for immediate promotion.",
+      "source_urls": ["https://github.com/advisories/GHSA-dddd-eeee-ffff"],
+      "retrieved_at": "2026-05-05T00:00:00Z",
+      "license_note": "Sample public advisory metadata.",
+      "confidence": 0.7,
+      "source_type": "ghsa_api",
+      "source_id": "GHSA-dddd-eeee-ffff",
+      "entities": {
+        "cves": [],
+        "ghsas": ["ghsa-dddd-eeee-ffff"],
+        "cwes": []
+      },
+      "ghsa_severity": "medium"
+    },
+    {
+      "id": "cand-needs-evidence",
+      "status": "candidate",
+      "title": "Ambiguous AI Security Blog",
+      "summary": "A blog post mentions AI risk in vague terms without advisory identifiers.",
+      "source_urls": ["https://example.test/blog"],
+      "retrieved_at": "2026-05-05T00:00:00Z",
+      "license_note": "Sample web metadata.",
+      "confidence": 0.4,
+      "source_type": "rss",
+      "source_id": "blog-1",
+      "entities": {
+        "cves": [],
+        "ghsas": [],
+        "cwes": []
+      }
+    },
+    {
+      "id": "cand-reject",
+      "status": "rejected",
+      "title": "Duplicate Non-AI Web Framework Bug",
+      "summary": "A duplicate item that is out of scope for AIDEFEND review.",
+      "source_urls": ["https://example.test/duplicate"],
+      "retrieved_at": "2026-05-05T00:00:00Z",
+      "license_note": "Sample web metadata.",
+      "confidence": 0.2,
+      "source_type": "rss",
+      "source_id": "duplicate-1",
+      "rejected_reason": "out_of_scope",
+      "entities": {
+        "cves": ["CVE-2026-0003"],
+        "ghsas": [],
+        "cwes": []
+      },
+      "severity": "low"
+    }
+  ],
+  "gap_reports": [
+    {
+      "candidate_id": "cand-promote",
+      "nearest_technique_ids": ["AID-H-001"],
+      "bm25_scores": [2.0],
+      "max_bm25": 2.0,
+      "is_gap": true,
+      "gap_reason": "max_bm25_below_threshold(2.0000<10.0)",
+      "suggested_tactic_ids": ["AID-H"],
+      "bridge_rationales": ["CWE-502: deserialization behavior maps to model artifact loading risk."]
+    },
+    {
+      "candidate_id": "cand-merge",
+      "nearest_technique_ids": ["AID-M-001"],
+      "bm25_scores": [8.0],
+      "max_bm25": 8.0,
+      "is_gap": false,
+      "gap_reason": "not_gap",
+      "suggested_tactic_ids": ["AID-M"],
+      "bridge_rationales": []
+    },
+    {
+      "candidate_id": "cand-monitor",
+      "nearest_technique_ids": ["AID-I-001"],
+      "bm25_scores": [5.0],
+      "max_bm25": 5.0,
+      "is_gap": false,
+      "gap_reason": "not_gap",
+      "suggested_tactic_ids": ["AID-I"],
+      "bridge_rationales": []
+    },
+    {
+      "candidate_id": "cand-needs-evidence",
+      "nearest_technique_ids": [],
+      "bm25_scores": [1.0],
+      "max_bm25": 1.0,
+      "is_gap": true,
+      "gap_reason": "max_bm25_below_threshold(1.0000<10.0)",
+      "suggested_tactic_ids": [],
+      "bridge_rationales": []
+    },
+    {
+      "candidate_id": "cand-reject",
+      "nearest_technique_ids": ["AID-M-001"],
+      "bm25_scores": [3.0],
+      "max_bm25": 3.0,
+      "is_gap": true,
+      "gap_reason": "max_bm25_below_threshold(3.0000<10.0)",
+      "suggested_tactic_ids": [],
+      "bridge_rationales": []
+    }
+  ]
+}

@@ -267,3 +267,46 @@ Next:
 - Open the first upstream promotion PR per `PROMOTION_PLAYBOOK.md`.
 - Run the nightly workflow manually once and review the auto-PR exports.
 - Continue embeddings + cross-encoder rerank evaluation after the `recall_is_gap=0.0` gold-corpus trigger.
+
+## 2026-05-05 — Public review digest
+
+Summary:
+Implemented the deterministic Markdown digest layer for public review testing.
+The digest now turns one `reports/gap_run_*.json` run into a reviewer-facing
+artifact with summary counts, lowest-coverage and highest-severity candidate
+views, unique candidate briefs, numeric scores, reviewer action labels, and
+secondary raw provenance.
+
+Changed:
+- Added `scripts/export_review_digest.py` with `--report`, `--output`,
+  `--top-n`, and `--sample`.
+- Added deterministic scoring helpers:
+  - `Coverage Score` = `round(min(100, 100 * max_bm25 / gap_bm25_max))`.
+  - `Security Score` = severity base plus bounded boosts for reviewed source,
+    CVE, GHSA, CWE, and package/version evidence, capped at 100.
+- Added deterministic action labels: `Promote`, `Merge Into Existing`,
+  `Reject`, `Needs Evidence`, `Monitor`.
+- Added `tests/fixtures/sample_gap_run.json` so sample mode works without API
+  credentials.
+- Added `tests/test_review_digest.py` for scoring, action recommendation, CLI
+  rendering, top-n behavior, summary counts, table presence, deterministic
+  timestamp behavior, sample mode, and candidate-brief de-duplication.
+- Generated `reports/discovery_digest_20260505.md` from the real GHSA report.
+- Updated `README.md`, `lab/aidefend_discovery/README.md`, `.ai/CURRENT.md`,
+  `.ai/HANDOFF.md`, `.ai/OPEN_LOOPS.md`, `.ai/DECISIONS.md`, and
+  `.ai/COMMANDS.md`.
+
+Verification:
+- `PYTHONPATH=scripts python3 -m unittest tests.test_review_digest -v` (15 tests)
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (74 tests)
+- `python3 scripts/export_review_digest.py --report reports/gap_run_20260505.json --output reports/discovery_digest_20260505.md --top-n 10`
+- `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`
+- Filtered secret scan excluding `.venv`, `__pycache__`, and generated
+  `lab/aidefend_discovery/candidates.jsonl`; findings were existing env-var
+  examples/redacted parameters/regex constant, not secret values.
+
+Next:
+- Use the digest artifact during public review testing and tune thresholds/action
+  heuristics from reviewer feedback.
+- Continue existing high-priority loops: first upstream promotion PR, manual
+  nightly workflow run, embeddings/rerank evaluation, credential rotation.

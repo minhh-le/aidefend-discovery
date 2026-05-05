@@ -1,17 +1,41 @@
 # Handoff
 
-Updated: 2026-05-05 (Codex cleanup closeout: repo rename/docs sync, loose docs consolidated, global continuity routing updated)
+Updated: 2026-05-05 (Codex public review digest closeout)
 Updated by: Codex
-Verification: from `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS); `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS); `.venv/bin/python -m unittest discover -s tests -v` (59 tests). Remote verified with `gh repo view minhh-le/aidefend-discovery --json name,url`. Prior architecture build-out verification: aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests), live authenticated NVD + GHSA pulls, gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
+Verification: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (74 tests); `python3 scripts/export_review_digest.py --report reports/gap_run_20260505.json --output reports/discovery_digest_20260505.md --top-n 10`; `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`; filtered secret scan over tracked work area (findings are existing env-var examples/redacted params/regex constant only). Prior cleanup verification: from `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS); `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS). Prior architecture build-out verification: aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests), live authenticated NVD + GHSA pulls, gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
 
 ## Current Goal
 
-Phases 1, 2A, 2B, 3, 4, 5 are now scaffolded end-to-end. The remaining work is
-**evaluation-driven precision tuning** (embeddings + cross-encoder rerank, gated
-on the gold-corpus precision plateau the eval just confirmed) plus
-**operationalisation** (run the nightly workflow for a few cycles, do the first
-upstream promotion PR via `PROMOTION_PLAYBOOK.md`, refresh vendored anchor
-YAMLs quarterly).
+Phases 1, 2A, 2B, 3, 4, 5 are now scaffolded end-to-end, and a deterministic
+Markdown public review digest exists for single-run `gap_run_*.json` outputs.
+The remaining work is **evaluation-driven precision tuning** (embeddings +
+cross-encoder rerank, gated on the gold-corpus precision plateau the eval just
+confirmed) plus **operationalisation** (run the nightly workflow for a few
+cycles, do the first upstream promotion PR via `PROMOTION_PLAYBOOK.md`, refresh
+vendored anchor YAMLs quarterly).
+
+## Last Meaningful Work — public review digest (2026-05-05)
+
+- Added `scripts/export_review_digest.py`.
+  - Input v1: one `reports/gap_run_*.json` file.
+  - Output: Markdown digest with Run Summary, Lowest Coverage Candidates,
+    Highest Severity Candidates, Candidate Briefs, and Methodology /
+    Provenance appendix.
+  - Scores: `Coverage Score: N/100` from `max_bm25 / gap_bm25_max`; `Security
+    Score: N/100` from severity plus bounded evidence boosts.
+  - Actions: `Promote`, `Merge Into Existing`, `Reject`, `Needs Evidence`,
+    `Monitor`.
+  - Raw provenance remains secondary in each brief: candidate ID, source type,
+    source ID, retrieved timestamp, identifiers, source URLs, score details,
+    gap reason, confidence, and license note.
+- Added sample mode (`--sample`) backed by `tests/fixtures/sample_gap_run.json`
+  for public testers without API credentials.
+- Added `tests/test_review_digest.py` covering scoring, action recommendation,
+  CLI rendering, `--top-n`, summary counts, table presence, deterministic
+  timestamp behavior, sample mode, and candidate-brief de-duplication.
+- Generated a real digest: `reports/discovery_digest_20260505.md`.
+- Documented usage in `README.md`, `lab/aidefend_discovery/README.md`, and
+  `.ai/COMMANDS.md`.
 
 ## Last Meaningful Work — cleanup closeout (2026-05-05)
 

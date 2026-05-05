@@ -39,6 +39,9 @@ python3 scripts/eval_discovery_gold.py --report reports/gap_run_YYYYMMDD.json \
   --gold lab/aidefend_discovery/gold/example_labels.jsonl
 python3 scripts/export_review.py --state-db lab/aidefend_discovery/discovery_state.db --output reports/review_export.csv
 python3 scripts/discovery_metrics.py --state-db lab/aidefend_discovery/discovery_state.db --output reports/discovery_metrics.json
+python3 scripts/export_review_digest.py --report reports/gap_run_YYYYMMDD.json \
+  --output reports/discovery_digest_YYYYMMDD.md --top-n 10
+python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
 ```
 
 ## Safety Checks

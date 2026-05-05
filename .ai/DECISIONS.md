@@ -2,6 +2,19 @@
 
 Updated: 2026-05-05
 
+## 2026-05-05 — Public review digest uses single-run JSON as v1 product surface
+
+Decision: Add a deterministic Markdown digest generator over `reports/gap_run_*.json`
+as the public-review surface for discovery candidates. Keep sqlite backlog/history
+out of v1, expose two numeric indicators (`Coverage Score`, `Security Score`),
+use explicit reviewer action labels, and keep raw provenance in candidate brief
+evidence/provenance sections instead of top-level tables.
+
+Rationale: Single-run JSON is easiest for public testers to reproduce and reason
+about without API keys or a local sqlite state store. The digest doubles as a
+future UI product spec while preserving the backend candidate/gap data contract
+and avoiding LLM-generated review text.
+
 ## 2026-04-30 — Start as safe empty scaffold
 
 Decision: Initialize the repo with only continuity structure and safety policy, no project-specific content.

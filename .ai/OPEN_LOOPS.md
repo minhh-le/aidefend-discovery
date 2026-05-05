@@ -1,6 +1,6 @@
 # Open Loops
 
-Updated: 2026-05-05 (cleanup closeout: repo rename + loose docs consolidation + global routing sync)
+Updated: 2026-05-05 (public review digest shipped)
 
 ## High Priority
 
@@ -16,6 +16,14 @@ Updated: 2026-05-05 (cleanup closeout: repo rename + loose docs consolidation + 
 - [ ] Refresh vendored taxonomy anchor YAMLs (`lab/aidefend_discovery/taxonomy_anchors/`) per `QUALITY_AUDIT_CHECKLIST.md` Section 2 — quarterly.
 - [ ] Grow `lab/aidefend_discovery/gold/example_labels.jsonl` from 25 → 50+ rows; unlocks BM25 field-weighting work.
 - [ ] Push `aidefend-mcp` Block-F changes upstream (locally committed, awaiting smoke test + PR copy steering).
+
+## Resolved this session (2026-05-05 public review digest)
+
+- [x] Added deterministic Markdown digest generation from `reports/gap_run_*.json` via `scripts/export_review_digest.py`.
+- [x] Added public sample mode backed by `tests/fixtures/sample_gap_run.json`.
+- [x] Added scoring/action/CLI tests for coverage score, security score, reviewer action labels, top-level tables, `--top-n`, summary counts, deterministic timestamp behavior, sample mode, and de-duped candidate briefs.
+- [x] Generated `reports/discovery_digest_20260505.md` from the real 2026-05-05 GHSA report.
+- [x] Documented digest usage in public-facing README files and local commands.
 
 ## Resolved this session (2026-05-03 PM cleanup)
 
