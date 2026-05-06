@@ -16,7 +16,7 @@ This document is the **persistent** plan for evolving from the current prototype
 
 ## North star
 
-**Structured layer:** The CC BY knowledge base (authoritative tactic modules → generated [`data/data.json`](https://github.com/edward-playground/aidefense-framework/blob/main/data/data.json)), mappings, site, and MCP remain the **source of approved truth**.
+**Structured layer:** The CC BY knowledge base (authoritative tactic modules → generated `data/data.json`), mappings, site, and MCP/REST service are bundled in this monorepo as tracked snapshots and remain the **source of approved truth**.
 
 **Discovery layer:** Continuous, **cited** signals from the outside world become **candidates**; humans (and later policy-gated automation) **promote** only what belongs in that truth. Nothing discovered silently overwrites the framework.
 
@@ -32,8 +32,8 @@ This roadmap answers how we move from a toy pipeline to that **operating model**
 - **Ingestion mesh:** Multiple **connector types** (taxonomy anchors, NVD/CVE with filters, GitHub advisories, vendor feeds, academic feeds with variance flags)—each with **allowlists**, rate limits, license posture, and **per-source metadata**.
 - **Normalization:** Candidates carry a **stable schema**, **dedupe keys**, **citations**, **confidence**, and optional **extracted entities** (CVE, CWE, package, version ranges)—not only large unstructured summaries.
 - **Correlation engine (mature):** Layered retrieval beyond raw BM25: lexical → optional embeddings → **explicit bridges** (e.g. CVE/CWE/product hints → tactic hints); outputs are **ranked hypotheses** with **explainability** (matched terms, shared IDs, overlap with `defendsAgainst` lines).
-- **Review queue:** Triage workflow (statuses, rejection reasons, assignment), lightweight metrics (throughput, precision proxies), and **promotion** into upstream [`tactics/*.js`](https://github.com/edward-playground/aidefense-framework/tree/main/tactics) plus `node scripts/generate-dataset.js`.
-- **Distribution:** **Extend [aidefend-mcp](https://github.com/edward-playground/aidefend-mcp)** with optional, **strictly labeled** discovery tools (`search_discovery_candidates`, `explain_candidate_mapping`, etc.). Optional **Labs** or filtered web surfacing—policy decision with founder.
+- **Review queue:** Triage workflow (statuses, rejection reasons, assignment), lightweight metrics (throughput, precision proxies), and **promotion** into `vendor/aidefense-framework/tactics/*.js` plus `node scripts/generate-dataset.js`.
+- **Distribution:** Bundle the full MCP/REST service under `services/aidefend-mcp/` with optional, **strictly labeled** discovery tools (`search_discovery_candidates`, `explain_candidate_mapping`, etc.). Optional **Labs** or filtered web surfacing—policy decision with founder.
 
 ### Operations and trust
 
@@ -129,8 +129,8 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 
 #### Action items
 
-- [x] **aidefend-mcp:** `app/discovery/store.py` (read-only sqlite client) + 3 namespace-walled tools (`search_discovery_candidates`, `explain_candidate_mapping`, `list_anchor_diff`); every response carries `discovery_namespace: true` + disclaimer; graceful "not configured" when `DISCOVERY_DB_PATH` unset. Locally committed in companion repo; awaiting smoke test + upstream PR copy steering.
-- [x] **Contract tests:** 14 tests in `aidefend-mcp/tests/test_discovery_tools.py` assert `AID-*` IDs only appear in `references_aid` sidecar (never as primary IDs).
+- [x] **MCP/REST service:** `services/aidefend-mcp/app/discovery/store.py` (read-only sqlite client) + 3 namespace-walled tools (`search_discovery_candidates`, `explain_candidate_mapping`, `list_anchor_diff`); every response carries `discovery_namespace: true` + disclaimer; graceful "not configured" when `DISCOVERY_DB_PATH` unset.
+- [x] **Contract tests:** 14 tests in `services/aidefend-mcp/tests/test_discovery_tools.py` assert `AID-*` IDs only appear in `references_aid` sidecar (never as primary IDs).
 - [ ] **Public surface decision** with founder (site vs labs vs MCP-only); legal review if candidate text is shown verbatim. License-posture upgrade gated on this — see [Deferred with reasoning](#deferred-with-reasoning).
 
 ---

@@ -1,14 +1,21 @@
 # Current State
 
-Updated: 2026-05-06 (public demo review console added; active docs aligned with Phase 1-5 scaffolded state)
+Updated: 2026-05-06 (canonical private monorepo consolidation)
 
 ## Repo Purpose
 
-**AIDEFEND Discovery** is a research and tooling workspace for finding, normalizing, scoring, and reviewing candidate additions or mappings for the AIDEFEND knowledge base.
+**AIDEFEND Discovery** is the canonical private monorepo for finding,
+normalizing, scoring, reviewing, and serving AIDEFEND candidate additions or
+mappings alongside tracked AIDEFEND framework and MCP/REST snapshots.
 
 ## Current Status
 
 - The repo has moved past the original empty security scaffold; its working identity is now **AIDEFEND Discovery**.
+- `main` is the consolidation target. It now carries the discovery pipeline,
+  public digest/review console work, latest useful 20260506 nightly artifacts,
+  `vendor/aidefense-framework/`, and `services/aidefend-mcp/`.
+- `scripts/run_discovery_gap.py` and `scripts/anchor_diff.py` default to
+  `vendor/aidefense-framework/data/data.json`.
 - `scripts/run_discovery_gap.py` supports `--source rss|nvd|ghsa`. NVD mode uses `scripts/aidefend_discovery/nvd_ingest.py` with `NVD_API_KEY` env auth + retry/backoff. GHSA mode uses `scripts/aidefend_discovery/ghsa_ingest.py` with `GH_PAT_FOR_GHSA` env auth + cursor pagination via Link headers. CVE↔GHSA join via `entities` sidecar.
 - **CWE→tactic bridge** (`scripts/aidefend_discovery/bridge.py` + `lab/aidefend_discovery/bridges/cwe_to_tactic.yaml`, 26 CWEs with citations) populates `GapReport.bridge_rationales` / `suggested_*`.
 - **Taxonomy anchor diff** (`scripts/anchor_diff.py` + 9 vendored YAMLs in `lab/aidefend_discovery/taxonomy_anchors/`) surfaces upstream framework IDs not yet mapped in AIDEFEND `defendsAgainst`.
@@ -17,7 +24,11 @@ Updated: 2026-05-06 (public demo review console added; active docs aligned with 
 - **Public review digest**: `scripts/export_review_digest.py` renders deterministic Markdown from a single `reports/gap_run_*.json`, with lowest-coverage/highest-severity tables, candidate briefs, numeric coverage/security scores, reviewer action labels, and raw provenance in each brief. `--sample` uses `tests/fixtures/sample_gap_run.json` so public testers can preview the format without API keys.
 - **Public demo review console**: `scripts/aidefend_discovery/review_console.py` + `review_console/` provide a local Python API and React/TypeScript workbench for one `gap_run_*.json` report. It reuses digest scoring/action helpers, stores reviewer decisions candidate-locally in sqlite, keeps backend `recommended_action` separate from reviewer `review_decision`, supports queue tabs/filters/provenance inspection/nearest-technique comparison, and exports reviewed candidates only to Markdown or CSV.
 - **Scheduled run**: `.github/workflows/discovery-nightly.yml` (cron 09:00 UTC); secrets `NVD_API_KEY` + `GH_PAT_FOR_GHSA` provisioned. Auto-PR opened, never merged.
-- **MCP integration** in `aidefend-mcp` repo: `app/discovery/store.py` + 3 namespace-walled tools (`search_discovery_candidates`, `explain_candidate_mapping`, `list_anchor_diff`). 14 contract tests asserting AID-* IDs only in `references_aid` sidecar.
+- **MCP/REST integration** is bundled in `services/aidefend-mcp/`: full service
+  snapshot plus `app/discovery/store.py` and 3 namespace-walled tools
+  (`search_discovery_candidates`, `explain_candidate_mapping`,
+  `list_anchor_diff`). 14 contract tests assert AID-* IDs only in
+  `references_aid` sidecar.
 - **Gold corpus**: 25 hand-labeled rows (19 covered / 6 gaps) in `lab/aidefend_discovery/gold/`. Eval baseline: is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00, recall_is_gap=0.0 (embeddings re-open trigger fired).
 - Existing enrichment/scoring remains: optional Trafilatura page fetch, candidate enrichment (`summary_raw`, `body_extracted`, chunks, entities), BM25 chunk max-pool, and lexical overlap explainability in gap reports.
 - **Promotion path:** [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) gives the concrete `CandidateFinding` → upstream `tactics/*.js` shape mapping; Phase 1 exit now requires a merged upstream promotion PR. The Phase 2 taxonomy anchor diff has shipped, so promotions are allowed after the required anchor-diff pre-flight.
@@ -28,7 +39,12 @@ Updated: 2026-05-06 (public demo review console added; active docs aligned with 
 ## Facts vs Assumptions
 
 Facts:
-- Discovery output is **candidate-only** until promoted in upstream aidefense-framework `tactics/*.js`.
+- Discovery output is **candidate-only** until promoted through an explicit
+  framework tactic edit under `vendor/aidefense-framework/tactics/*.js` and
+  regenerated `vendor/aidefense-framework/data/data.json`.
+- Imported snapshots are tracked in `vendor/SNAPSHOTS.md`:
+  `edward-playground/aidefense-framework@e4d5659e03ac087f459350afde0e13161cdf2f93`
+  and `minhh-le/aidefend-mcp@118c56cb8567ccc4eee9df1f766cb018be37963f`.
 - NVD ingest is authenticated (`NVD_API_KEY` + retry/backoff); GHSA ingest is authenticated (`GH_PAT_FOR_GHSA` + cursor pagination).
 - Local checkout and GitHub remote are both `aidefend-discovery` — repository was renamed from `persistent-agent-security` on 2026-05-03.
 - Loose architecture-sketch notes were consolidated into `docs/aidefend_discovery/NOTES.md` on 2026-05-03 (was `~/Desktop/repos/notes - aidefend discovery`).

@@ -4,7 +4,6 @@ Thin vertical slice: RSS (allowlisted) → CandidateFinding JSONL → BM25 vs AI
 
 Example:
   python3 scripts/run_discovery_gap.py \\
-    --data-json ../aidefense-framework/data/data.json \\
     --feed-url https://github.com/langchain-ai/langchain/releases.atom \\
     --allowlist lab/aidefend_discovery/feeds.allowlist \\
     --max-items 15 \\
@@ -21,6 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
+DEFAULT_DATA_JSON = ROOT / "vendor" / "aidefense-framework" / "data" / "data.json"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
@@ -163,8 +163,8 @@ def main() -> int:
     parser.add_argument(
         "--data-json",
         type=Path,
-        required=True,
-        help="Path to aidefense-framework data/data.json",
+        default=DEFAULT_DATA_JSON,
+        help="Path to AIDEFEND framework data/data.json (default: bundled vendor snapshot)",
     )
     parser.add_argument(
         "--source",

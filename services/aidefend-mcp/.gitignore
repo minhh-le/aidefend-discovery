@@ -1,0 +1,126 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tgz
+package-lock.7z
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Data directories (contains downloaded content and database)
+data/
+*.lancedb/
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.hypothesis/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Distribution / packaging
+*.whl
+
+# Docker volumes and runtime data
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+.release-check-*/
+.wheelcheck/
+
+# VSCode Claude extension cache
+.claude/
+
+# Claude temporary output files
+CLAUDE*.md
+UPGRADE*.md
+UPDATE*.md
+*UPDATE*REPORT*.md
+
+# Test and verification scripts (keep these for documentation)
+# tests/fixtures/test_example.js - Example file for parser testing
+
+# Temporary diagnostic/troubleshooting scripts (created during development)
+scripts/diagnose_*.py
+scripts/compare_*.py
+scripts/find_*.py
+scripts/check_*.py
+scripts/test_*.py
+
+# Security: Sensitive files that must NEVER be committed
+# These patterns are critical for security
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*_secret*
+*_private*
+credentials*.json
+secrets*.json
+
+# Windows command error artifacts
+nul

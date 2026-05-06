@@ -1,6 +1,6 @@
 # Open Loops
 
-Updated: 2026-05-06 (public demo review console shipped)
+Updated: 2026-05-06 (canonical private monorepo consolidation)
 
 ## High Priority
 
@@ -9,13 +9,26 @@ Updated: 2026-05-06 (public demo review console shipped)
 - [ ] **Embeddings + cross-encoder rerank** — re-open trigger fired (gold `recall_is_gap=0.0`); evaluate adding a scope classifier or rerank on BM25 top-20.
 - [ ] **Rotate credentials**: revoke and re-issue `NVD_API_KEY` and `GH_PAT_FOR_GHSA` that appeared in chat transcripts. Update `gh secret set` after rotation.
 - [ ] Add stricter AI-relevance/product allowlist filtering for vuln-shaped candidate quality (intersects with embeddings rerank).
+- [ ] After monorepo validation is pushed to `main`, delete fully represented
+  remote branches: `cleanup/rename-and-consolidate`,
+  `discovery-nightly/20260504`, `discovery-nightly/20260505`, and
+  `discovery-nightly/20260506`.
 
 ## Medium Priority
 
 - [ ] Decide public surface for candidate output: labs docs, MCP-only, website, or another channel. License-posture upgrade gated on this (see ROADMAP "Deferred with reasoning" license-posture re-open trigger).
 - [ ] Refresh vendored taxonomy anchor YAMLs (`lab/aidefend_discovery/taxonomy_anchors/`) per `QUALITY_AUDIT_CHECKLIST.md` Section 2 — quarterly.
 - [ ] Grow `lab/aidefend_discovery/gold/example_labels.jsonl` from 25 → 50+ rows; unlocks BM25 field-weighting work.
-- [ ] Push `aidefend-mcp` Block-F changes upstream (locally committed, awaiting smoke test + PR copy steering).
+
+## Resolved this session (2026-05-06 monorepo consolidation)
+
+- [x] Fast-forwarded `main` to `origin/main@80ad177`.
+- [x] Merged `cleanup/rename-and-consolidate@256b373` into `main`.
+- [x] Preserved latest useful nightly artifacts from
+  `discovery-nightly/20260506@b68d354`.
+- [x] Imported `vendor/aidefense-framework/` from upstream commit `e4d5659`.
+- [x] Imported `services/aidefend-mcp/` from fork commit `118c56c`.
+- [x] Added monorepo snapshot manifest and root docs/commands wiring.
 
 ## Resolved this session (2026-05-05 public demo review console)
 
@@ -49,7 +62,7 @@ Updated: 2026-05-06 (public demo review console shipped)
 - [x] Block G: GHSA connector (commit `09ed4e8`).
 - [x] Block B: CWE→tactic bridge + taxonomy anchor diff (commit `dc2db82`).
 - [x] Block I: 25-row gold corpus + eval upgrade (commit `d9e6b11`).
-- [x] Block F: MCP discovery tools in `aidefend-mcp` (locally committed; not pushed).
+- [x] Block F: MCP discovery tools bundled under `services/aidefend-mcp/`.
 - [x] Blocks E + H: governance templates + nightly scheduler workflow + secret provisioning.
 
 ## Resolved earlier (pre-2026-05-03)

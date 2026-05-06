@@ -1,20 +1,39 @@
 # Handoff
 
-Updated: 2026-05-06 (Codex public demo review console committed closeout)
+Updated: 2026-05-06 (canonical private monorepo consolidation in progress)
 Updated by: Codex
-Verification: from `../agent-continuity`, `python3 scripts/validate_continuity.py` (PASS) and `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS). In this repo: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests); `cd review_console && npm test` (6 tests); `cd review_console && npm run build`; `cd review_console && npm audit --audit-level=high` (exit 0; 5 moderate dev-server audit findings remain in Vite/Vitest transitive deps); Chromium headless screenshots at 1440x900 and 390x900 against `http://127.0.0.1:8765`; API smoke for encoded candidate key. Prior public digest verification: `python3 scripts/export_review_digest.py --report reports/gap_run_20260505.json --output reports/discovery_digest_20260505.md --top-n 10`; `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`. Prior architecture build-out verification: aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests), live authenticated NVD + GHSA pulls, gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
+Verification: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests); `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`; no-network fixture replay against `vendor/aidefense-framework/data/data.json`; `python3 scripts/anchor_diff.py --output /tmp/aidefend_anchor_diff.json`; `cd review_console && npm test` (6 tests); `cd review_console && npm run build`; review-console API smoke against `tests/fixtures/sample_gap_run.json` on port 8766; `cd services/aidefend-mcp && .venv/bin/pytest tests/test_discovery_tools.py` (14 tests; configured/unconfigured discovery namespace coverage); from `../agent-continuity`, `python3 scripts/validate_continuity.py` (PASS) and `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS with expected pre-commit stale-handoff warning). Prior architecture build-out verification included live authenticated NVD + GHSA pulls and gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
 
 ## Current Goal
 
-Phases 1, 2A, 2B, 3, 4, 5 are now scaffolded end-to-end. A deterministic
-Markdown public review digest exists for single-run `gap_run_*.json` outputs,
-and a local Public Demo Console now reviews one report at a time with
-candidate-local sqlite decision persistence and reviewed-only Markdown/CSV
-exports. The remaining work is **evaluation-driven precision tuning**
-(embeddings + cross-encoder rerank, gated on the gold-corpus precision plateau
-the eval just confirmed) plus **operationalisation** (run the nightly workflow
-for a few cycles, do the first upstream promotion PR via
-`PROMOTION_PLAYBOOK.md`, refresh vendored anchor YAMLs quarterly).
+`main` is being consolidated into the canonical private monorepo. It contains
+the discovery pipeline, public digest/review console, latest retained nightly
+reports from `discovery-nightly/20260506`, a tracked AIDEFEND framework
+snapshot under `vendor/aidefense-framework/`, and the full MCP/REST service
+under `services/aidefend-mcp/`. The remaining work after consolidation is
+**evaluation-driven precision tuning** plus **operationalisation**: first
+promotion through the bundled framework snapshot, manual nightly review, and
+credential rotation.
+
+## Last Meaningful Work — monorepo consolidation (2026-05-06)
+
+- Fast-forwarded local `main` to `origin/main@80ad177`.
+- Merged `origin/cleanup/rename-and-consolidate@256b373`, preserving public
+  review digest and local review console work.
+- Merged latest useful nightly artifacts from
+  `origin/discovery-nightly/20260506@b68d354` under `reports/auto/20260506/`.
+  Older nightly branches contain earlier duplicate report sets and can be
+  deleted once `main` is pushed.
+- Imported plain-file snapshots:
+  - `vendor/aidefense-framework/` from
+    `edward-playground/aidefense-framework@e4d5659e03ac087f459350afde0e13161cdf2f93`
+  - `services/aidefend-mcp/` from
+    `minhh-le/aidefend-mcp@118c56cb8567ccc4eee9df1f766cb018be37963f`
+- Added `vendor/SNAPSHOTS.md` and `docs/aidefend_discovery/MONOREPO.md`.
+- Updated discovery defaults so `run_discovery_gap.py` and `anchor_diff.py`
+  use `vendor/aidefense-framework/data/data.json` by default.
+- Updated MCP service defaults so local service sync points at the bundled
+  framework snapshot and report discovery points at root `reports/`.
 
 ## Last Meaningful Work — public demo review console (2026-05-05)
 
@@ -104,14 +123,13 @@ for a few cycles, do the first upstream promotion PR via
   precision/recall/F1; current baseline `is_gap_accuracy=0.76`,
   `nearest_topk_hit_rate=1.00`, `recall_is_gap=0.0` — **embeddings re-open
   trigger fired**. Commit `d9e6b11`.
-- **Block F (Phase 4 MCP integration):** in companion repo `aidefend-mcp`:
-  `app/discovery/store.py` (read-only sqlite client) + 3 namespace-walled
-  tools (`search_discovery_candidates`, `explain_candidate_mapping`,
-  `list_anchor_diff`). 14 contract tests assert AID-* IDs only appear in
-  `references_aid` sidecar; every response carries
+- **Block F (Phase 4 MCP integration):** now bundled under
+  `services/aidefend-mcp/`: `app/discovery/store.py` (read-only sqlite client)
+  + 3 namespace-walled tools (`search_discovery_candidates`,
+  `explain_candidate_mapping`, `list_anchor_diff`). 14 contract tests assert
+  AID-* IDs only appear in `references_aid` sidecar; every response carries
   `discovery_namespace: true` + disclaimer; graceful "not configured" when
-  `DISCOVERY_DB_PATH` unset. Locally committed (no push to upstream Edward
-  Lee repo per the "pause before upstream PRs" memory).
+  `DISCOVERY_DB_PATH` unset.
 - **Blocks E + H (governance + scheduler):** `.github/PULL_REQUEST_TEMPLATE.md`
   + `discovery_promotion.md` specialised template;
   `docs/aidefend_discovery/QUALITY_AUDIT_CHECKLIST.md` 8-section quarterly

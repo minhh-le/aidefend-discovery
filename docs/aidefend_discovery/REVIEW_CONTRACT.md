@@ -2,10 +2,11 @@
 
 Defines **statuses**, **rejection reasons**, and **promotion** from discovery candidates into authoritative AIDEFEND content.
 
-Authoritative techniques live upstream in **aidefense-framework** tactic modules, not in this repo:
+Authoritative techniques live in the tracked **aidefense-framework** tactic
+snapshot, not in discovery candidate rows:
 
-- Canonical edits: [`tactics/*.js`](https://github.com/edward-playground/aidefense-framework/tree/main/tactics) (e.g. `model.js`, `harden.js`, …).
-- Regenerated dataset: run `node scripts/generate-dataset.js` there to refresh [`data/data.json`](https://github.com/edward-playground/aidefense-framework/blob/main/data/data.json).
+- Canonical edits: [`vendor/aidefense-framework/tactics/*.js`](../../vendor/aidefense-framework/tactics) (e.g. `model.js`, `harden.js`, ...).
+- Regenerated dataset: run `node scripts/generate-dataset.js` from `vendor/aidefense-framework/` to refresh `vendor/aidefense-framework/data/data.json`.
 
 This repo only produces **candidates** and **gap reports**.
 
@@ -38,7 +39,7 @@ See [`schemas.py`](../../scripts/aidefend_discovery/schemas.py) (`GapReport`). `
 ```text
 candidate ──► rejected     (terminal; record reason code + optional note)
      │
-     └──► promoted ──► manual edit in aidefense-framework tactics/*.js + regenerate data.json
+     └──► promoted ──► manual edit in vendor/aidefense-framework tactics/*.js + regenerate data.json
 ```
 
 - **candidate**: default from ingestion.

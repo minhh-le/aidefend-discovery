@@ -377,3 +377,44 @@ Notes:
 - Left unrelated untracked `agent-continuity/apps/continuity-ui/.data/` alone.
 - The smoke-test sqlite DB was outside the repo at
   `/tmp/aidefend_review_console_smoke.db`.
+
+## 2026-05-06 — Canonical private monorepo consolidation
+
+Summary:
+Started consolidating `aidefend-discovery` so `main` becomes the single private
+canonical AIDEFEND repo for discovery, review, MCP/REST service, and framework
+snapshot work.
+
+Changed:
+- Fetched/pruned remotes; fast-forwarded local `main` to `origin/main@80ad177`.
+- Merged `origin/cleanup/rename-and-consolidate@256b373` and resolved
+  continuity-doc conflicts in favor of the review console/digest state.
+- Merged latest retained nightly artifacts from
+  `origin/discovery-nightly/20260506@b68d354` into `reports/auto/20260506/`.
+- Imported `vendor/aidefense-framework/` from
+  `edward-playground/aidefense-framework@e4d5659e03ac087f459350afde0e13161cdf2f93`.
+- Imported `services/aidefend-mcp/` from
+  `minhh-le/aidefend-mcp@118c56cb8567ccc4eee9df1f766cb018be37963f`.
+- Excluded `.git`, virtualenvs, node_modules, caches, logs, coverage, sqlite DBs,
+  and service runtime data from snapshot imports.
+- Added `vendor/SNAPSHOTS.md` and `docs/aidefend_discovery/MONOREPO.md`.
+- Updated discovery defaults to use bundled
+  `vendor/aidefense-framework/data/data.json`.
+- Updated MCP service defaults to use the bundled framework snapshot and root
+  `reports/` path for discovery reports.
+
+Verification:
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests)
+- `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`
+- No-network fixture replay against `vendor/aidefense-framework/data/data.json`
+- `python3 scripts/anchor_diff.py --output /tmp/aidefend_anchor_diff.json`
+- `cd review_console && npm test` (6 tests)
+- `cd review_console && npm run build`
+- Review-console API smoke against `tests/fixtures/sample_gap_run.json` on port
+  8766 (`/api/run`, `/api/candidates?tab=lowest`)
+- `cd services/aidefend-mcp && .venv/bin/pytest tests/test_discovery_tools.py`
+  (14 tests; configured/unconfigured discovery namespace coverage)
+- From `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS)
+- From `../agent-continuity`: `python3 scripts/closeout_check.py
+  /home/minh/Desktop/repos/aidefend-discovery` (PASS with expected pre-commit
+  stale-handoff warning)

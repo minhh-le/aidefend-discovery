@@ -16,7 +16,6 @@ items[]; this script substring-matches each item ID against the upstream
 
 Usage:
   python3 scripts/anchor_diff.py \\
-    --data-json /path/to/aidefense-framework/data/data.json \\
     --anchors-dir lab/aidefend_discovery/taxonomy_anchors \\
     --output reports/anchor_diff_$(date -u +%Y%m%d).json
 
@@ -37,6 +36,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
+DEFAULT_DATA_JSON = ROOT / "vendor" / "aidefense-framework" / "data" / "data.json"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
@@ -145,7 +145,12 @@ def diff_anchor(anchor: dict[str, Any], aidefend_items: list[str]) -> dict[str, 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-json", type=Path, required=True)
+    parser.add_argument(
+        "--data-json",
+        type=Path,
+        default=DEFAULT_DATA_JSON,
+        help="Path to AIDEFEND framework data/data.json (default: bundled vendor snapshot)",
+    )
     parser.add_argument(
         "--anchors-dir",
         type=Path,

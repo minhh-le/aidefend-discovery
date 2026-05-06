@@ -29,7 +29,6 @@ Run:
 Run:
 ```bash
 .venv/bin/python scripts/anchor_diff.py \
-  --data-json /path/to/aidefense-framework/data/data.json \
   --output reports/anchor_diff_$(date -u +%Y%m%d).json
 ```
 

@@ -16,19 +16,16 @@ cd /path/to/aidefend-discovery
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v
 python3 scripts/run_discovery_gap.py \
-  --data-json ../aidefense-framework/data/data.json \
   --feed-url https://github.com/langchain-ai/langchain/releases.atom \
   --allowlist lab/aidefend_discovery/feeds.allowlist \
   --max-items 15
 python3 scripts/run_discovery_gap.py \
   --source nvd \
-  --data-json ../aidefense-framework/data/data.json \
   --state-db lab/aidefend_discovery/discovery_state.db \
   --no-fetch-pages \
   --max-items 20
 python3 scripts/run_discovery_gap.py \
   --source ghsa \
-  --data-json ../aidefense-framework/data/data.json \
   --state-db lab/aidefend_discovery/discovery_state.db \
   --ghsa-severity high \
   --no-fetch-pages \
@@ -47,6 +44,7 @@ PYTHONPATH=scripts python3 -m aidefend_discovery.review_console \
   --report reports/gap_run_20260505.json \
   --db lab/aidefend_discovery/review_console.db \
   --port 8765
+cd services/aidefend-mcp && pytest tests/test_discovery_tools.py && cd ../..
 ```
 
 ## Safety Checks

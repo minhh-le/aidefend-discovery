@@ -2,9 +2,9 @@
 
 Updated: 2026-05-05
 
-This expands the brief promotion checklist in [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md#promotion-checklist-into-tacticsjs) with the concrete shape mapping a maintainer needs to convert an accepted `CandidateFinding` into an upstream edit. It is paired with the **anchor-diff pre-flight** below: before promoting, reviewers must run the shipped taxonomy anchor diff and confirm the candidate does not already exist in upstream anchors under different wording.
+This expands the brief promotion checklist in [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md#promotion-checklist-into-tacticsjs) with the concrete shape mapping a maintainer needs to convert an accepted `CandidateFinding` into a framework tactic edit. It is paired with the **anchor-diff pre-flight** below: before promoting, reviewers must run the shipped taxonomy anchor diff and confirm the candidate does not already exist in upstream anchors under different wording.
 
-The authoritative truth lives in the sibling `aidefense-framework` repo. This repo never touches `data/data.json` directly.
+The authoritative framework snapshot now lives in this monorepo under `vendor/aidefense-framework/`. It remains a tracked source snapshot from upstream, not an automatically mutated discovery output.
 
 ---
 
@@ -14,7 +14,6 @@ The taxonomy anchor diff has shipped (`scripts/anchor_diff.py` + vendored YAMLs 
 
 ```sh
 python3 scripts/anchor_diff.py \
-  --data-json /path/to/aidefense-framework/data/data.json \
   --output reports/anchor_diff_$(date -u +%Y%m%d).json
 ```
 
@@ -40,7 +39,7 @@ Every check must pass before opening a PR upstream.
 
 **Trigger:** `GapReport.nearest_technique_ids[0]` is a confident match (high `max_bm25`, sensible `nearest_lexical_overlap_terms`) but the candidate's framework IDs / threat tokens don't appear under any `defendsAgainst.framework.items` of that technique.
 
-**What you edit:** the existing technique's `defendsAgainst` array in `aidefense-framework/tactics/<tactic>.js`. Add the upstream framework ID **verbatim** under the right `framework` block. Don't rephrase — AIDEFEND's `name`/`description`/`purpose` are canonical, but `defendsAgainst.items` mirror upstream.
+**What you edit:** the existing technique's `defendsAgainst` array in `vendor/aidefense-framework/tactics/<tactic>.js`. Add the upstream framework ID **verbatim** under the right `framework` block. Don't rephrase — AIDEFEND's `name`/`description`/`purpose` are canonical, but `defendsAgainst.items` mirror upstream.
 
 ### Shape B — Add a new technique to a tactic file (rare)
 
@@ -132,17 +131,17 @@ Closes loop for: <discovery JSONL row id>
 1. **Pick a candidate** from `reports/gap_run_*.json` whose paired `CandidateFinding` has `status: "candidate"`.
 2. **Pre-flight checks** above all pass.
 3. **Choose Shape A or B.**
-4. **Edit `aidefense-framework/tactics/<tactic>.js`** matching the existing file's syntax style. For Shape A: add `defendsAgainst.items` only. For Shape B: full new technique entry per crosswalk.
+4. **Edit `vendor/aidefense-framework/tactics/<tactic>.js`** matching the existing file's syntax style. For Shape A: add `defendsAgainst.items` only. For Shape B: full new technique entry per crosswalk.
 5. **Regenerate** `data/data.json`:
    ```sh
-   cd /path/to/aidefense-framework && node scripts/generate-dataset.js
+   cd vendor/aidefense-framework && node scripts/generate-dataset.js
    ```
    The generator is fail-closed on keywords (see header of `generate-dataset.js`); resolve any keyword-lock failures per upstream guidance, do not bypass.
 6. **Smoke-test from the discovery side.** Re-run the gap pipeline against the regenerated baseline; the same candidate should now resolve to the new/extended technique with `is_gap == false`:
    ```sh
-   cd /path/to/aidefend-discovery && \
-     python scripts/run_discovery_gap.py --data-json /path/to/aidefense-framework/data/data.json \
-     --feeds lab/aidefend_discovery/feeds.allowlist \
+   python scripts/run_discovery_gap.py \
+     --feed-url https://github.com/langchain-ai/langchain/releases.atom \
+     --allowlist lab/aidefend_discovery/feeds.allowlist \
      --max-items 1
    ```
    If the candidate still reports `is_gap == true` against the same technique, the upstream edit didn't land where retrieval can see it — investigate before opening the PR.

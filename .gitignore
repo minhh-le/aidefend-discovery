@@ -27,6 +27,12 @@ __pycache__/
 venv/
 node_modules/
 review_console/dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 .DS_Store
 tmp/
 .tmp/
@@ -40,6 +46,10 @@ reports/anchor_diff_*.json
 reports/review_*.csv
 reports/metrics_*.json
 lab/aidefend_discovery/taxonomy_anchors/.cache/
+services/aidefend-mcp/data/aidefend_kb.lancedb/
+services/aidefend-mcp/data/raw_content/
+services/aidefend-mcp/data/logs/
+services/aidefend-mcp/data/sync.lock
 
 # Local isolated worktrees
 .worktrees/

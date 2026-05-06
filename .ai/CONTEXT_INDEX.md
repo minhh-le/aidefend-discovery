@@ -1,6 +1,6 @@
 # Context Index
 
-Updated: 2026-05-05 (repo rename, notes/technical overview consolidation, Phase 1-5 scaffolded state)
+Updated: 2026-05-06 (canonical private monorepo consolidation)
 
 ## Purpose
 
@@ -20,6 +20,9 @@ Repo-local continuity packet for **AIDEFEND Discovery**.
 ## Main Areas
 
 - `scripts/` — discovery automation scripts (`aidefend_discovery/` + `run_discovery_gap.py`).
+- `vendor/aidefense-framework/` — tracked AIDEFEND framework data/site/tactic snapshot, default baseline for discovery commands.
+- `services/aidefend-mcp/` — full AIDEFEND MCP/REST service snapshot plus discovery namespace tools.
+- `review_console/` — React/TypeScript local review workbench for one report at a time.
 - `docs/aidefend_discovery/` — **roadmap** (`ROADMAP.md`), **technical overview** (`TECHNICAL_OVERVIEW.md`), **architecture notes** (`NOTES.md`), **promotion playbook** (`PROMOTION_PLAYBOOK.md`), **quality audit checklist** (`QUALITY_AUDIT_CHECKLIST.md`), **discoveries/** (dated research syntheses), review contract, maintainer alignment for AIDEFEND + discovery R&D.
 - `lab/aidefend_discovery/bridges/cwe_to_tactic.yaml` — 26-CWE bridge table (Block B).
 - `lab/aidefend_discovery/taxonomy_anchors/` — 9 vendored framework anchor YAMLs (Block B).

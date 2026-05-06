@@ -1,6 +1,19 @@
 # Decisions
 
-Updated: 2026-05-05
+Updated: 2026-05-06
+
+## 2026-05-06 — Make aidefend-discovery the canonical private monorepo
+
+Decision: Consolidate AIDEFEND Discovery on `main` as a private monorepo:
+discovery pipeline, review console, full AIDEFEND MCP/REST service, and tracked
+AIDEFEND framework data/site snapshots live together. Imports are plain file
+copies, not submodules, and are tracked by source URL + commit SHA in
+`vendor/SNAPSHOTS.md`.
+
+Rationale: A single private runnable repo removes cross-repo routing ambiguity
+for agents and local automation while preserving attribution and candidate-only
+namespace boundaries. Framework and MCP snapshots can be refreshed explicitly
+without pushing to Edward's upstream repos or requiring nested Git clones.
 
 ## 2026-05-05 — Public demo console reviews one run with candidate-local sqlite decisions
 
@@ -58,7 +71,7 @@ Rationale: Delivers a stable vertical slice with minimal moving parts, validates
 
 Decision: Ship the remainder of the AIDEFEND Discovery roadmap end-to-end in one
 session, gated on user-provided NVD API key, GitHub PAT, and access to the
-companion `aidefend-mcp` repo. Eight per-theme commits cover:
+MCP service repo. Eight per-theme commits cover:
 authenticated NVD ingest with retry/backoff, version-range entity regex,
 feed audit script, sqlite candidate/run/gap-report store with idempotency
 on `content_hash`, review CSV + metrics emitters, GHSA connector mirroring
@@ -77,9 +90,10 @@ The MCP tools are isolated behind `DISCOVERY_DB_PATH`; namespace wall enforced
 via contract tests so the discovery layer cannot blur into AIDEFEND truth even
 when both surfaces ship together.
 
-Out-of-scope deliberately: pushing `aidefend-mcp` Block-F changes upstream
-(third-party repo; user steers PR copy per memory); rotating credentials that
-appeared in chat transcripts (user-side action).
+Out-of-scope deliberately at that time: pushing `aidefend-mcp` Block-F changes
+upstream (third-party repo; user steers PR copy per memory); rotating
+credentials that appeared in chat transcripts (user-side action). Superseded
+on 2026-05-06 by bundling the fork snapshot under `services/aidefend-mcp/`.
 
 ## 2026-05-02 — Promotion playbook + Phase 1 exit hardening + deferred-with-reasoning
 

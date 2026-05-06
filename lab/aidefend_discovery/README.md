@@ -5,7 +5,7 @@ Prototype slice for **structured baseline + discovery**: ingest allowlisted RSS/
 ## Prerequisites
 
 - Python 3.10+
-- Path to a built [aidefense-framework](https://github.com/edward-playground/aidefense-framework) `data/data.json`
+- Bundled framework snapshot at `vendor/aidefense-framework/data/data.json`
 
 ## Configure feeds (RSS mode)
 
@@ -21,7 +21,6 @@ From repo root:
 
 ```bash
 python3 scripts/run_discovery_gap.py \
-  --data-json /path/to/aidefense-framework/data/data.json \
   --feed-url https://github.com/langchain-ai/langchain/releases.atom \
   --allowlist lab/aidefend_discovery/feeds.allowlist \
   --max-items 15
@@ -49,7 +48,6 @@ NVD authenticated mode is now supported. Set `NVD_API_KEY` in env to lift the ra
 NVD_API_KEY=$NVD_API_KEY \
 python3 scripts/run_discovery_gap.py \
   --source nvd \
-  --data-json /path/to/aidefense-framework/data/data.json \
   --state-db lab/aidefend_discovery/discovery_state.db \
   --nvd-lastmod-start 2026-04-01T00:00:00Z \
   --nvd-lastmod-end 2026-04-07T00:00:00Z \
@@ -69,7 +67,6 @@ limit and are not recommended.
 GH_PAT_FOR_GHSA=$GH_PAT \
 python3 scripts/run_discovery_gap.py \
   --source ghsa \
-  --data-json /path/to/aidefense-framework/data/data.json \
   --state-db lab/aidefend_discovery/discovery_state.db \
   --ghsa-updated-after 2026-04-01T00:00:00Z \
   --ghsa-per-page 100 \
@@ -97,7 +94,6 @@ When `--nvd-lastmod-start` and `--nvd-lastmod-end` are omitted, the runner uses:
 ```bash
 python3 scripts/run_discovery_gap.py \
   --source nvd \
-  --data-json /path/to/aidefense-framework/data/data.json \
   --state-db lab/aidefend_discovery/discovery_state.db \
   --nvd-results-per-page 200 \
   --nvd-max-pages 1 \

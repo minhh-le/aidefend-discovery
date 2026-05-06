@@ -17,14 +17,19 @@ Nothing in discovery auto-mutates `data.json`. Maintainer alignment: [`MAINTAINE
 
 ---
 
-## Relationship to [aidefend-mcp](https://github.com/edward-playground/aidefend-mcp)
+## Relationship to MCP / REST service
 
-[aidefend-mcp](https://github.com/edward-playground/aidefend-mcp) indexes the **approved** framework for semantic search (REST + MCP). Discovery extends that stack with an **optional, strictly labeled** namespace so assistants never confuse candidates with official `AID-*` facts:
+The bundled service under `services/aidefend-mcp/` indexes the **approved**
+framework snapshot for semantic search (REST + MCP). Discovery extends that
+stack with an **optional, strictly labeled** namespace so assistants never
+confuse candidates with official `AID-*` facts:
 
 - Tools such as **`search_discovery_candidates`** and **`explain_candidate_mapping`** operate on a **local discovery store** (SQLite schema produced by this pipeline; configured via e.g. `DISCOVERY_DB_PATH` in MCP settings).
 - Responses carry an explicit **discovery namespace / disclaimer**; official technique IDs appear only in documented sidecars when bridging candidates to the corpus.
 
-Implement details and contracts live in aidefend-mcp (`app/tools/*`, tests under `tests/test_discovery_tools.py`). Operational coupling: run ingestion here → expose the resulting DB path to MCP.
+Implementation details and contracts live in `services/aidefend-mcp/app/tools/*`
+and `services/aidefend-mcp/tests/test_discovery_tools.py`. Operational coupling:
+run ingestion here → expose the resulting DB path to MCP.
 
 ---
 
