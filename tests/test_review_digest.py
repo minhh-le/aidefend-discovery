@@ -19,10 +19,13 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 
 class TestDigestScoring(unittest.TestCase):
-    def test_coverage_score_caps_at_100(self) -> None:
+    def test_coverage_score_relative_to_report_ceiling(self) -> None:
+        self.assertEqual(export_review_digest.coverage_score({"max_bm25": 25}, 100), 25)
+
+    def test_coverage_score_caps_at_100_when_above_ceiling(self) -> None:
         self.assertEqual(export_review_digest.coverage_score({"max_bm25": 25}, 10), 100)
 
-    def test_coverage_score_handles_zero_or_missing_threshold(self) -> None:
+    def test_coverage_score_handles_zero_or_missing_ceiling(self) -> None:
         self.assertEqual(export_review_digest.coverage_score({"max_bm25": 5}, 0), 0)
         self.assertEqual(export_review_digest.coverage_score({"max_bm25": 5}, None), 0)
 
@@ -58,6 +61,16 @@ class TestDigestActionRecommendation(unittest.TestCase):
         }
         gap = {"is_gap": True, "nearest_technique_ids": ["AID-H-1"]}
         self.assertEqual(export_review_digest.recommended_action(candidate, gap, 20, 95), "Promote")
+
+    def test_low_relative_coverage_without_gap_does_not_recommend_promote(self) -> None:
+        candidate = {
+            "source_type": "ghsa_api",
+            "source_urls": ["https://github.com/advisories/GHSA-aaaa-bbbb-cccc"],
+            "entities": {"cves": ["CVE-2026-1"], "ghsas": ["ghsa-aaaa-bbbb-cccc"], "cwes": ["CWE-78"]},
+            "severity": "high",
+        }
+        gap = {"is_gap": False, "nearest_technique_ids": ["AID-H-1"]}
+        self.assertEqual(export_review_digest.recommended_action(candidate, gap, 20, 95), "Monitor")
 
     def test_high_coverage_high_security_recommends_merge(self) -> None:
         candidate = {
@@ -141,6 +154,28 @@ class TestDigestCli(unittest.TestCase):
         )
         self.assertIn("| Rank | Candidate | Coverage Score | Security Score | Recommended Action |", text)
         self.assertIn("| Rank | Candidate | Security Score | Coverage Score | Recommended Action |", text)
+
+    def test_lowest_coverage_preserves_relative_order_above_threshold(self) -> None:
+        payload = {
+            "generated_at": "2026-05-05T00:00:00Z",
+            "params": {"gap_bm25_max": 8.0},
+            "candidates": [
+                {"id": "low", "title": "Lower Match", "source_urls": ["https://example.test/low"], "entities": {"cves": ["CVE-1"]}},
+                {"id": "high", "title": "Higher Match", "source_urls": ["https://example.test/high"], "entities": {"cves": ["CVE-2"]}},
+            ],
+            "gap_reports": [
+                {"candidate_id": "low", "max_bm25": 10.0, "is_gap": False},
+                {"candidate_id": "high", "max_bm25": 100.0, "is_gap": False},
+            ],
+        }
+        text = export_review_digest.render_digest(
+            payload,
+            input_report=FIXTURES / "sample_gap_run.json",
+            top_n=2,
+            generated_at="2026-05-05T00:00:00Z",
+        )
+        self.assertIn("| 1 | Lower Match | 10/100 |", text)
+        self.assertIn("| 2 | Higher Match | 100/100 |", text)
 
     def test_uses_report_timestamp_by_default_for_determinism(self) -> None:
         payload = json.loads((FIXTURES / "sample_gap_run.json").read_text(encoding="utf-8"))

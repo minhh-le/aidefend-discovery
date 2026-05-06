@@ -1,6 +1,6 @@
 # Open Loops
 
-Updated: 2026-05-05 (public review digest shipped)
+Updated: 2026-05-06 (public demo review console shipped)
 
 ## High Priority
 
@@ -17,7 +17,15 @@ Updated: 2026-05-05 (public review digest shipped)
 - [ ] Grow `lab/aidefend_discovery/gold/example_labels.jsonl` from 25 → 50+ rows; unlocks BM25 field-weighting work.
 - [ ] Push `aidefend-mcp` Block-F changes upstream (locally committed, awaiting smoke test + PR copy steering).
 
-## Resolved this session (2026-05-05 public review digest)
+## Resolved this session (2026-05-05 public demo review console)
+
+- [x] Added local Public Demo Console API for one `gap_run_*.json` report with candidate list/detail, decision save, reviewed list, and reviewed-only Markdown/CSV exports.
+- [x] Added candidate-local sqlite review persistence keyed by `content_hash`, then `source_type + source_id`, then candidate/report fallback.
+- [x] Added React + TypeScript three-pane review workbench with queue tabs, filters, human-readable brief, collapsed provenance, nearest-technique comparison, decision capture, and export affordances.
+- [x] Added backend and frontend tests for scoring parity, identity fallback, persistence, decision separation, reviewed-only exports, queue rendering/filtering/selection, save flow, provenance disclosure, and export actions.
+- [x] Documented console run commands in `README.md` and `.ai/COMMANDS.md`.
+
+## Resolved earlier (2026-05-05 public review digest)
 
 - [x] Added deterministic Markdown digest generation from `reports/gap_run_*.json` via `scripts/export_review_digest.py`.
 - [x] Added public sample mode backed by `tests/fixtures/sample_gap_run.json`.

@@ -310,3 +310,70 @@ Next:
   heuristics from reviewer feedback.
 - Continue existing high-priority loops: first upstream promotion PR, manual
   nightly workflow run, embeddings/rerank evaluation, credential rotation.
+
+## 2026-05-05 — Public demo review console
+
+Summary:
+Built the local Public Demo Console for reviewing one `gap_run_*.json` report at
+a time. The console turns the Markdown digest contract into an interactive
+three-pane workbench with sqlite-backed reviewer decisions and reviewed-only
+exports.
+
+Changed:
+- Added `PRODUCT.md` for AIDEFEND Discovery product design context.
+- Added `scripts/aidefend_discovery/review_console.py` with local API routes
+  for run metadata, candidate listing/detail, decision save, reviewed list,
+  reviewed-only Markdown export, and reviewed-only CSV export.
+- Reused `scripts/export_review_digest.py` scoring/action helpers in the API
+  rather than duplicating scoring in React.
+- Added candidate-local sqlite persistence keyed by `content_hash`, then
+  `source_type + source_id`, then candidate/report fallback.
+- Added `review_console/` React + TypeScript + Vite app with queue tabs,
+  filters, candidate brief, collapsed provenance, side-by-side nearest technique
+  comparison, decision panel, and export actions.
+- Added backend tests in `tests/test_review_console.py` and frontend tests in
+  `review_console/src/App.test.tsx`.
+- Documented run commands in `README.md` and `.ai/COMMANDS.md`.
+- Updated `.ai/HANDOFF.md`, `.ai/CURRENT.md`, `.ai/OPEN_LOOPS.md`, and
+  `.ai/DECISIONS.md`.
+
+Verification:
+- From `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS)
+- From `../agent-continuity`: `python3 scripts/closeout_check.py
+  /home/minh/Desktop/repos/aidefend-discovery` (PASS)
+- `PYTHONPATH=scripts python3 -m unittest tests.test_review_console -v` (7 tests)
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests)
+- `cd review_console && npm install`
+- `cd review_console && npm test` (6 tests)
+- `cd review_console && npm run build`
+- `cd review_console && npm audit --audit-level=high` (exit 0; 5 moderate
+  dev-server/transitive findings remain in Vite/Vitest)
+- `PYTHONPATH=scripts python3 -m aidefend_discovery.review_console --report
+  reports/gap_run_20260505.json --db /tmp/aidefend_review_console_smoke.db
+  --port 8765`
+- `curl` smoke for `/api/run`, `/api/candidates?tab=lowest`, and encoded
+  `/api/candidates/<candidate_key>`.
+- Chromium headless screenshots at 1440x900 and 390x900 against the built app.
+
+Next:
+- Use the console for public review demos over the real `reports/gap_run_*.json`
+  outputs and tune action/filter workflows from reviewer feedback.
+- Continue existing high-priority loops: first upstream promotion PR, manual
+  nightly workflow run, embeddings/rerank evaluation, credential rotation.
+
+## 2026-05-06 — Closeout validation and publish
+
+Summary:
+Closed out the public demo review console session from the `agent-continuity`
+workflow, stopped the local smoke-test server, and prepared the branch for
+commit/push.
+
+Verification:
+- From `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS)
+- From `../agent-continuity`: `python3 scripts/closeout_check.py
+  /home/minh/Desktop/repos/aidefend-discovery` (PASS)
+
+Notes:
+- Left unrelated untracked `agent-continuity/apps/continuity-ui/.data/` alone.
+- The smoke-test sqlite DB was outside the repo at
+  `/tmp/aidefend_review_console_smoke.db`.

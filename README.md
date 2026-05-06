@@ -44,6 +44,30 @@ Public sample mode uses a checked-in fixture and does not require API keys:
 python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
 ```
 
+## Local review console
+
+The Public Demo Console reviews one `reports/gap_run_*.json` at a time with sqlite-backed reviewer decisions. Build the React UI once, then run the local Python API:
+
+```bash
+cd review_console
+npm install
+npm run build
+cd ..
+PYTHONPATH=scripts python3 -m aidefend_discovery.review_console \
+  --report reports/gap_run_20260505.json \
+  --db lab/aidefend_discovery/review_console.db \
+  --port 8765
+```
+
+Open `http://127.0.0.1:8765`. Decisions are stored candidate-locally in sqlite, preserving backend `recommended_action` separately from reviewer `review_decision`. Reviewed-only Markdown and CSV exports are available from the console toolbar.
+
+For frontend development, run the API above and in another shell:
+
+```bash
+cd review_console
+npm run dev
+```
+
 ## Start Here
 
 1. Read `AGENTS.md`.

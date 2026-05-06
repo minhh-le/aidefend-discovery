@@ -2,6 +2,21 @@
 
 Updated: 2026-05-05
 
+## 2026-05-05 — Public demo console reviews one run with candidate-local sqlite decisions
+
+Decision: Add a local Public Demo Console for one imported `gap_run_*.json` at
+a time, implemented as a small Python API plus React/TypeScript Vite frontend.
+The API reuses the deterministic digest scoring/action helpers, persists
+reviewer decisions in sqlite by candidate-local identity (`content_hash`,
+fallback `source_type + source_id`, fallback candidate/report ID), and exports
+reviewed candidates only to Markdown or CSV.
+
+Rationale: The Markdown digest already defines the public review vocabulary and
+scoring contract. The console adds navigability, filtering, provenance
+inspection, side-by-side nearest-technique comparison, and decision capture
+without duplicating scoring in the frontend or turning discovery candidates
+into approved `AID-*` truth.
+
 ## 2026-05-05 — Public review digest uses single-run JSON as v1 product surface
 
 Decision: Add a deterministic Markdown digest generator over `reports/gap_run_*.json`

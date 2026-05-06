@@ -42,6 +42,11 @@ python3 scripts/discovery_metrics.py --state-db lab/aidefend_discovery/discovery
 python3 scripts/export_review_digest.py --report reports/gap_run_YYYYMMDD.json \
   --output reports/discovery_digest_YYYYMMDD.md --top-n 10
 python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
+cd review_console && npm install && npm run build && cd ..
+PYTHONPATH=scripts python3 -m aidefend_discovery.review_console \
+  --report reports/gap_run_20260505.json \
+  --db lab/aidefend_discovery/review_console.db \
+  --port 8765
 ```
 
 ## Safety Checks

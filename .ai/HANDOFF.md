@@ -1,18 +1,49 @@
 # Handoff
 
-Updated: 2026-05-05 (Codex public review digest closeout)
+Updated: 2026-05-06 (Codex public demo review console committed closeout)
 Updated by: Codex
-Verification: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (74 tests); `python3 scripts/export_review_digest.py --report reports/gap_run_20260505.json --output reports/discovery_digest_20260505.md --top-n 10`; `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`; filtered secret scan over tracked work area (findings are existing env-var examples/redacted params/regex constant only). Prior cleanup verification: from `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS); `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS). Prior architecture build-out verification: aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests), live authenticated NVD + GHSA pulls, gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
+Verification: from `../agent-continuity`, `python3 scripts/validate_continuity.py` (PASS) and `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS). In this repo: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests); `cd review_console && npm test` (6 tests); `cd review_console && npm run build`; `cd review_console && npm audit --audit-level=high` (exit 0; 5 moderate dev-server audit findings remain in Vite/Vitest transitive deps); Chromium headless screenshots at 1440x900 and 390x900 against `http://127.0.0.1:8765`; API smoke for encoded candidate key. Prior public digest verification: `python3 scripts/export_review_digest.py --report reports/gap_run_20260505.json --output reports/discovery_digest_20260505.md --top-n 10`; `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`. Prior architecture build-out verification: aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests), live authenticated NVD + GHSA pulls, gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
 
 ## Current Goal
 
-Phases 1, 2A, 2B, 3, 4, 5 are now scaffolded end-to-end, and a deterministic
-Markdown public review digest exists for single-run `gap_run_*.json` outputs.
-The remaining work is **evaluation-driven precision tuning** (embeddings +
-cross-encoder rerank, gated on the gold-corpus precision plateau the eval just
-confirmed) plus **operationalisation** (run the nightly workflow for a few
-cycles, do the first upstream promotion PR via `PROMOTION_PLAYBOOK.md`, refresh
-vendored anchor YAMLs quarterly).
+Phases 1, 2A, 2B, 3, 4, 5 are now scaffolded end-to-end. A deterministic
+Markdown public review digest exists for single-run `gap_run_*.json` outputs,
+and a local Public Demo Console now reviews one report at a time with
+candidate-local sqlite decision persistence and reviewed-only Markdown/CSV
+exports. The remaining work is **evaluation-driven precision tuning**
+(embeddings + cross-encoder rerank, gated on the gold-corpus precision plateau
+the eval just confirmed) plus **operationalisation** (run the nightly workflow
+for a few cycles, do the first upstream promotion PR via
+`PROMOTION_PLAYBOOK.md`, refresh vendored anchor YAMLs quarterly).
+
+## Last Meaningful Work — public demo review console (2026-05-05)
+
+- Added `PRODUCT.md` design context for AIDEFEND Discovery as a product UI.
+- Added `scripts/aidefend_discovery/review_console.py`.
+  - Loads one `reports/gap_run_*.json` report and reuses
+    `scripts/export_review_digest.py` scoring/action helpers.
+  - Exposes local API endpoints for run metadata, candidate lists, candidate
+    brief detail, decision save, reviewed list, reviewed-only Markdown export,
+    and reviewed-only CSV export.
+  - Stores review decisions in sqlite, keyed candidate-locally by
+    `content_hash`, then `source_type + source_id`, then candidate/report
+    fallback. Backend `recommended_action` remains separate from reviewer
+    `review_decision`.
+  - Serves the built React UI from `review_console/dist`.
+- Added `review_console/` React + TypeScript + Vite app.
+  - Three-pane laptop workbench: Review Queue, Candidate Brief, Decision Panel.
+  - Queue tabs: Lowest Coverage, Highest Severity, Needs Evidence, Monitor,
+    Reviewed.
+  - Filters: source type, severity, coverage range, CWE, package ecosystem,
+    reviewed/unreviewed.
+  - Candidate brief shows human-readable sections first, with score/provenance
+    collapsed by default and nearest-technique comparison inline.
+  - Decision panel captures Promote, Merge Into Existing, Reject, Needs
+    Evidence, Monitor plus owner, confidence, notes, merge/promotion fields,
+    and future-ready disabled promotion actions.
+- Added backend tests in `tests/test_review_console.py` and frontend tests in
+  `review_console/src/App.test.tsx`.
+- Documented run commands in `README.md` and `.ai/COMMANDS.md`.
 
 ## Last Meaningful Work — public review digest (2026-05-05)
 

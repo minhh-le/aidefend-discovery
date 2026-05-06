@@ -41,6 +41,7 @@ class DigestRow:
     candidate: dict[str, Any]
     gap_report: dict[str, Any]
     gap_bm25_max: float | int | None
+    coverage_ceiling: float | int | None
     coverage_score: int
     security_score: int
     recommended_action: str
@@ -150,16 +151,16 @@ def _has_mapping_evidence(gap_report: dict[str, Any]) -> bool:
     )
 
 
-def coverage_score(gap_report: dict[str, Any], gap_bm25_max: float | int | None) -> int:
-    """Return 0..100 coverage score from max_bm25 / run threshold."""
+def coverage_score(gap_report: dict[str, Any], coverage_ceiling: float | int | None) -> int:
+    """Return 0..100 coverage score relative to the strongest match in this report."""
     try:
-        threshold = float(gap_bm25_max or 0)
+        ceiling = float(coverage_ceiling or 0)
         max_bm25 = float(gap_report.get("max_bm25") or 0)
     except (TypeError, ValueError):
         return 0
-    if threshold <= 0 or max_bm25 <= 0:
+    if ceiling <= 0 or max_bm25 <= 0:
         return 0
-    return round(min(100, 100 * max_bm25 / threshold))
+    return round(min(100, 100 * max_bm25 / ceiling))
 
 
 def security_score(candidate: dict[str, Any]) -> int:
@@ -184,7 +185,7 @@ def recommended_action(candidate: dict[str, Any], gap_report: dict[str, Any], co
         return ACTION_REJECT
     if not _has_source_detail(candidate) or not _has_identifier(candidate):
         return ACTION_NEEDS_EVIDENCE
-    if cov_score <= 40 and sec_score >= 80 and (gap_report.get("is_gap") or _has_mapping_evidence(gap_report)):
+    if cov_score <= 40 and sec_score >= 80 and gap_report.get("is_gap"):
         return ACTION_PROMOTE
     if cov_score >= 60 and sec_score >= 70:
         return ACTION_MERGE
@@ -201,9 +202,17 @@ def _gap_threshold(payload: dict[str, Any]) -> float | None:
 
 def build_rows(payload: dict[str, Any]) -> list[DigestRow]:
     threshold = _gap_threshold(payload)
+    gap_reports = [g for g in _as_list(payload.get("gap_reports")) if isinstance(g, dict)]
+    max_scores: list[float] = []
+    for gap_report in gap_reports:
+        try:
+            max_scores.append(float(gap_report.get("max_bm25") or 0))
+        except (TypeError, ValueError):
+            continue
+    coverage_ceiling = max(max_scores) if max_scores else None
     gap_by_id = {
         str(g.get("candidate_id")): g
-        for g in _as_list(payload.get("gap_reports"))
+        for g in gap_reports
         if isinstance(g, dict) and g.get("candidate_id")
     }
     rows: list[DigestRow] = []
@@ -212,13 +221,14 @@ def build_rows(payload: dict[str, Any]) -> list[DigestRow]:
             continue
         candidate_id = str(candidate.get("id") or "")
         gap = gap_by_id.get(candidate_id, {})
-        cov = coverage_score(gap, threshold)
+        cov = coverage_score(gap, coverage_ceiling)
         sec = security_score(candidate)
         rows.append(
             DigestRow(
                 candidate=candidate,
                 gap_report=gap,
                 gap_bm25_max=threshold,
+                coverage_ceiling=coverage_ceiling,
                 coverage_score=cov,
                 security_score=sec,
                 recommended_action=recommended_action(candidate, gap, cov, sec),
@@ -288,6 +298,7 @@ def _raw_score_details(row: DigestRow) -> str:
     return (
         f"max_bm25={row.gap_report.get('max_bm25', 'missing')}; "
         f"gap_bm25_max={row.gap_bm25_max if row.gap_bm25_max is not None else 'missing'}; "
+        f"coverage_ceiling={row.coverage_ceiling if row.coverage_ceiling is not None else 'missing'}; "
         f"bm25_scores={_csv(_as_list(row.gap_report.get('bm25_scores')))}"
     )
 
@@ -424,7 +435,7 @@ def render_digest(payload: dict[str, Any], *, input_report: Path, top_n: int, ge
             "## Methodology / Provenance Appendix",
             "",
             "- Input source is one deterministic `gap_run_*.json` report, not sqlite backlog/history.",
-            "- Coverage Score is `round(min(100, 100 * max_bm25 / gap_bm25_max))` using the run threshold.",
+            "- Coverage Score is `round(min(100, 100 * max_bm25 / strongest_max_bm25_in_report))`, preserving relative coverage within the run.",
             "- Security Score starts from advisory severity and adds bounded evidence boosts for reviewed source, CVE, GHSA, CWE, and package/version evidence.",
             "- Recommended actions are deterministic reviewer triage labels. They are not upstream AIDEFEND truth.",
             "- Raw provenance remains in each candidate brief: source URL, source type, candidate ID, retrieved timestamp, identifiers, and raw score details.",

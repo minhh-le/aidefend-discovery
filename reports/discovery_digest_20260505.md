@@ -15,27 +15,171 @@
 
 | Rank | Candidate | Coverage Score | Security Score | Recommended Action |
 | ---: | --- | ---: | ---: | --- |
-| 1 | GHSA-6h2x-4gjf-jc5w | 100/100 | 100/100 | Merge Into Existing |
-| 2 | GHSA-f6p5-76fp-m248 | 100/100 | 100/100 | Merge Into Existing |
-| 3 | GHSA-mv2r-q4g5-j8q5 | 100/100 | 100/100 | Merge Into Existing |
-| 4 | GHSA-q2fj-6h62-59m2 | 100/100 | 100/100 | Merge Into Existing |
-| 5 | GHSA-xq3c-8gqm-v648 | 100/100 | 100/100 | Merge Into Existing |
+| 1 | GHSA-xq3c-8gqm-v648 | 14/100 | 100/100 | Monitor |
+| 2 | GHSA-mv2r-q4g5-j8q5 | 34/100 | 100/100 | Monitor |
+| 3 | GHSA-f6p5-76fp-m248 | 42/100 | 100/100 | Monitor |
+| 4 | GHSA-6h2x-4gjf-jc5w | 68/100 | 100/100 | Merge Into Existing |
+| 5 | GHSA-q2fj-6h62-59m2 | 100/100 | 100/100 | Merge Into Existing |
 
 ## Highest Severity Candidates
 
 | Rank | Candidate | Security Score | Coverage Score | Recommended Action |
 | ---: | --- | ---: | ---: | --- |
-| 1 | GHSA-6h2x-4gjf-jc5w | 100/100 | 100/100 | Merge Into Existing |
-| 2 | GHSA-f6p5-76fp-m248 | 100/100 | 100/100 | Merge Into Existing |
-| 3 | GHSA-mv2r-q4g5-j8q5 | 100/100 | 100/100 | Merge Into Existing |
-| 4 | GHSA-q2fj-6h62-59m2 | 100/100 | 100/100 | Merge Into Existing |
-| 5 | GHSA-xq3c-8gqm-v648 | 100/100 | 100/100 | Merge Into Existing |
+| 1 | GHSA-xq3c-8gqm-v648 | 100/100 | 14/100 | Monitor |
+| 2 | GHSA-mv2r-q4g5-j8q5 | 100/100 | 34/100 | Monitor |
+| 3 | GHSA-f6p5-76fp-m248 | 100/100 | 42/100 | Monitor |
+| 4 | GHSA-6h2x-4gjf-jc5w | 100/100 | 68/100 | Merge Into Existing |
+| 5 | GHSA-q2fj-6h62-59m2 | 100/100 | 100/100 | Merge Into Existing |
 
 ## Candidate Briefs
 
+### GHSA-xq3c-8gqm-v648
+
+- Coverage Score: 14/100
+- Security Score: 100/100
+- Recommended Action: Monitor
+
+#### Reviewer Decision Checklist
+
+- [ ] Confirm this is AI/security relevant.
+- [ ] Confirm whether the nearest AIDEFEND techniques already cover the behavior.
+- [ ] Confirm whether source identifiers and affected package/version evidence are sufficient.
+- [ ] Record promote, merge, reject, needs-evidence, or monitor decision.
+
+#### What This Is
+
+async-graphql / async-graphql - @DOS GraphQL Nested Fragments overflow ### Impact Executing deeply nested queries may cause stack overflow. ### Patches Upgrade to `v4.0.6`
+
+#### Why AIDEFEND Should Care
+
+The source carries high security signal while lexical coverage against current AIDEFEND techniques is low.
+
+#### Coverage Assessment
+
+Low coverage (14/100). Nearest candidates: AID-I-003, AID-I-008.002, AID-D-005.007, AID-D-005, AID-H-031.004.
+
+#### Security Assessment
+
+Severity basis: high. Security Score 100/100 includes deterministic boosts for reviewed source metadata and observed identifiers/package/version evidence.
+
+#### Evidence
+
+- Identifiers: CVE=None observed; GHSA=ghsa-xq3c-8gqm-v648; CWE=None observed
+- Affected packages / versions: packages=rust:async-graphql; versions=vulnerable:< 4.0.6
+- Source URLs: https://github.com/async-graphql/async-graphql/security/advisories/GHSA-xq3c-8gqm-v648, https://github.com/async-graphql/async-graphql/commit/521769b80039fc8043d1c9883e3d6e5b57359072, https://rustsec.org/advisories/RUSTSEC-2022-0037.html, https://github.com/advisories/GHSA-xq3c-8gqm-v648
+- Bridge rationales: None observed
+- Nearest technique IDs: AID-I-003, AID-I-008.002, AID-D-005.007, AID-D-005, AID-H-031.004
+
+#### Backend Provenance
+
+- Candidate ID: candidate-rss-11550f45659fad9a
+- Source type: ghsa_api
+- Source ID: GHSA-xq3c-8gqm-v648
+- Retrieved at: 2026-05-05T22:24:48Z
+- Raw score details: max_bm25=13.971497970953962; gap_bm25_max=8.0; coverage_ceiling=99.81640782085873; bm25_scores=13.971497970953962, 12.875898605943036, 12.066746920080094, 9.16922171133748, 9.120611199489211
+- Gap reason: not_gap
+- Producer confidence: 0.75
+- License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
+
+### GHSA-mv2r-q4g5-j8q5
+
+- Coverage Score: 34/100
+- Security Score: 100/100
+- Recommended Action: Monitor
+
+#### Reviewer Decision Checklist
+
+- [ ] Confirm this is AI/security relevant.
+- [ ] Confirm whether the nearest AIDEFEND techniques already cover the behavior.
+- [ ] Confirm whether source identifiers and affected package/version evidence are sufficient.
+- [ ] Record promote, merge, reject, needs-evidence, or monitor decision.
+
+#### What This Is
+
+Denial of service in ASP.NET Core A denial of service vulnerability exists when OData Library improperly handles web requests, aka "OData Denial of Service Vulnerability." This affects Microsoft.Data.OData.
+
+#### Why AIDEFEND Should Care
+
+The source carries high security signal while lexical coverage against current AIDEFEND techniques is low.
+
+#### Coverage Assessment
+
+Low coverage (34/100). Nearest candidates: AID-E-004, AID-M-003.002, AID-I-003, AID-I-001.001, AID-I-001.002.
+
+#### Security Assessment
+
+Severity basis: high. Security Score 100/100 includes deterministic boosts for reviewed source metadata and observed identifiers/package/version evidence.
+
+#### Evidence
+
+- Identifiers: CVE=CVE-2018-8269; GHSA=ghsa-mv2r-q4g5-j8q5; CWE=None observed
+- Affected packages / versions: packages=nuget:Microsoft.Data.OData, nuget:Microsoft.AspNetCore.All, nuget:Microsoft.AspNetCore.DataProtection.AzureStorage; versions=vulnerable:< 5.8.4, vulnerable:>= 2.1.0, < 2.1.13, vulnerable:>= 2.2.0, < 2.2.7
+- Source URLs: https://nvd.nist.gov/vuln/detail/CVE-2018-8269, https://github.com/advisories/GHSA-mv2r-q4g5-j8q5, https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8269, https://www.exploit-db.com/exploits/46101/, https://github.com/aspnet/Announcements/issues/385, https://github.com/github/advisory-database/issues/302
+- Bridge rationales: None observed
+- Nearest technique IDs: AID-E-004, AID-M-003.002, AID-I-003, AID-I-001.001, AID-I-001.002
+
+#### Backend Provenance
+
+- Candidate ID: candidate-rss-b2dde02fc10412d0
+- Source type: ghsa_api
+- Source ID: GHSA-mv2r-q4g5-j8q5
+- Retrieved at: 2026-05-05T22:24:48Z
+- Raw score details: max_bm25=33.53605081590169; gap_bm25_max=8.0; coverage_ceiling=99.81640782085873; bm25_scores=33.53605081590169, 24.9268074283872, 22.89116418605699, 22.249510598704425, 21.53815575090868
+- Gap reason: not_gap
+- Producer confidence: 0.75
+- License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
+
+### GHSA-f6p5-76fp-m248
+
+- Coverage Score: 42/100
+- Security Score: 100/100
+- Recommended Action: Monitor
+
+#### Reviewer Decision Checklist
+
+- [ ] Confirm this is AI/security relevant.
+- [ ] Confirm whether the nearest AIDEFEND techniques already cover the behavior.
+- [ ] Confirm whether source identifiers and affected package/version evidence are sufficient.
+- [ ] Record promote, merge, reject, needs-evidence, or monitor decision.
+
+#### What This Is
+
+URL Rewrite vulnerability in multiple zendframework components zend-diactoros (and, by extension, Expressive), zend-http (and, by extension, Zend Framework MVC projects), and zend-feed (specifically, its PubSubHubbub sub-component) each contain a potential URL rewrite exploit. In each case, marshaling a request URI includes logic that introspects HTTP request headers that are specific to a given server-side URL rewrite mechanism. When these headers are present on systems not running the specific URL rewriting mechanism, the logic would still trigger, allowing a malicious client or proxy to emulate the headers to request arbitrary content.
+
+#### Why AIDEFEND Should Care
+
+The source carries enough security signal to review as supporting evidence for AIDEFEND coverage.
+
+#### Coverage Assessment
+
+Medium coverage (42/100). The mapping may need reviewer judgment. Nearest candidates: AID-H-029.004, AID-H-020.001, AID-H-029, AID-E-004, AID-H-020.
+
+#### Security Assessment
+
+Severity basis: high. Security Score 100/100 includes deterministic boosts for reviewed source metadata and observed identifiers/package/version evidence.
+
+#### Evidence
+
+- Identifiers: CVE=None observed; GHSA=ghsa-f6p5-76fp-m248; CWE=None observed
+- Affected packages / versions: packages=composer:zendframework/zend-diactoros, composer:zendframework/zend-feed, composer:zendframework/zend-http; versions=vulnerable:< 1.8.4, vulnerable:< 2.10.3, vulnerable:< 2.8.1
+- Source URLs: https://github.com/FriendsOfPHP/security-advisories/blob/master/zendframework/zend-diactoros/ZF2018-01.yaml, https://github.com/FriendsOfPHP/security-advisories/blob/master/zendframework/zend-feed/ZF2018-01.yaml, https://github.com/FriendsOfPHP/security-advisories/blob/master/zendframework/zend-http/ZF2018-01.yaml, https://github.com/advisories/GHSA-f6p5-76fp-m248
+- Bridge rationales: None observed
+- Nearest technique IDs: AID-H-029.004, AID-H-020.001, AID-H-029, AID-E-004, AID-H-020
+
+#### Backend Provenance
+
+- Candidate ID: candidate-rss-2c4acdae94589bfd
+- Source type: ghsa_api
+- Source ID: GHSA-f6p5-76fp-m248
+- Retrieved at: 2026-05-05T22:24:48Z
+- Raw score details: max_bm25=42.35252596984861; gap_bm25_max=8.0; coverage_ceiling=99.81640782085873; bm25_scores=42.35252596984861, 39.7839530442546, 38.97643421628365, 37.23000543103646, 37.146900325537125
+- Gap reason: not_gap
+- Producer confidence: 0.75
+- License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
+
 ### GHSA-6h2x-4gjf-jc5w
 
-- Coverage Score: 100/100
+- Coverage Score: 68/100
 - Security Score: 100/100
 - Recommended Action: Merge Into Existing
 
@@ -56,7 +200,7 @@ CWE-502: Deserialization of untrusted data — pickle attacks on model weights, 
 
 #### Coverage Assessment
 
-High coverage (100/100). Review whether this should merge into existing techniques: AID-H-031.004, AID-M-009, AID-H-031, AID-H-032, AID-E-004.
+Medium coverage (68/100). The mapping may need reviewer judgment. Nearest candidates: AID-H-031.004, AID-M-009, AID-H-031, AID-H-032, AID-E-004.
 
 #### Security Assessment
 
@@ -76,103 +220,7 @@ Severity basis: high. Security Score 100/100 includes deterministic boosts for r
 - Source type: ghsa_api
 - Source ID: GHSA-6h2x-4gjf-jc5w
 - Retrieved at: 2026-05-05T22:24:48Z
-- Raw score details: max_bm25=67.41338016772193; gap_bm25_max=8.0; bm25_scores=67.41338016772193, 51.71999182524109, 47.4229313257627, 44.26939754790622, 43.66880137934864
-- Gap reason: not_gap
-- Producer confidence: 0.75
-- License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
-
-### GHSA-f6p5-76fp-m248
-
-- Coverage Score: 100/100
-- Security Score: 100/100
-- Recommended Action: Merge Into Existing
-
-#### Reviewer Decision Checklist
-
-- [ ] Confirm this is AI/security relevant.
-- [ ] Confirm whether the nearest AIDEFEND techniques already cover the behavior.
-- [ ] Confirm whether source identifiers and affected package/version evidence are sufficient.
-- [ ] Record promote, merge, reject, needs-evidence, or monitor decision.
-
-#### What This Is
-
-URL Rewrite vulnerability in multiple zendframework components zend-diactoros (and, by extension, Expressive), zend-http (and, by extension, Zend Framework MVC projects), and zend-feed (specifically, its PubSubHubbub sub-component) each contain a potential URL rewrite exploit. In each case, marshaling a request URI includes logic that introspects HTTP request headers that are specific to a given server-side URL rewrite mechanism. When these headers are present on systems not running the specific URL rewriting mechanism, the logic would still trigger, allowing a malicious client or proxy to emulate the headers to request arbitrary content.
-
-#### Why AIDEFEND Should Care
-
-The source carries enough security signal to review as supporting evidence for AIDEFEND coverage.
-
-#### Coverage Assessment
-
-High coverage (100/100). Review whether this should merge into existing techniques: AID-H-029.004, AID-H-020.001, AID-H-029, AID-E-004, AID-H-020.
-
-#### Security Assessment
-
-Severity basis: high. Security Score 100/100 includes deterministic boosts for reviewed source metadata and observed identifiers/package/version evidence.
-
-#### Evidence
-
-- Identifiers: CVE=None observed; GHSA=ghsa-f6p5-76fp-m248; CWE=None observed
-- Affected packages / versions: packages=composer:zendframework/zend-diactoros, composer:zendframework/zend-feed, composer:zendframework/zend-http; versions=vulnerable:< 1.8.4, vulnerable:< 2.10.3, vulnerable:< 2.8.1
-- Source URLs: https://github.com/FriendsOfPHP/security-advisories/blob/master/zendframework/zend-diactoros/ZF2018-01.yaml, https://github.com/FriendsOfPHP/security-advisories/blob/master/zendframework/zend-feed/ZF2018-01.yaml, https://github.com/FriendsOfPHP/security-advisories/blob/master/zendframework/zend-http/ZF2018-01.yaml, https://github.com/advisories/GHSA-f6p5-76fp-m248
-- Bridge rationales: None observed
-- Nearest technique IDs: AID-H-029.004, AID-H-020.001, AID-H-029, AID-E-004, AID-H-020
-
-#### Backend Provenance
-
-- Candidate ID: candidate-rss-2c4acdae94589bfd
-- Source type: ghsa_api
-- Source ID: GHSA-f6p5-76fp-m248
-- Retrieved at: 2026-05-05T22:24:48Z
-- Raw score details: max_bm25=42.35252596984861; gap_bm25_max=8.0; bm25_scores=42.35252596984861, 39.7839530442546, 38.97643421628365, 37.23000543103646, 37.146900325537125
-- Gap reason: not_gap
-- Producer confidence: 0.75
-- License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
-
-### GHSA-mv2r-q4g5-j8q5
-
-- Coverage Score: 100/100
-- Security Score: 100/100
-- Recommended Action: Merge Into Existing
-
-#### Reviewer Decision Checklist
-
-- [ ] Confirm this is AI/security relevant.
-- [ ] Confirm whether the nearest AIDEFEND techniques already cover the behavior.
-- [ ] Confirm whether source identifiers and affected package/version evidence are sufficient.
-- [ ] Record promote, merge, reject, needs-evidence, or monitor decision.
-
-#### What This Is
-
-Denial of service in ASP.NET Core A denial of service vulnerability exists when OData Library improperly handles web requests, aka "OData Denial of Service Vulnerability." This affects Microsoft.Data.OData.
-
-#### Why AIDEFEND Should Care
-
-The source carries enough security signal to review as supporting evidence for AIDEFEND coverage.
-
-#### Coverage Assessment
-
-High coverage (100/100). Review whether this should merge into existing techniques: AID-E-004, AID-M-003.002, AID-I-003, AID-I-001.001, AID-I-001.002.
-
-#### Security Assessment
-
-Severity basis: high. Security Score 100/100 includes deterministic boosts for reviewed source metadata and observed identifiers/package/version evidence.
-
-#### Evidence
-
-- Identifiers: CVE=CVE-2018-8269; GHSA=ghsa-mv2r-q4g5-j8q5; CWE=None observed
-- Affected packages / versions: packages=nuget:Microsoft.Data.OData, nuget:Microsoft.AspNetCore.All, nuget:Microsoft.AspNetCore.DataProtection.AzureStorage; versions=vulnerable:< 5.8.4, vulnerable:>= 2.1.0, < 2.1.13, vulnerable:>= 2.2.0, < 2.2.7
-- Source URLs: https://nvd.nist.gov/vuln/detail/CVE-2018-8269, https://github.com/advisories/GHSA-mv2r-q4g5-j8q5, https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8269, https://www.exploit-db.com/exploits/46101/, https://github.com/aspnet/Announcements/issues/385, https://github.com/github/advisory-database/issues/302
-- Bridge rationales: None observed
-- Nearest technique IDs: AID-E-004, AID-M-003.002, AID-I-003, AID-I-001.001, AID-I-001.002
-
-#### Backend Provenance
-
-- Candidate ID: candidate-rss-b2dde02fc10412d0
-- Source type: ghsa_api
-- Source ID: GHSA-mv2r-q4g5-j8q5
-- Retrieved at: 2026-05-05T22:24:48Z
-- Raw score details: max_bm25=33.53605081590169; gap_bm25_max=8.0; bm25_scores=33.53605081590169, 24.9268074283872, 22.89116418605699, 22.249510598704425, 21.53815575090868
+- Raw score details: max_bm25=67.41338016772193; gap_bm25_max=8.0; coverage_ceiling=99.81640782085873; bm25_scores=67.41338016772193, 51.71999182524109, 47.4229313257627, 44.26939754790622, 43.66880137934864
 - Gap reason: not_gap
 - Producer confidence: 0.75
 - License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
@@ -220,55 +268,7 @@ Severity basis: high. Security Score 100/100 includes deterministic boosts for r
 - Source type: ghsa_api
 - Source ID: GHSA-q2fj-6h62-59m2
 - Retrieved at: 2026-05-05T22:24:48Z
-- Raw score details: max_bm25=99.81640782085873; gap_bm25_max=8.0; bm25_scores=99.81640782085873, 53.2144770270592, 48.11284509304677, 47.26646552301954, 45.669501985866376
-- Gap reason: not_gap
-- Producer confidence: 0.75
-- License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
-
-### GHSA-xq3c-8gqm-v648
-
-- Coverage Score: 100/100
-- Security Score: 100/100
-- Recommended Action: Merge Into Existing
-
-#### Reviewer Decision Checklist
-
-- [ ] Confirm this is AI/security relevant.
-- [ ] Confirm whether the nearest AIDEFEND techniques already cover the behavior.
-- [ ] Confirm whether source identifiers and affected package/version evidence are sufficient.
-- [ ] Record promote, merge, reject, needs-evidence, or monitor decision.
-
-#### What This Is
-
-async-graphql / async-graphql - @DOS GraphQL Nested Fragments overflow ### Impact Executing deeply nested queries may cause stack overflow. ### Patches Upgrade to `v4.0.6`
-
-#### Why AIDEFEND Should Care
-
-The source carries enough security signal to review as supporting evidence for AIDEFEND coverage.
-
-#### Coverage Assessment
-
-High coverage (100/100). Review whether this should merge into existing techniques: AID-I-003, AID-I-008.002, AID-D-005.007, AID-D-005, AID-H-031.004.
-
-#### Security Assessment
-
-Severity basis: high. Security Score 100/100 includes deterministic boosts for reviewed source metadata and observed identifiers/package/version evidence.
-
-#### Evidence
-
-- Identifiers: CVE=None observed; GHSA=ghsa-xq3c-8gqm-v648; CWE=None observed
-- Affected packages / versions: packages=rust:async-graphql; versions=vulnerable:< 4.0.6
-- Source URLs: https://github.com/async-graphql/async-graphql/security/advisories/GHSA-xq3c-8gqm-v648, https://github.com/async-graphql/async-graphql/commit/521769b80039fc8043d1c9883e3d6e5b57359072, https://rustsec.org/advisories/RUSTSEC-2022-0037.html, https://github.com/advisories/GHSA-xq3c-8gqm-v648
-- Bridge rationales: None observed
-- Nearest technique IDs: AID-I-003, AID-I-008.002, AID-D-005.007, AID-D-005, AID-H-031.004
-
-#### Backend Provenance
-
-- Candidate ID: candidate-rss-11550f45659fad9a
-- Source type: ghsa_api
-- Source ID: GHSA-xq3c-8gqm-v648
-- Retrieved at: 2026-05-05T22:24:48Z
-- Raw score details: max_bm25=13.971497970953962; gap_bm25_max=8.0; bm25_scores=13.971497970953962, 12.875898605943036, 12.066746920080094, 9.16922171133748, 9.120611199489211
+- Raw score details: max_bm25=99.81640782085873; gap_bm25_max=8.0; coverage_ceiling=99.81640782085873; bm25_scores=99.81640782085873, 53.2144770270592, 48.11284509304677, 47.26646552301954, 45.669501985866376
 - Gap reason: not_gap
 - Producer confidence: 0.75
 - License note: GitHub Security Advisory; CC BY 4.0 per GitHub Advisory Database; verify package vendor source for redistribution scope.
@@ -276,7 +276,7 @@ Severity basis: high. Security Score 100/100 includes deterministic boosts for r
 ## Methodology / Provenance Appendix
 
 - Input source is one deterministic `gap_run_*.json` report, not sqlite backlog/history.
-- Coverage Score is `round(min(100, 100 * max_bm25 / gap_bm25_max))` using the run threshold.
+- Coverage Score is `round(min(100, 100 * max_bm25 / strongest_max_bm25_in_report))`, preserving relative coverage within the run.
 - Security Score starts from advisory severity and adds bounded evidence boosts for reviewed source, CVE, GHSA, CWE, and package/version evidence.
 - Recommended actions are deterministic reviewer triage labels. They are not upstream AIDEFEND truth.
 - Raw provenance remains in each candidate brief: source URL, source type, candidate ID, retrieved timestamp, identifiers, and raw score details.

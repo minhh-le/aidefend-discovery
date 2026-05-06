@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-05 (public review digest added; repo rename/docs sync complete; active docs aligned with Phase 1-5 scaffolded state)
+Updated: 2026-05-06 (public demo review console added; active docs aligned with Phase 1-5 scaffolded state)
 
 ## Repo Purpose
 
@@ -15,6 +15,7 @@ Updated: 2026-05-05 (public review digest added; repo rename/docs sync complete;
 - **sqlite candidate store** at `lab/aidefend_discovery/discovery_state.db` (state_store.py v1 schema: runs / candidates / gap_reports / seen_window) with `INSERT OR IGNORE` idempotency on `content_hash`. Read APIs power MCP + exports + metrics.
 - **Review export + metrics**: `scripts/export_review.py` → CSV; `scripts/discovery_metrics.py` → JSON.
 - **Public review digest**: `scripts/export_review_digest.py` renders deterministic Markdown from a single `reports/gap_run_*.json`, with lowest-coverage/highest-severity tables, candidate briefs, numeric coverage/security scores, reviewer action labels, and raw provenance in each brief. `--sample` uses `tests/fixtures/sample_gap_run.json` so public testers can preview the format without API keys.
+- **Public demo review console**: `scripts/aidefend_discovery/review_console.py` + `review_console/` provide a local Python API and React/TypeScript workbench for one `gap_run_*.json` report. It reuses digest scoring/action helpers, stores reviewer decisions candidate-locally in sqlite, keeps backend `recommended_action` separate from reviewer `review_decision`, supports queue tabs/filters/provenance inspection/nearest-technique comparison, and exports reviewed candidates only to Markdown or CSV.
 - **Scheduled run**: `.github/workflows/discovery-nightly.yml` (cron 09:00 UTC); secrets `NVD_API_KEY` + `GH_PAT_FOR_GHSA` provisioned. Auto-PR opened, never merged.
 - **MCP integration** in `aidefend-mcp` repo: `app/discovery/store.py` + 3 namespace-walled tools (`search_discovery_candidates`, `explain_candidate_mapping`, `list_anchor_diff`). 14 contract tests asserting AID-* IDs only in `references_aid` sidecar.
 - **Gold corpus**: 25 hand-labeled rows (19 covered / 6 gaps) in `lab/aidefend_discovery/gold/`. Eval baseline: is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00, recall_is_gap=0.0 (embeddings re-open trigger fired).
