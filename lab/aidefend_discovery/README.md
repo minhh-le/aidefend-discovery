@@ -1,6 +1,6 @@
 # AIDEFEND discovery lab
 
-Prototype slice for **structured baseline + discovery**: ingest either an allowlisted RSS/Atom source or NVD CVE API source, append **CandidateFinding** rows to `candidates.jsonl` (gitignored by default), and write a dated **GapReport** bundle under `reports/`.
+Prototype slice for **structured baseline + discovery**: ingest allowlisted RSS/Atom, NVD CVE API, or GitHub Security Advisory API sources, append **CandidateFinding** rows to `candidates.jsonl` (gitignored by default), persist reviewed state in SQLite, and write dated **GapReport** bundles under `reports/`.
 
 ## Prerequisites
 
@@ -123,7 +123,31 @@ printf "%s" "$GH_PAT_FOR_GHSA" | gh secret set GH_PAT_FOR_GHSA --repo minhh-le/a
 
 The workflow opens but never auto-merges PRs — preserves the discovery layer's
 "no silent overwrites" principle. Reviewer follows
-[`PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md).
+[`PROMOTION_PLAYBOOK.md`](../../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md).
+
+## Public review digest
+
+Render a deterministic Markdown digest from any `reports/gap_run_*.json` file:
+
+```bash
+python3 scripts/export_review_digest.py \
+  --report reports/gap_run_20260505.json \
+  --output reports/discovery_digest_20260505.md \
+  --top-n 10
+```
+
+The digest keeps raw candidate and gap-report data intact, but presents the
+review surface as run summary, lowest coverage candidates, highest severity
+candidates, candidate briefs, and a methodology/provenance appendix. It uses
+two headline indicators per candidate: `Coverage Score: N/100` and
+`Security Score: N/100`.
+
+Sample mode uses a checked-in fixture, so public testers can see the format
+without NVD or GitHub API credentials:
+
+```bash
+python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
+```
 
 ## Outputs
 
@@ -131,6 +155,7 @@ The workflow opens but never auto-merges PRs — preserves the discovery layer's
 |----------|----------|
 | Candidate append-only log | `lab/aidefend_discovery/candidates.jsonl` |
 | Run bundle (candidates + gap_reports + params) | `reports/gap_run_YYYYMMDD.json` |
+| Markdown public review digest | `reports/discovery_digest_YYYYMMDD.md` |
 | Connector cursor state (SQLite) | `lab/aidefend_discovery/discovery_state.db` |
 
-Long-term plan: [docs/aidefend_discovery/ROADMAP.md](../docs/aidefend_discovery/ROADMAP.md) (per-phase checklists). Research index: [docs/aidefend_discovery/discoveries/INDEX.md](../docs/aidefend_discovery/discoveries/INDEX.md). Review workflow: [docs/aidefend_discovery/REVIEW_CONTRACT.md](../docs/aidefend_discovery/REVIEW_CONTRACT.md).
+Technical overview: [docs/aidefend_discovery/TECHNICAL_OVERVIEW.md](../../docs/aidefend_discovery/TECHNICAL_OVERVIEW.md). Long-term plan: [docs/aidefend_discovery/ROADMAP.md](../../docs/aidefend_discovery/ROADMAP.md) (per-phase checklists). Research index: [docs/aidefend_discovery/discoveries/INDEX.md](../../docs/aidefend_discovery/discoveries/INDEX.md). Review workflow: [docs/aidefend_discovery/REVIEW_CONTRACT.md](../../docs/aidefend_discovery/REVIEW_CONTRACT.md).

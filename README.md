@@ -10,11 +10,16 @@ Current scope is the AIDEFEND discovery pipeline:
 
 - allowlisted RSS/Atom ingestion;
 - optional Trafilatura page extraction;
-- NVD CVE API ingestion;
+- NVD CVE API ingestion (with `NVD_API_KEY` auth + retry/backoff) and GitHub Security Advisory ingestion (with `GH_PAT_FOR_GHSA` auth + cursor pagination);
 - candidate enrichment with CVE/GHSA/CWE entities and retrieval chunks;
-- BM25 gap scoring and reviewer-facing explainability.
+- BM25 gap scoring with CWE→tactic bridge rationales and reviewer-facing explainability;
+- taxonomy anchor diff against 9 vendored upstream framework YAMLs (MITRE ATLAS, OWASP LLM/ML/Agentic, NIST AI 100-2, MAESTRO, SAIF, Databricks DASF, Cisco AITech);
+- deterministic Markdown public review digests from single-run `gap_run_*.json` reports;
+- sqlite candidate store with idempotency, CSV review export, and JSON metrics;
+- nightly GitHub Actions workflow with auto-PR (never auto-merged);
+- read-only MCP discovery tools in companion `aidefend-mcp` repo (namespace-walled from official `AID-*` tools).
 
-Phase 2 work is focused on GitHub global security advisories, CVE/GHSA enrichment joins, optional API auth paths, and better AI-relevance filtering.
+Open work is **precision tuning** (embeddings + cross-encoder rerank — re-open trigger fired on the 25-row gold corpus) and **operationalisation** (first upstream promotion PR per [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](docs/aidefend_discovery/PROMOTION_PLAYBOOK.md), and running the nightly workflow for a few cycles).
 
 ## Safety
 
@@ -22,7 +27,46 @@ Do not commit secrets, credentials, customer data, raw exploit targets, private 
 
 ## AIDEFEND discovery (R&D)
 
-Prototype aligned with [aidefense-framework](https://github.com/edward-playground/aidefense-framework): allowlisted RSS/Atom or NVD API → optional **Trafilatura** page extract → enriched candidates → BM25 (chunk max-pool) + overlap hints vs `data/data.json`. Python deps: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`. See [`docs/aidefend_discovery/ROADMAP.md`](docs/aidefend_discovery/ROADMAP.md), [`lab/aidefend_discovery/README.md`](lab/aidefend_discovery/README.md), and [`docs/aidefend_discovery/REVIEW_CONTRACT.md`](docs/aidefend_discovery/REVIEW_CONTRACT.md).
+Prototype aligned with [aidefense-framework](https://github.com/edward-playground/aidefense-framework): allowlisted RSS/Atom, NVD, or GHSA input → optional **Trafilatura** page extract → enriched candidates → BM25 (chunk max-pool) + bridge/overlap hints vs `data/data.json` → sqlite-backed review exports and metrics. Python deps: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`. See [`docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`](docs/aidefend_discovery/TECHNICAL_OVERVIEW.md), [`docs/aidefend_discovery/ROADMAP.md`](docs/aidefend_discovery/ROADMAP.md), [`lab/aidefend_discovery/README.md`](lab/aidefend_discovery/README.md), and [`docs/aidefend_discovery/REVIEW_CONTRACT.md`](docs/aidefend_discovery/REVIEW_CONTRACT.md).
+
+Generate a reviewer-facing Markdown digest from any single-run report:
+
+```bash
+python3 scripts/export_review_digest.py \
+  --report reports/gap_run_20260505.json \
+  --output reports/discovery_digest_20260505.md \
+  --top-n 10
+```
+
+Public sample mode uses a checked-in fixture and does not require API keys:
+
+```bash
+python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
+```
+
+## Local review console
+
+The Public Demo Console reviews one `reports/gap_run_*.json` at a time with sqlite-backed reviewer decisions. Build the React UI once, then run the local Python API:
+
+```bash
+cd review_console
+npm install
+npm run build
+cd ..
+PYTHONPATH=scripts python3 -m aidefend_discovery.review_console \
+  --report reports/gap_run_20260505.json \
+  --db lab/aidefend_discovery/review_console.db \
+  --port 8765
+```
+
+Open `http://127.0.0.1:8765`. Decisions are stored candidate-locally in sqlite, preserving backend `recommended_action` separately from reviewer `review_decision`. Reviewed-only Markdown and CSV exports are available from the console toolbar.
+
+For frontend development, run the API above and in another shell:
+
+```bash
+cd review_console
+npm run dev
+```
 
 ## Start Here
 

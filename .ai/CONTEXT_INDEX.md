@@ -1,6 +1,6 @@
 # Context Index
 
-Updated: 2026-05-02 (promotion playbook + Phase 1 exit hardening + deferred-with-reasoning)
+Updated: 2026-05-05 (repo rename, notes/technical overview consolidation, Phase 1-5 scaffolded state)
 
 ## Purpose
 
@@ -20,7 +20,7 @@ Repo-local continuity packet for **AIDEFEND Discovery**.
 ## Main Areas
 
 - `scripts/` — discovery automation scripts (`aidefend_discovery/` + `run_discovery_gap.py`).
-- `docs/aidefend_discovery/` — **roadmap** (`ROADMAP.md`), **promotion playbook** (`PROMOTION_PLAYBOOK.md`), **quality audit checklist** (`QUALITY_AUDIT_CHECKLIST.md`), **discoveries/** (dated research syntheses), review contract, maintainer alignment for AIDEFEND + discovery R&D.
+- `docs/aidefend_discovery/` — **roadmap** (`ROADMAP.md`), **technical overview** (`TECHNICAL_OVERVIEW.md`), **architecture notes** (`NOTES.md`), **promotion playbook** (`PROMOTION_PLAYBOOK.md`), **quality audit checklist** (`QUALITY_AUDIT_CHECKLIST.md`), **discoveries/** (dated research syntheses), review contract, maintainer alignment for AIDEFEND + discovery R&D.
 - `lab/aidefend_discovery/bridges/cwe_to_tactic.yaml` — 26-CWE bridge table (Block B).
 - `lab/aidefend_discovery/taxonomy_anchors/` — 9 vendored framework anchor YAMLs (Block B).
 - `lab/aidefend_discovery/gold/` — 25 hand-labeled rows + audit log (Block I).

@@ -7,4 +7,4 @@
 
 Add new rows for each dated synthesis. Raw captures (logs, full HTML dumps) stay out of this folder.
 
-Implementation status note: Phase 2A NVD connector baseline is tracked in `docs/aidefend_discovery/ROADMAP.md` and `.ai/HANDOFF.md`.
+Implementation status note: NVD auth, GHSA ingest, sqlite persistence, exports, metrics, scheduler, taxonomy anchor diff, and MCP discovery tools have shipped. Current open work is tracked in `docs/aidefend_discovery/ROADMAP.md`, `.ai/CURRENT.md`, and `.ai/OPEN_LOOPS.md`.

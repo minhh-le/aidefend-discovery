@@ -2,6 +2,34 @@
 
 Updated: 2026-05-05
 
+## 2026-05-05 — Public demo console reviews one run with candidate-local sqlite decisions
+
+Decision: Add a local Public Demo Console for one imported `gap_run_*.json` at
+a time, implemented as a small Python API plus React/TypeScript Vite frontend.
+The API reuses the deterministic digest scoring/action helpers, persists
+reviewer decisions in sqlite by candidate-local identity (`content_hash`,
+fallback `source_type + source_id`, fallback candidate/report ID), and exports
+reviewed candidates only to Markdown or CSV.
+
+Rationale: The Markdown digest already defines the public review vocabulary and
+scoring contract. The console adds navigability, filtering, provenance
+inspection, side-by-side nearest-technique comparison, and decision capture
+without duplicating scoring in the frontend or turning discovery candidates
+into approved `AID-*` truth.
+
+## 2026-05-05 — Public review digest uses single-run JSON as v1 product surface
+
+Decision: Add a deterministic Markdown digest generator over `reports/gap_run_*.json`
+as the public-review surface for discovery candidates. Keep sqlite backlog/history
+out of v1, expose two numeric indicators (`Coverage Score`, `Security Score`),
+use explicit reviewer action labels, and keep raw provenance in candidate brief
+evidence/provenance sections instead of top-level tables.
+
+Rationale: Single-run JSON is easiest for public testers to reproduce and reason
+about without API keys or a local sqlite state store. The digest doubles as a
+future UI product spec while preserving the backend candidate/gap data contract
+and avoiding LLM-generated review text.
+
 ## 2026-04-30 — Start as safe empty scaffold
 
 Decision: Initialize the repo with only continuity structure and safety policy, no project-specific content.
@@ -65,8 +93,8 @@ Decision: Treat **AIDEFEND Discovery** as the user-facing project name and clean
 
 Rationale: The repo's useful work is now centered on AIDEFEND candidate discovery, public advisory ingestion, and gap-review tooling. The previous broad scaffold name and placeholder security-project loops no longer described current work.
 
-## 2026-05-05 — Align repository slug and paths
+## 2026-05-05 — Rename GitHub repository and consolidate loose discovery docs
 
-Decision: Align the VPS checkout, Git remote, GitHub slug references, and global continuity routing on `aidefend-discovery`; use `repo://aidefend-discovery` instead of machine-specific `/home/minh/...` paths in active effort state.
+Decision: Rename the GitHub repository from `minhh-le/persistent-agent-security` to `minhh-le/aidefend-discovery`, update local `origin`, and consolidate loose discovery notes from `~/Desktop/repos` into `docs/aidefend_discovery/NOTES.md` and `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`.
 
-Rationale: The GitHub repository has been renamed to `minhh-le/aidefend-discovery`, and agents run from both VPS and local machines. Machine-agnostic `repo://` paths avoid false preserve/continuity warnings and keep the global substrate portable.
+Rationale: The project identity has stabilized around AIDEFEND Discovery. Keeping the GitHub slug, local checkout, continuity routing, and docs aligned prevents agents from routing to the old security scaffold name and keeps architecture/provenance notes under version control with the implementation.

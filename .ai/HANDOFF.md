@@ -1,19 +1,82 @@
 # Handoff
 
-Updated: 2026-05-05 (repository slug/path alignment)
-Updated by: Hermes Agent
-Verification: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (59 tests pass); from `../agent-continuity`: `python3 -m py_compile scripts/*.py`, `python3 -m unittest discover -s tests -v` (29 tests pass), `python3 scripts/validate_continuity.py` (PASS), `python3 scripts/agent_init.py --effort aidefend-discovery-mesh` (resolves to `/home/ubuntu/repos/aidefend-discovery`), `python3 scripts/closeout_check.py /home/ubuntu/repos/aidefend-discovery` (PASS). Previous full-build verification also included aidefend-mcp tests, live authenticated NVD + GHSA pulls, and gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
+Updated: 2026-05-06 (Codex public demo review console committed closeout)
+Updated by: Codex
+Verification: from `../agent-continuity`, `python3 scripts/validate_continuity.py` (PASS) and `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS). In this repo: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests); `cd review_console && npm test` (6 tests); `cd review_console && npm run build`; `cd review_console && npm audit --audit-level=high` (exit 0; 5 moderate dev-server audit findings remain in Vite/Vitest transitive deps); Chromium headless screenshots at 1440x900 and 390x900 against `http://127.0.0.1:8765`; API smoke for encoded candidate key. Prior public digest verification: `python3 scripts/export_review_digest.py --report reports/gap_run_20260505.json --output reports/discovery_digest_20260505.md --top-n 10`; `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`. Prior architecture build-out verification: aidefend-mcp `pytest tests/test_discovery_tools.py` (14 tests), live authenticated NVD + GHSA pulls, gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
 
 ## Current Goal
 
-Phases 1, 2A, 2B, 3, 4, 5 are now scaffolded end-to-end. The remaining work is
-**evaluation-driven precision tuning** (embeddings + cross-encoder rerank, gated
-on the gold-corpus precision plateau the eval just confirmed) plus
-**operationalisation** (run the nightly workflow for a few cycles, do the first
-upstream promotion PR via `PROMOTION_PLAYBOOK.md`, refresh vendored anchor
-YAMLs quarterly).
+Phases 1, 2A, 2B, 3, 4, 5 are now scaffolded end-to-end. A deterministic
+Markdown public review digest exists for single-run `gap_run_*.json` outputs,
+and a local Public Demo Console now reviews one report at a time with
+candidate-local sqlite decision persistence and reviewed-only Markdown/CSV
+exports. The remaining work is **evaluation-driven precision tuning**
+(embeddings + cross-encoder rerank, gated on the gold-corpus precision plateau
+the eval just confirmed) plus **operationalisation** (run the nightly workflow
+for a few cycles, do the first upstream promotion PR via
+`PROMOTION_PLAYBOOK.md`, refresh vendored anchor YAMLs quarterly).
 
-## Last Meaningful Work — full build-out (Blocks A→J)
+## Last Meaningful Work — public demo review console (2026-05-05)
+
+- Added `PRODUCT.md` design context for AIDEFEND Discovery as a product UI.
+- Added `scripts/aidefend_discovery/review_console.py`.
+  - Loads one `reports/gap_run_*.json` report and reuses
+    `scripts/export_review_digest.py` scoring/action helpers.
+  - Exposes local API endpoints for run metadata, candidate lists, candidate
+    brief detail, decision save, reviewed list, reviewed-only Markdown export,
+    and reviewed-only CSV export.
+  - Stores review decisions in sqlite, keyed candidate-locally by
+    `content_hash`, then `source_type + source_id`, then candidate/report
+    fallback. Backend `recommended_action` remains separate from reviewer
+    `review_decision`.
+  - Serves the built React UI from `review_console/dist`.
+- Added `review_console/` React + TypeScript + Vite app.
+  - Three-pane laptop workbench: Review Queue, Candidate Brief, Decision Panel.
+  - Queue tabs: Lowest Coverage, Highest Severity, Needs Evidence, Monitor,
+    Reviewed.
+  - Filters: source type, severity, coverage range, CWE, package ecosystem,
+    reviewed/unreviewed.
+  - Candidate brief shows human-readable sections first, with score/provenance
+    collapsed by default and nearest-technique comparison inline.
+  - Decision panel captures Promote, Merge Into Existing, Reject, Needs
+    Evidence, Monitor plus owner, confidence, notes, merge/promotion fields,
+    and future-ready disabled promotion actions.
+- Added backend tests in `tests/test_review_console.py` and frontend tests in
+  `review_console/src/App.test.tsx`.
+- Documented run commands in `README.md` and `.ai/COMMANDS.md`.
+
+## Last Meaningful Work — public review digest (2026-05-05)
+
+- Added `scripts/export_review_digest.py`.
+  - Input v1: one `reports/gap_run_*.json` file.
+  - Output: Markdown digest with Run Summary, Lowest Coverage Candidates,
+    Highest Severity Candidates, Candidate Briefs, and Methodology /
+    Provenance appendix.
+  - Scores: `Coverage Score: N/100` from `max_bm25 / gap_bm25_max`; `Security
+    Score: N/100` from severity plus bounded evidence boosts.
+  - Actions: `Promote`, `Merge Into Existing`, `Reject`, `Needs Evidence`,
+    `Monitor`.
+  - Raw provenance remains secondary in each brief: candidate ID, source type,
+    source ID, retrieved timestamp, identifiers, source URLs, score details,
+    gap reason, confidence, and license note.
+- Added sample mode (`--sample`) backed by `tests/fixtures/sample_gap_run.json`
+  for public testers without API credentials.
+- Added `tests/test_review_digest.py` covering scoring, action recommendation,
+  CLI rendering, `--top-n`, summary counts, table presence, deterministic
+  timestamp behavior, sample mode, and candidate-brief de-duplication.
+- Generated a real digest: `reports/discovery_digest_20260505.md`.
+- Documented usage in `README.md`, `lab/aidefend_discovery/README.md`, and
+  `.ai/COMMANDS.md`.
+
+## Last Meaningful Work — cleanup closeout (2026-05-05)
+
+- **GitHub repo renamed** `minhh-le/persistent-agent-security` → `minhh-le/aidefend-discovery` via `gh repo rename`. Local `origin` remote URL updated.
+- **Loose docs consolidated:** `~/Desktop/repos/notes - aidefend discovery` moved into `docs/aidefend_discovery/NOTES.md`; `~/Desktop/repos/explanation of discovery.md` moved into `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`.
+- **Stale `persistent-agent-security` references purged** from 7 active files (User-Agent strings in `rss_ingest.py`/`nvd_ingest.py`/`ghsa_ingest.py`/`audit_feeds.py`, `gh workflow run`/`gh secret set` examples in `lab/aidefend_discovery/README.md`, the workflow command in `.ai/OPEN_LOOPS.md`, and the rename-status fact in `.ai/CURRENT.md`). `.ai/SESSION_LOG.md` historical entries left intact as record of prior state.
+- **Docs audit:** `docs/aidefend_discovery/ROADMAP.md`, `PROMOTION_PLAYBOOK.md`, `discoveries/INDEX.md`, `README.md`, `lab/aidefend_discovery/README.md`, and `.ai/*` reconciled with actual state — shipped Phase 1/2/3/4 items marked complete, anchor-diff pause lifted, active open loops preserved.
+- **Global continuity routing:** `agent-continuity` now routes `aidefend-discovery` to `https://github.com/minhh-le/aidefend-discovery`.
+
+## Prior Meaningful Work — full build-out (Blocks A→J)
 
 - **Block A (Phase 1 hygiene):** version-range entity regex (CVE/GHSA-style
   prose); `NVD_API_KEY` auth + retry/backoff with jitter respecting Retry-After;

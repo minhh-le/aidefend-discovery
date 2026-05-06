@@ -222,20 +222,158 @@ Next:
 - Continue Phase 2B GHSA connector work.
 - Decide later whether to rename the GitHub repo after the docs/local identity stabilizes.
 
-## 2026-05-05 — Repository slug/path alignment
+## 2026-05-03 PM — Repo rename + notes consolidation + doc audit
 
 Summary:
-Aligned the VPS checkout and repo metadata with the renamed GitHub repository, `minhh-le/aidefend-discovery`, and removed machine-specific `/home/minh/...` routing from global continuity state.
+Closed the long-standing "decide later" item from 2026-05-02: renamed the GitHub repo to match the local identity, pulled the loose architecture-sketch notes file into the repo, and audited docs against the actual Phase 1–5 build-out so the roadmap and README stop claiming work that already shipped is upcoming.
 
 Changed:
-- Updated GitHub slug references from `minhh-le/persistent-agent-security` to `minhh-le/aidefend-discovery` in docs and User-Agent strings.
-- Updated global active effort routing for `aidefend-discovery-mesh` to `local_path: repo://aidefend-discovery`.
-- Updated continuity UI examples to use `$HOME/repos` instead of `/home/minh/Desktop/repos`.
-- Renamed the VPS checkout directory from `persistent-agent-security` to `aidefend-discovery` and repointed `origin` to the renamed GitHub repo.
+- `gh repo rename minhh-le/persistent-agent-security` → `aidefend-discovery`; updated local `origin` URL.
+- Moved `~/Desktop/repos/notes - aidefend discovery` → `docs/aidefend_discovery/NOTES.md` with a status banner pointing readers to current state, and updated the historical "prototype home" line from a question to the decided answer.
+- Replaced `persistent-agent-security` references in 7 active files: User-Agent strings in `scripts/aidefend_discovery/{rss,nvd,ghsa}_ingest.py` + `scripts/audit_feeds.py`; `gh workflow run` / `gh secret set` examples in `lab/aidefend_discovery/README.md`; the workflow command in `.ai/OPEN_LOOPS.md`; and the rename-status fact in `.ai/CURRENT.md`. Historical `.ai/SESSION_LOG.md` entries left intact as factual record.
+- Audited `docs/aidefend_discovery/ROADMAP.md`: flipped Phase 1 promotion-playbook checkbox; flipped Phase 2 NVD-auth + GHSA checkboxes; flipped Phase 3 sqlite/idempotency/scheduler/export/metrics checkboxes (all shipped); flipped Phase 4 MCP-tools + contract-tests checkboxes; annotated embeddings entry with the fired re-open trigger from the gold eval; marked taxonomy-drift deferral resolved (anchor diff shipped); updated header date.
+- Rewrote `README.md` "Scope" section so it reflects shipped state (NVD+GHSA auth, bridges, anchor diff, sqlite, exports, scheduler, MCP) instead of describing Phase 2 as upcoming.
+- Reviewed `MAINTAINER_ALIGNMENT.md`, `REVIEW_CONTRACT.md`, `PROMOTION_PLAYBOOK.md`, `QUALITY_AUDIT_CHECKLIST.md` — already aligned with current state, no edits needed.
 
 Verification:
-- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (59 tests pass).
-- From `../agent-continuity`: `python3 -m py_compile scripts/*.py`; `python3 -m unittest discover -s tests -v` (29 tests pass); `python3 scripts/validate_continuity.py` PASS; `python3 scripts/agent_init.py --effort aidefend-discovery-mesh` resolves to `/home/ubuntu/repos/aidefend-discovery`; `python3 scripts/closeout_check.py /home/ubuntu/repos/aidefend-discovery` PASS.
+- `python3 scripts/validate_continuity.py` from `../agent-continuity` (PASS)
+- `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` from `../agent-continuity`
+- `.venv/bin/python -m unittest discover -s tests` after the User-Agent string changes
+- `git ls-remote origin HEAD` after remote URL change (resolves)
 
 Next:
-- Continue first upstream promotion PR / nightly workflow / embeddings-rerank work from `HANDOFF.md`.
+- Push branch `cleanup/rename-and-consolidate` (paused per "pause before upstream PRs" — confirm with user first).
+- Open the first upstream promotion PR per `PROMOTION_PLAYBOOK.md` (high-priority open loop).
+- Run nightly workflow once manually, review auto-PR exports.
+
+## 2026-05-05 — Codex cleanup closeout + cross-repo sync
+
+Summary:
+Finished the interrupted cleanup session: consolidated the remaining loose technical overview into the repo, aligned active docs with the shipped Phase 1-5 state, and synced `agent-continuity` routing to the renamed GitHub repository.
+
+Changed:
+- Moved `~/Desktop/repos/explanation of discovery.md` → `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`.
+- Updated `PROMOTION_PLAYBOOK.md` and `.ai/CURRENT.md` to say promotions are allowed after the required anchor-diff pre-flight; removed active wording that implied promotions were still paused.
+- Updated `README.md`, `lab/aidefend_discovery/README.md`, `.ai/CONTEXT_INDEX.md`, `.ai/COMMANDS.md`, `.ai/DECISIONS.md`, `.ai/HANDOFF.md`, `.ai/OPEN_LOOPS.md`, and `docs/aidefend_discovery/discoveries/INDEX.md` so shipped NVD/GHSA/sqlite/export/metrics/scheduler/MCP/anchor-diff state and open work agree.
+- Updated `agent-continuity` global routing files so `aidefend-discovery` points at `https://github.com/minhh-le/aidefend-discovery`.
+
+Verification:
+- `python3 scripts/validate_continuity.py` from `../agent-continuity`
+- `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` from `../agent-continuity`
+- `.venv/bin/python -m unittest discover -s tests -v`
+- `gh repo view minhh-le/aidefend-discovery --json name,url`
+
+Next:
+- Open the first upstream promotion PR per `PROMOTION_PLAYBOOK.md`.
+- Run the nightly workflow manually once and review the auto-PR exports.
+- Continue embeddings + cross-encoder rerank evaluation after the `recall_is_gap=0.0` gold-corpus trigger.
+
+## 2026-05-05 — Public review digest
+
+Summary:
+Implemented the deterministic Markdown digest layer for public review testing.
+The digest now turns one `reports/gap_run_*.json` run into a reviewer-facing
+artifact with summary counts, lowest-coverage and highest-severity candidate
+views, unique candidate briefs, numeric scores, reviewer action labels, and
+secondary raw provenance.
+
+Changed:
+- Added `scripts/export_review_digest.py` with `--report`, `--output`,
+  `--top-n`, and `--sample`.
+- Added deterministic scoring helpers:
+  - `Coverage Score` = `round(min(100, 100 * max_bm25 / gap_bm25_max))`.
+  - `Security Score` = severity base plus bounded boosts for reviewed source,
+    CVE, GHSA, CWE, and package/version evidence, capped at 100.
+- Added deterministic action labels: `Promote`, `Merge Into Existing`,
+  `Reject`, `Needs Evidence`, `Monitor`.
+- Added `tests/fixtures/sample_gap_run.json` so sample mode works without API
+  credentials.
+- Added `tests/test_review_digest.py` for scoring, action recommendation, CLI
+  rendering, top-n behavior, summary counts, table presence, deterministic
+  timestamp behavior, sample mode, and candidate-brief de-duplication.
+- Generated `reports/discovery_digest_20260505.md` from the real GHSA report.
+- Updated `README.md`, `lab/aidefend_discovery/README.md`, `.ai/CURRENT.md`,
+  `.ai/HANDOFF.md`, `.ai/OPEN_LOOPS.md`, `.ai/DECISIONS.md`, and
+  `.ai/COMMANDS.md`.
+
+Verification:
+- `PYTHONPATH=scripts python3 -m unittest tests.test_review_digest -v` (15 tests)
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (74 tests)
+- `python3 scripts/export_review_digest.py --report reports/gap_run_20260505.json --output reports/discovery_digest_20260505.md --top-n 10`
+- `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`
+- Filtered secret scan excluding `.venv`, `__pycache__`, and generated
+  `lab/aidefend_discovery/candidates.jsonl`; findings were existing env-var
+  examples/redacted parameters/regex constant, not secret values.
+
+Next:
+- Use the digest artifact during public review testing and tune thresholds/action
+  heuristics from reviewer feedback.
+- Continue existing high-priority loops: first upstream promotion PR, manual
+  nightly workflow run, embeddings/rerank evaluation, credential rotation.
+
+## 2026-05-05 — Public demo review console
+
+Summary:
+Built the local Public Demo Console for reviewing one `gap_run_*.json` report at
+a time. The console turns the Markdown digest contract into an interactive
+three-pane workbench with sqlite-backed reviewer decisions and reviewed-only
+exports.
+
+Changed:
+- Added `PRODUCT.md` for AIDEFEND Discovery product design context.
+- Added `scripts/aidefend_discovery/review_console.py` with local API routes
+  for run metadata, candidate listing/detail, decision save, reviewed list,
+  reviewed-only Markdown export, and reviewed-only CSV export.
+- Reused `scripts/export_review_digest.py` scoring/action helpers in the API
+  rather than duplicating scoring in React.
+- Added candidate-local sqlite persistence keyed by `content_hash`, then
+  `source_type + source_id`, then candidate/report fallback.
+- Added `review_console/` React + TypeScript + Vite app with queue tabs,
+  filters, candidate brief, collapsed provenance, side-by-side nearest technique
+  comparison, decision panel, and export actions.
+- Added backend tests in `tests/test_review_console.py` and frontend tests in
+  `review_console/src/App.test.tsx`.
+- Documented run commands in `README.md` and `.ai/COMMANDS.md`.
+- Updated `.ai/HANDOFF.md`, `.ai/CURRENT.md`, `.ai/OPEN_LOOPS.md`, and
+  `.ai/DECISIONS.md`.
+
+Verification:
+- From `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS)
+- From `../agent-continuity`: `python3 scripts/closeout_check.py
+  /home/minh/Desktop/repos/aidefend-discovery` (PASS)
+- `PYTHONPATH=scripts python3 -m unittest tests.test_review_console -v` (7 tests)
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests)
+- `cd review_console && npm install`
+- `cd review_console && npm test` (6 tests)
+- `cd review_console && npm run build`
+- `cd review_console && npm audit --audit-level=high` (exit 0; 5 moderate
+  dev-server/transitive findings remain in Vite/Vitest)
+- `PYTHONPATH=scripts python3 -m aidefend_discovery.review_console --report
+  reports/gap_run_20260505.json --db /tmp/aidefend_review_console_smoke.db
+  --port 8765`
+- `curl` smoke for `/api/run`, `/api/candidates?tab=lowest`, and encoded
+  `/api/candidates/<candidate_key>`.
+- Chromium headless screenshots at 1440x900 and 390x900 against the built app.
+
+Next:
+- Use the console for public review demos over the real `reports/gap_run_*.json`
+  outputs and tune action/filter workflows from reviewer feedback.
+- Continue existing high-priority loops: first upstream promotion PR, manual
+  nightly workflow run, embeddings/rerank evaluation, credential rotation.
+
+## 2026-05-06 — Closeout validation and publish
+
+Summary:
+Closed out the public demo review console session from the `agent-continuity`
+workflow, stopped the local smoke-test server, and prepared the branch for
+commit/push.
+
+Verification:
+- From `../agent-continuity`: `python3 scripts/validate_continuity.py` (PASS)
+- From `../agent-continuity`: `python3 scripts/closeout_check.py
+  /home/minh/Desktop/repos/aidefend-discovery` (PASS)
+
+Notes:
+- Left unrelated untracked `agent-continuity/apps/continuity-ui/.data/` alone.
+- The smoke-test sqlite DB was outside the repo at
+  `/tmp/aidefend_review_console_smoke.db`.

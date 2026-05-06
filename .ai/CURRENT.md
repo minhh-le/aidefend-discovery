@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-05 (repository slug/path aligned to aidefend-discovery)
+Updated: 2026-05-06 (public demo review console added; active docs aligned with Phase 1-5 scaffolded state)
 
 ## Repo Purpose
 
@@ -14,11 +14,13 @@ Updated: 2026-05-05 (repository slug/path aligned to aidefend-discovery)
 - **Taxonomy anchor diff** (`scripts/anchor_diff.py` + 9 vendored YAMLs in `lab/aidefend_discovery/taxonomy_anchors/`) surfaces upstream framework IDs not yet mapped in AIDEFEND `defendsAgainst`.
 - **sqlite candidate store** at `lab/aidefend_discovery/discovery_state.db` (state_store.py v1 schema: runs / candidates / gap_reports / seen_window) with `INSERT OR IGNORE` idempotency on `content_hash`. Read APIs power MCP + exports + metrics.
 - **Review export + metrics**: `scripts/export_review.py` → CSV; `scripts/discovery_metrics.py` → JSON.
+- **Public review digest**: `scripts/export_review_digest.py` renders deterministic Markdown from a single `reports/gap_run_*.json`, with lowest-coverage/highest-severity tables, candidate briefs, numeric coverage/security scores, reviewer action labels, and raw provenance in each brief. `--sample` uses `tests/fixtures/sample_gap_run.json` so public testers can preview the format without API keys.
+- **Public demo review console**: `scripts/aidefend_discovery/review_console.py` + `review_console/` provide a local Python API and React/TypeScript workbench for one `gap_run_*.json` report. It reuses digest scoring/action helpers, stores reviewer decisions candidate-locally in sqlite, keeps backend `recommended_action` separate from reviewer `review_decision`, supports queue tabs/filters/provenance inspection/nearest-technique comparison, and exports reviewed candidates only to Markdown or CSV.
 - **Scheduled run**: `.github/workflows/discovery-nightly.yml` (cron 09:00 UTC); secrets `NVD_API_KEY` + `GH_PAT_FOR_GHSA` provisioned. Auto-PR opened, never merged.
 - **MCP integration** in `aidefend-mcp` repo: `app/discovery/store.py` + 3 namespace-walled tools (`search_discovery_candidates`, `explain_candidate_mapping`, `list_anchor_diff`). 14 contract tests asserting AID-* IDs only in `references_aid` sidecar.
 - **Gold corpus**: 25 hand-labeled rows (19 covered / 6 gaps) in `lab/aidefend_discovery/gold/`. Eval baseline: is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00, recall_is_gap=0.0 (embeddings re-open trigger fired).
 - Existing enrichment/scoring remains: optional Trafilatura page fetch, candidate enrichment (`summary_raw`, `body_extracted`, chunks, entities), BM25 chunk max-pool, and lexical overlap explainability in gap reports.
-- **Promotion path:** [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) gives the concrete `CandidateFinding` → upstream `tactics/*.js` shape mapping; Phase 1 exit now requires a merged upstream promotion PR. **Soft rule:** upstream promotions are paused until the Phase 2 taxonomy-anchor diff lands (avoids vocabulary drift from MITRE/OWASP/NIST anchors).
+- **Promotion path:** [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) gives the concrete `CandidateFinding` → upstream `tactics/*.js` shape mapping; Phase 1 exit now requires a merged upstream promotion PR. The Phase 2 taxonomy anchor diff has shipped, so promotions are allowed after the required anchor-diff pre-flight.
 - **Research index:** [`docs/aidefend_discovery/discoveries/`](../docs/aidefend_discovery/discoveries/) (web extraction guidance; **NVD + GitHub global advisory REST** connector enumeration).
 - No offensive targets, customer data, credentials, raw evidence, or proprietary security findings are tracked.
 - Global continuity index may still route here for cross-repo R&D.
@@ -27,8 +29,10 @@ Updated: 2026-05-05 (repository slug/path aligned to aidefend-discovery)
 
 Facts:
 - Discovery output is **candidate-only** until promoted in upstream aidefense-framework `tactics/*.js`.
-- Phase 2A NVD baseline is implemented in anonymous mode; auth and GHSA are follow-on work.
-- The local checkout and GitHub remote are now `aidefend-discovery`; stale `persistent-agent-security` references should be treated as legacy rename debt.
+- NVD ingest is authenticated (`NVD_API_KEY` + retry/backoff); GHSA ingest is authenticated (`GH_PAT_FOR_GHSA` + cursor pagination).
+- Local checkout and GitHub remote are both `aidefend-discovery` — repository was renamed from `persistent-agent-security` on 2026-05-03.
+- Loose architecture-sketch notes were consolidated into `docs/aidefend_discovery/NOTES.md` on 2026-05-03 (was `~/Desktop/repos/notes - aidefend discovery`).
+- Loose technical overview was consolidated into `docs/aidefend_discovery/TECHNICAL_OVERVIEW.md` on 2026-05-05 (was `~/Desktop/repos/explanation of discovery.md`).
 
 Needs definition later:
 - Public surface decision for candidate output: labs, MCP-only, website, or another channel.
