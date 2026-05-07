@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-05-07T11:10:13Z",
+  "data_json": "/home/runner/work/aidefend-discovery/aidefend-discovery/aidefense-framework/data/data.json",
+  "feed_url": null,
+  "source": "nvd",
+  "technique_records": 289,
+  "candidates": [],
+  "gap_reports": [],
+  "params": {
+    "source": "nvd",
+    "top_k": 5,
+    "gap_bm25_max": 8.0,
+    "max_items": 50,
+    "phase1": {
+      "fetch_pages": false,
+      "page_fetch_allowlist": "/home/runner/work/aidefend-discovery/aidefend-discovery/lab/aidefend_discovery/page_fetch.allowlist",
+      "body_max_bytes": 49152,
+      "chunk_size": 3500,
+      "chunk_overlap": 200,
+      "extraction": "trafilatura"
+    },
+    "nvd": {
+      "lastmod_start": "2026-04-30T11:10:04Z",
+      "lastmod_end": "2026-05-07T11:10:04Z",
+      "results_per_page": 200,
+      "max_pages": 2,
+      "keyword": "machine learning",
+      "state_db": "lab/aidefend_discovery/discovery_state.db"
+    }
+  }
+}
