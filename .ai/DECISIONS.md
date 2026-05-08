@@ -1,6 +1,34 @@
 # Decisions
 
-Updated: 2026-05-06
+Updated: 2026-05-08
+
+## 2026-05-08 — Ship clone-and-run local demo as the public v1 surface
+
+Decision: Treat the public v1 surface as a local clone-and-run product demo,
+started by `make demo`, rather than a hosted app or terminal-first research
+workflow. The demo wraps sample/RSS/NVD/GHSA/Full Sweep discovery presets in a
+dark mission-control UI, keeps reviewer decisions local, separates
+reviewed-only exports from full-run exports, and produces selected-candidate
+Action Packets.
+
+Rationale: The product needs to show value to security practitioners without
+requiring terminal commands or raw JSON inspection. A local product demo keeps
+the repo self-contained, protects candidate-only namespace boundaries, avoids
+hosting/security complexity for v1, and still demonstrates the full ingestion
+to coverage intelligence to action packet loop.
+
+## 2026-05-08 — AI summaries are optional, ephemeral, and fallback-backed
+
+Decision: Add provider-agnostic on-demand AI summaries with OpenRouter-friendly
+configuration, but keep deterministic summaries as the required baseline. AI
+calls use compact structured candidate context only, may use environment
+configuration or a session-only pasted key, and do not persist API keys, prompt
+payloads, or generated summaries into sqlite, JSON reports, logs, or docs.
+
+Rationale: AI summaries improve demo readability, but the product must remain
+useful without model access and must not turn API keys or advisory context into
+durable repo artifacts. Deterministic fallback keeps the review workflow stable
+when AI is unconfigured, rate-limited, or failing.
 
 ## 2026-05-06 — Make aidefend-discovery the canonical private monorepo
 

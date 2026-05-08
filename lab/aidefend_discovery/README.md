@@ -1,11 +1,25 @@
 # AIDEFEND discovery lab
 
-Prototype slice for **structured baseline + discovery**: ingest allowlisted RSS/Atom, NVD CVE API, or GitHub Security Advisory API sources, append **CandidateFinding** rows to `candidates.jsonl` (gitignored by default), persist reviewed state in SQLite, and write dated **GapReport** bundles under `reports/`.
+Prototype slice for **structured baseline + discovery**: ingest allowlisted RSS/Atom, NVD CVE API, or GitHub Security Advisory API sources, append **CandidateFinding** rows to `candidates.jsonl` (gitignored by default), persist reviewed state in SQLite, and write dated **GapReport** bundles under `reports/`. The public demo UI now wraps this pipeline; start it with `make demo` from the repo root.
 
 ## Prerequisites
 
 - Python 3.10+
+- Node.js 20+ and npm for the local review UI
 - Bundled framework snapshot at `vendor/aidefense-framework/data/data.json`
+
+## Local demo UI
+
+From repo root:
+
+```bash
+make demo
+```
+
+The UI supports sample mode, live RSS/NVD/GHSA presets, source health, run
+progress, reviewer decisions, optional on-demand AI summaries, and Markdown,
+CSV, JSON, and Action Packet exports. See
+[`docs/aidefend_discovery/DEMO_RUNBOOK.md`](../../docs/aidefend_discovery/DEMO_RUNBOOK.md).
 
 ## Configure feeds (RSS mode)
 
@@ -151,7 +165,9 @@ python3 scripts/export_review_digest.py --sample --output reports/discovery_dige
 |----------|----------|
 | Candidate append-only log | `lab/aidefend_discovery/candidates.jsonl` |
 | Run bundle (candidates + gap_reports + params) | `reports/gap_run_YYYYMMDD.json` |
+| Demo UI run bundle | `reports/demo/gap_run_*.json` |
 | Markdown public review digest | `reports/discovery_digest_YYYYMMDD.md` |
 | Connector cursor state (SQLite) | `lab/aidefend_discovery/discovery_state.db` |
+| Review console decisions (SQLite) | `lab/aidefend_discovery/review_console.db` |
 
 Technical overview: [docs/aidefend_discovery/TECHNICAL_OVERVIEW.md](../../docs/aidefend_discovery/TECHNICAL_OVERVIEW.md). Long-term plan: [docs/aidefend_discovery/ROADMAP.md](../../docs/aidefend_discovery/ROADMAP.md) (per-phase checklists). Research index: [docs/aidefend_discovery/discoveries/INDEX.md](../../docs/aidefend_discovery/discoveries/INDEX.md). Review workflow: [docs/aidefend_discovery/REVIEW_CONTRACT.md](../../docs/aidefend_discovery/REVIEW_CONTRACT.md).

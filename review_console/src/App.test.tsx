@@ -99,9 +99,68 @@ beforeEach(() => {
             generated_at: "2026-05-05T00:00:00Z",
             source: "sample",
             candidate_count: 2,
-            reviewed_count: 1
+            reviewed_count: 1,
+            presets: [
+              {
+                id: "quick_demo",
+                label: "Quick Demo: sample report",
+                short_label: "Run sample demo",
+                description: "Loads sample data.",
+                sources: ["sample"],
+                network: false
+              },
+              {
+                id: "rss_ai_releases",
+                label: "RSS: AI framework releases",
+                short_label: "Start quick scan",
+                description: "Fetches an allowlisted feed.",
+                sources: ["rss"],
+                network: true
+              }
+            ],
+            source_health: {
+              rss: { label: "RSS", status: "available", detail: "1 allowlisted feed", requires_key: false },
+              nvd: { label: "NVD", status: "anonymous", detail: "Anonymous mode", requires_key: false },
+              ghsa: { label: "GHSA", status: "anonymous", detail: "Anonymous mode", requires_key: false },
+              ai: { label: "AI summary", status: "unavailable", detail: "Optional", requires_key: true },
+              locality: { label: "Local data", status: "local", detail: "Local only", requires_key: false }
+            },
+            run_lifecycle: {
+              status: "idle",
+              preset_id: "",
+              current_source: "",
+              started_at: "",
+              completed_at: "",
+              report_path: "reports/gap_run_20260505.json",
+              progress: 0,
+              logs: [],
+              errors: []
+            },
+            trust_posture: [
+              "Candidates are review hypotheses, not approved AIDEFEND truth.",
+              "Reviewer decision is separate from backend recommendation.",
+              "Data stays local unless a live source or AI summary is explicitly invoked."
+            ]
           }),
           { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      if (url === "/api/runs" && init?.method === "POST") {
+        return new Response(
+          JSON.stringify({
+            run_lifecycle: {
+              status: "running",
+              preset_id: "quick_demo",
+              current_source: "sample",
+              started_at: "2026-05-05T00:00:00Z",
+              completed_at: "",
+              report_path: "tests/fixtures/sample_gap_run.json",
+              progress: 10,
+              logs: ["started"],
+              errors: []
+            }
+          }),
+          { status: 202, headers: { "Content-Type": "application/json" } }
         );
       }
       if (url.startsWith("/api/candidates?")) {
@@ -131,6 +190,7 @@ afterEach(() => {
 describe("App", () => {
   it("renders the queue with candidates", async () => {
     render(<App />);
+    expect(await screen.findByRole("heading", { name: "Coverage intelligence briefing room" })).toBeInTheDocument();
     expect(await screen.findByText("Critical Model Loader Deserialization")).toBeInTheDocument();
     expect(screen.getByText("Known Prompt Injection Variant")).toBeInTheDocument();
   });
@@ -142,7 +202,8 @@ describe("App", () => {
     await user.click(screen.getByRole("tab", { name: "Reviewed" }));
     await waitFor(() => expect(screen.getAllByText("Known Prompt Injection Variant").length).toBeGreaterThan(0));
     expect(screen.queryByText("Critical Model Loader Deserialization")).not.toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText(/Source/i), "NVD");
+    const queue = screen.getByLabelText("Candidate queue");
+    await user.selectOptions(within(queue).getByLabelText(/Source/i), "NVD");
     await waitFor(() => expect(fetch).toHaveBeenCalledWith(expect.stringContaining("source_type=NVD"), expect.anything()));
   });
 
@@ -168,16 +229,34 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByRole("heading", { name: "Critical Model Loader Deserialization" });
-    expect(screen.queryByText("Raw score details")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /Show score explanation/i }));
-    expect(await screen.findByText("Raw score details")).toBeInTheDocument();
+    expect(screen.getByText("Raw score details")).not.toBeVisible();
+    await user.click(screen.getByText(/Expert score and raw provenance/i));
+    expect(screen.getByText("Raw score details")).toBeVisible();
   });
 
-  it("shows reviewed-only export actions", async () => {
+  it("shows reviewed-only and full-run export actions separately", async () => {
     render(<App />);
     await screen.findByRole("heading", { name: "Critical Model Loader Deserialization" });
-    const actions = screen.getByText("Export Markdown").closest("a")?.parentElement;
+    const actions = screen.getByLabelText("Exports");
     expect(actions).toBeTruthy();
-    expect(within(actions as HTMLElement).getByText("Export CSV")).toBeInTheDocument();
+    expect(within(actions as HTMLElement).getByText("Reviewed Only")).toBeInTheDocument();
+    expect(within(actions as HTMLElement).getByRole("link", { name: /Reviewed Markdown/i })).toHaveAttribute(
+      "href",
+      "/api/export/reviewed-markdown"
+    );
+    expect(within(actions as HTMLElement).getByRole("link", { name: /Reviewed CSV/i })).toHaveAttribute(
+      "href",
+      "/api/export/reviewed-csv"
+    );
+    expect(within(actions as HTMLElement).getByText("Full Run")).toBeInTheDocument();
+    expect(within(actions as HTMLElement).getByRole("link", { name: /All CSV/i })).toHaveAttribute("href", "/api/export/csv");
+  });
+
+  it("starts the sample demo from mission control", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("heading", { name: "Coverage intelligence briefing room" });
+    await user.click(screen.getByRole("button", { name: /Run sample demo/i }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/runs", expect.objectContaining({ method: "POST" })));
   });
 });

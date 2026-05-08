@@ -1,98 +1,196 @@
 # AIDEFEND Discovery
 
-A private monorepo workspace for AIDEFEND discovery: ingesting public signals,
-producing candidate findings, reviewing them locally, serving AIDEFEND through
-MCP/REST, and comparing against a tracked framework snapshot.
+AIDEFEND Discovery is a local product demo for turning public security signals
+into reviewable AIDEFEND coverage intelligence: what happened, what defense
+knowledge already exists, what may be missing, and what action a maintainer
+should consider next.
 
 The repo is read-only with respect to canonical AIDEFEND truth. It produces
-candidate records, gap reports, and review support; approved `AID-*` changes
-still happen as explicit edits to framework tactic files, now vendored under
+candidate records, gap reports, reviewer decisions, and action packets.
+Approved `AID-*` changes still require explicit human-reviewed edits to the
+vendored framework tactic files under
 [`vendor/aidefense-framework/`](vendor/aidefense-framework/).
 
-## Scope
+## Quick Start
 
-Current scope is the AIDEFEND discovery pipeline:
+Prerequisites:
 
-- allowlisted RSS/Atom ingestion;
-- optional Trafilatura page extraction;
-- NVD CVE API ingestion (with `NVD_API_KEY` auth + retry/backoff) and GitHub Security Advisory ingestion (with `GH_PAT_FOR_GHSA` auth + cursor pagination);
-- candidate enrichment with CVE/GHSA/CWE entities and retrieval chunks;
-- BM25 gap scoring with CWE→tactic bridge rationales and reviewer-facing explainability;
-- taxonomy anchor diff against 9 vendored upstream framework YAMLs (MITRE ATLAS, OWASP LLM/ML/Agentic, NIST AI 100-2, MAESTRO, SAIF, Databricks DASF, Cisco AITech);
-- deterministic Markdown public review digests from single-run `gap_run_*.json` reports;
-- sqlite candidate store with idempotency, CSV review export, and JSON metrics;
-- nightly GitHub Actions workflow with auto-PR (never auto-merged);
-- full MCP/REST service under [`services/aidefend-mcp/`](services/aidefend-mcp/) with read-only discovery namespace tools, walled from official `AID-*` tools;
-- tracked framework data/site snapshot under [`vendor/aidefense-framework/`](vendor/aidefense-framework/).
+- Python 3.10+
+- Node.js 20+ and npm
+- Optional: `make`
 
-Open work is **precision tuning** (embeddings + cross-encoder rerank — re-open trigger fired on the 25-row gold corpus) and **operationalisation** (first upstream promotion PR per [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](docs/aidefend_discovery/PROMOTION_PLAYBOOK.md), and running the nightly workflow for a few cycles).
-
-## Safety
-
-Do not commit secrets, credentials, customer data, raw exploit targets, private logs, packet captures, malware samples, or sensitive evidence. API keys belong in environment variables or external secret stores only. Public API data is still treated as untrusted input and candidate-only until reviewed.
-
-## AIDEFEND discovery (R&D)
-
-Prototype aligned with [aidefense-framework](https://github.com/edward-playground/aidefense-framework): allowlisted RSS/Atom, NVD, or GHSA input → optional **Trafilatura** page extract → enriched candidates → BM25 (chunk max-pool) + bridge/overlap hints vs bundled `vendor/aidefense-framework/data/data.json` → sqlite-backed review exports and metrics. Python deps: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`. See [`docs/aidefend_discovery/MONOREPO.md`](docs/aidefend_discovery/MONOREPO.md), [`docs/aidefend_discovery/TECHNICAL_OVERVIEW.md`](docs/aidefend_discovery/TECHNICAL_OVERVIEW.md), [`docs/aidefend_discovery/ROADMAP.md`](docs/aidefend_discovery/ROADMAP.md), [`lab/aidefend_discovery/README.md`](lab/aidefend_discovery/README.md), and [`docs/aidefend_discovery/REVIEW_CONTRACT.md`](docs/aidefend_discovery/REVIEW_CONTRACT.md).
-
-Run a no-network sample/replay path against the bundled framework data:
+Start the full local demo:
 
 ```bash
-PYTHONPATH=scripts python3 scripts/run_discovery_gap.py \
-  --source rss \
-  --feed-url https://github.com/langchain-ai/langchain/releases.atom \
-  --allowlist lab/aidefend_discovery/feeds.allowlist \
-  --no-fetch-pages \
-  --max-items 0 \
-  --dry-run
+make demo
 ```
 
-Generate a reviewer-facing Markdown digest from any single-run report:
+Equivalent direct command:
 
 ```bash
-python3 scripts/export_review_digest.py \
-  --report reports/gap_run_20260505.json \
-  --output reports/discovery_digest_20260505.md \
-  --top-n 10
+python3 scripts/run_demo.py
 ```
 
-Public sample mode uses a checked-in fixture and does not require API keys:
+The launcher creates `.venv`, installs Python dependencies, installs frontend
+dependencies when needed, builds the React console, starts the local Python API,
+picks an open port from `8765`, and opens the browser. If browser auto-open is
+not available, it prints the URL.
+
+## What The Demo Does
+
+The first screen is an operational mission-control surface:
+
+- workflow: Signals -> Candidates -> Coverage -> Gap -> Action Packet
+- first-run actions: run the checked-in sample, start an RSS quick scan,
+  configure optional keys, and open the latest run
+- source health: RSS allowlist, NVD anonymous/key status, GHSA anonymous/key
+  status, optional AI summary status, and local data posture
+- trust posture: candidates are not approved AIDEFEND truth, backend
+  recommendations are separate from reviewer decisions, and data stays local
+  unless a live source or AI summary is explicitly invoked
+
+The review workbench lets you start discovery runs from the UI, watch progress
+and errors, inspect candidates, expand evidence/provenance, save reviewer
+decisions, request optional AI summaries, and export maintainer-ready artifacts.
+
+## Discovery Presets
+
+Available from the UI:
+
+- `Quick Demo: sample report`, no network or API keys
+- `RSS: AI framework releases`, allowlisted feeds
+- `NVD: AI/ML keyword scan`, anonymous or `NVD_API_KEY`
+- `GHSA: high-severity advisories`, anonymous or GitHub token
+- `Full Sweep: RSS + NVD + GHSA`, one merged candidate queue
+
+RSS uses [`lab/aidefend_discovery/feeds.allowlist`](lab/aidefend_discovery/feeds.allowlist)
+by default. The UI includes an advanced custom-feed escape hatch, but the safe
+default is allowlisted feeds only.
+
+NVD and GHSA work without keys at public anonymous limits. Keys improve rate
+limits and reliability:
 
 ```bash
-python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
+export NVD_API_KEY=...
+export GH_PAT_FOR_GHSA=...   # or GITHUB_TOKEN
+make demo
 ```
 
-## Local review console
+## Optional AI Summaries
 
-The Public Demo Console reviews one `reports/gap_run_*.json` at a time with sqlite-backed reviewer decisions. Build the React UI once, then run the local Python API:
+AI is not required. Deterministic summaries always work without an API key.
+
+Configure AI with environment variables:
+
+```bash
+export AI_SUMMARY_PROVIDER=openrouter
+export AI_SUMMARY_BASE_URL=https://openrouter.ai/api/v1
+export AI_SUMMARY_API_KEY=...
+export AI_SUMMARY_MODEL=...
+make demo
+```
+
+You can also paste a session-only key in the UI. Pasted keys, prompt payloads,
+and AI outputs are not written to sqlite, JSON reports, logs, or docs.
+
+AI summaries are on demand per candidate. The backend sends compact structured
+context only: title, source type/id, identifiers, short summary/excerpt,
+severity, package/ecosystem, nearest AIDEFEND comparison, gap reason, bridge
+rationales, and key source URLs. It does not send full raw extracted article
+bodies by default. If AI is unavailable or fails, the UI shows the deterministic
+summary instead.
+
+## Exports
+
+The export menu provides:
+
+- Markdown digest for the current run
+- CSV for all current candidates with reviewer fields
+- JSON run bundle with review decisions
+- Action Packet for the selected candidate
+
+Action Packets follow
+[`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](docs/aidefend_discovery/PROMOTION_PLAYBOOK.md):
+candidate id, source type/id, source URLs, content hash, nearest techniques,
+gap summary, reviewer notes, recommended promotion shape, and optional
+human-review-required draft tactic edit guidance.
+
+## Local Data
+
+Runtime artifacts stay in the clone:
+
+| Artifact | Location |
+| --- | --- |
+| Demo reports | `reports/demo/gap_run_*.json` |
+| Candidate append log | `lab/aidefend_discovery/candidates.jsonl` |
+| Discovery cursor/state DB | `lab/aidefend_discovery/discovery_state.db` |
+| Reviewer decisions DB | `lab/aidefend_discovery/review_console.db` |
+| Built frontend | `review_console/dist/` |
+
+These generated runtime files are local working artifacts. API keys belong in
+environment variables or the UI session field only.
+
+## Manual Development
+
+Backend and built frontend:
 
 ```bash
 cd review_console
-npm install
+npm ci
 npm run build
 cd ..
 PYTHONPATH=scripts python3 -m aidefend_discovery.review_console \
-  --report reports/gap_run_20260505.json \
+  --report tests/fixtures/sample_gap_run.json \
   --db lab/aidefend_discovery/review_console.db \
   --port 8765
 ```
 
-Open `http://127.0.0.1:8765`. Decisions are stored candidate-locally in sqlite, preserving backend `recommended_action` separately from reviewer `review_decision`. Reviewed-only Markdown and CSV exports are available from the console toolbar.
-
-For frontend development, run the API above and in another shell:
+Frontend dev server:
 
 ```bash
 cd review_console
 npm run dev
 ```
 
-## MCP / REST service
+Python tests:
+
+```bash
+PYTHONPATH=scripts python3 -m unittest discover -s tests -v
+```
+
+Frontend checks:
+
+```bash
+cd review_console
+npm test
+npm run build
+```
+
+## Pipeline CLI
+
+The UI wraps the same local pipeline primitives. You can still run them from
+the terminal:
+
+```bash
+python3 scripts/run_discovery_gap.py \
+  --source rss \
+  --feed-url https://github.com/langchain-ai/langchain/releases.atom \
+  --allowlist lab/aidefend_discovery/feeds.allowlist \
+  --no-fetch-pages \
+  --max-items 15
+```
+
+Generate a deterministic digest from a report:
+
+```bash
+python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
+```
+
+## MCP / REST Service
 
 The full AIDEFEND MCP/REST service is vendored at
-[`services/aidefend-mcp/`](services/aidefend-mcp/) from
-`minhh-le/aidefend-mcp@118c56c`. It defaults to the bundled framework snapshot
-for local sync. To expose discovery candidate tools, point it at a local
-runtime sqlite DB and reports directory:
+[`services/aidefend-mcp/`](services/aidefend-mcp/). To expose discovery
+candidate tools locally:
 
 ```bash
 cd services/aidefend-mcp
@@ -102,20 +200,21 @@ pytest tests/test_discovery_tools.py
 ```
 
 When `DISCOVERY_DB_PATH` is unset, discovery tools return a graceful
-"not configured" response. When configured, every discovery response carries
-`discovery_namespace: true` and a disclaimer.
+"not configured" response. Discovery responses carry `discovery_namespace:
+true` and a disclaimer.
+
+## More Docs
+
+- [Demo runbook](docs/aidefend_discovery/DEMO_RUNBOOK.md)
+- [Promotion playbook](docs/aidefend_discovery/PROMOTION_PLAYBOOK.md)
+- [Future work](docs/aidefend_discovery/FUTURE_WORK.md)
+- [Technical overview](docs/aidefend_discovery/TECHNICAL_OVERVIEW.md)
+- [Roadmap](docs/aidefend_discovery/ROADMAP.md)
+- [Review contract](docs/aidefend_discovery/REVIEW_CONTRACT.md)
 
 ## Attribution
 
 Imported snapshots are tracked in [`vendor/SNAPSHOTS.md`](vendor/SNAPSHOTS.md).
-The MCP service is MIT licensed. The AIDEFEND framework content is attributed to
-`edward-playground/aidefense-framework` and published under CC BY 4.0 upstream.
-This discovery consolidation repo stays private for now.
-
-## Start Here
-
-1. Read `AGENTS.md`.
-2. Read `.ai/CONTEXT_INDEX.md`.
-3. Read `.ai/HANDOFF.md`.
-4. Read `.ai/CURRENT.md`.
-5. Read `.ai/OPEN_LOOPS.md`.
+The MCP service is MIT licensed. The AIDEFEND framework content is attributed
+to `edward-playground/aidefense-framework` and published under CC BY 4.0
+upstream.

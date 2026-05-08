@@ -4,6 +4,9 @@ Updated: 2026-05-03 (Phases 1, 2A, 2B, 3, 4, 5 scaffolded end-to-end; embeddings
 
 This document is the **persistent** plan for evolving from the current prototype in [`lab/aidefend_discovery/`](../../lab/aidefend_discovery/README.md) toward a governable **discovery layer** on top of the open AIDEFEND knowledge base. Companion docs: [`REVIEW_CONTRACT.md`](REVIEW_CONTRACT.md), [`MAINTAINER_ALIGNMENT.md`](MAINTAINER_ALIGNMENT.md).
 
+Public demo v1 follow-ups that are valuable but out of this clone-and-run
+shipping slice live in [`FUTURE_WORK.md`](FUTURE_WORK.md).
+
 ### Related research (discover)
 
 - [`discoveries/INDEX.md`](discoveries/INDEX.md) — dated synthesis notes.
@@ -120,6 +123,7 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 - [x] **Scheduler:** [`.github/workflows/discovery-nightly.yml`](../../.github/workflows/discovery-nightly.yml) (cron 09:00 UTC); `NVD_API_KEY` + `GH_PAT_FOR_GHSA` provisioned as repo secrets; opens auto-PR, never auto-merges.
 - [x] **Review export:** [`scripts/export_review.py`](../../scripts/export_review.py) → CSV with `candidate_id`, `status`, `reject_reason`, `reviewer`, `source_urls`, `gap_summary`.
 - [x] **Metrics:** [`scripts/discovery_metrics.py`](../../scripts/discovery_metrics.py) → JSON (% candidates with `is_gap`, throughput, promotion counts).
+- [x] **Clone-and-run local demo:** `make demo` / `python3 scripts/run_demo.py` starts the React review console and Python API, with UI-started sample, RSS, NVD, GHSA, and Full Sweep runs, source health, run logs, optional AI summaries, and Markdown/CSV/JSON/Action Packet exports.
 
 ---
 

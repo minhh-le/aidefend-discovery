@@ -1,19 +1,58 @@
 # Handoff
 
-Updated: 2026-05-06 (canonical private monorepo consolidation in progress)
+Updated: 2026-05-08 (public local-demo product conversion)
 Updated by: Codex
-Verification: `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (84 tests); `python3 scripts/export_review_digest.py --sample --output /tmp/aidefend_sample_digest.md --top-n 3`; no-network fixture replay against `vendor/aidefense-framework/data/data.json`; `python3 scripts/anchor_diff.py --output /tmp/aidefend_anchor_diff.json`; `cd review_console && npm test` (6 tests); `cd review_console && npm run build`; review-console API smoke against `tests/fixtures/sample_gap_run.json` on port 8766; `cd services/aidefend-mcp && .venv/bin/pytest tests/test_discovery_tools.py` (14 tests; configured/unconfigured discovery namespace coverage); from `../agent-continuity`, `python3 scripts/validate_continuity.py` (PASS) and `python3 scripts/closeout_check.py /home/minh/Desktop/repos/aidefend-discovery` (PASS with expected pre-commit stale-handoff warning). Prior architecture build-out verification included live authenticated NVD + GHSA pulls and gold eval (is_gap_accuracy=0.76, nearest_topk_hit_rate=1.00).
+Verification: `PYTHONPATH=scripts python3 -m unittest tests.test_review_console -v` (14 tests); `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (91 tests); `cd review_console && npm test -- src/App.test.tsx` (7 tests); `cd review_console && npm run build`; `git diff --check`; prior implementation smoke included `python3 scripts/run_demo.py --no-open --port 8878`, sample run, decision persistence, AI fallback, Markdown/CSV/Action Packet exports, live RSS preset smoke, and Playwright desktop/mobile screenshots. From `../agent-continuity`, closeout validation ran after `.ai` updates.
 
 ## Current Goal
 
-`main` is being consolidated into the canonical private monorepo. It contains
-the discovery pipeline, public digest/review console, latest retained nightly
-reports from `discovery-nightly/20260506`, a tracked AIDEFEND framework
-snapshot under `vendor/aidefense-framework/`, and the full MCP/REST service
-under `services/aidefend-mcp/`. The remaining work after consolidation is
-**evaluation-driven precision tuning** plus **operationalisation**: first
-promotion through the bundled framework snapshot, manual nightly review, and
-credential rotation.
+`main` is now the canonical private monorepo and has been converted into a
+clone-and-run public local demo product. It contains the discovery pipeline,
+mission-control review UI, one-command demo launcher, public digest/export
+paths, latest retained nightly reports from `discovery-nightly/20260506`, a
+tracked AIDEFEND framework snapshot under `vendor/aidefense-framework/`, and
+the full MCP/REST service under `services/aidefend-mcp/`. The remaining work is
+to exercise the demo with real credentials, run live NVD/GHSA scans, and then
+continue operationalisation: first promotion through the bundled framework
+snapshot, manual nightly review, embeddings/rerank evaluation, and credential
+rotation.
+
+## Last Meaningful Work - public local-demo product conversion (2026-05-08)
+
+- Added `make demo` plus `scripts/run_demo.py` for one-command local startup:
+  creates/uses `.venv`, installs Python requirements as needed, installs/builds
+  the React console, starts the Python API, picks an open local port, and
+  opens the browser.
+- Expanded `scripts/aidefend_discovery/review_console.py` from one-report
+  review API into a local product backend:
+  - UI-started presets: sample report, RSS quick scan, NVD AI/ML keyword scan,
+    GHSA high-severity scan, and Full Sweep merged RSS+NVD+GHSA queue.
+  - One active run lifecycle with progress, source status, logs, partial
+    failures, and prominent errors.
+  - Source health for RSS/NVD/GHSA/local data and optional AI summary status.
+  - Optional provider-agnostic AI summaries with OpenRouter-compatible defaults,
+    session-only pasted key support, compact prompt payloads, no persistence of
+    keys or AI outputs, and deterministic fallback summaries.
+  - Export menu backends for reviewed-only Markdown/CSV, full-run Markdown/CSV/
+    JSON, and selected-candidate Action Packets.
+- Rebuilt `review_console/` into a dark "threat intel briefing room" mission
+  control UI:
+  - First screen shows workflow, source health, trust posture, run controls,
+    optional key configuration, run logs, and latest run entrypoint.
+  - Workbench keeps candidate queue, layman-readable brief, expert evidence/
+    provenance expansion, reviewer decisions, optional AI briefing, and exports.
+  - Reviewed-only exports are clearly separated from full-run exports.
+- Added `docs/aidefend_discovery/DEMO_RUNBOOK.md` and
+  `docs/aidefend_discovery/FUTURE_WORK.md`; updated `README.md`,
+  `lab/aidefend_discovery/README.md`, and `ROADMAP.md`.
+- Added `.gitignore` coverage for local `review_console.db` and `reports/demo/`
+  runtime artifacts.
+- Post-review fixes:
+  - Scoped `/api/run.reviewed_count` to candidates in the active report.
+  - Changed Shape A Action Packet draft output to use a framework-item
+    placeholder instead of candidate title text.
+  - Added plain-English deterministic gap summaries so fallback output does not
+    expose raw `max_bm25_below_threshold(...)` strings.
 
 ## Last Meaningful Work — monorepo consolidation (2026-05-06)
 
@@ -139,6 +178,10 @@ credential rotation.
 
 ## Next Recommended Action
 
+- **Run an end-to-end demo rehearsal with real config**: `make demo`, paste or
+  export an OpenRouter key/model, generate an AI briefing, run RSS, then run NVD
+  and GHSA with configured keys. Confirm source health, logs, exports, and
+  fallback behavior in the browser.
 - **Open the first upstream promotion PR** to close the hardened Phase 1
   exit. Pick one row from `lab/aidefend_discovery/gold/labeling_log.md` Shape-A
   candidates (e.g., `GHSA-324q-cwx9-7crr` KubeAI command-injection → AID-H);
@@ -159,3 +202,5 @@ credential rotation.
 - Do not infer targets or scope.
 - Do not run security tooling against third-party systems without explicit authorization.
 - Do not treat discovery candidates as approved `AID-*` techniques without upstream merge.
+- Do not commit generated `reports/demo/`, `review_console.db`, API keys, or AI
+  summary payload/output artifacts.

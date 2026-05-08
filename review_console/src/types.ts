@@ -1,5 +1,6 @@
 export type ReviewDecision = "promote" | "merge" | "reject" | "needs_evidence" | "monitor";
 export type QueueTab = "lowest" | "highest" | "needs_evidence" | "monitor" | "reviewed";
+export type RunStatus = "idle" | "running" | "completed" | "partial_failure" | "failed";
 
 export interface CandidateSummary {
   candidate_key: string;
@@ -81,6 +82,36 @@ export interface CandidateDetail extends CandidateSummary {
   };
 }
 
+export interface SourceHealthItem {
+  label: string;
+  status: string;
+  detail: string;
+  requires_key: boolean;
+  improves_with_key?: boolean;
+  base_url?: string;
+}
+
+export interface Preset {
+  id: string;
+  label: string;
+  short_label: string;
+  description: string;
+  sources: string[];
+  network: boolean;
+}
+
+export interface RunLifecycle {
+  status: RunStatus;
+  preset_id: string;
+  current_source: string;
+  started_at: string;
+  completed_at: string;
+  report_path: string;
+  progress: number;
+  logs: string[];
+  errors: string[];
+}
+
 export interface RunInfo {
   report_path: string;
   report_id: string;
@@ -88,6 +119,10 @@ export interface RunInfo {
   source: string;
   candidate_count: number;
   reviewed_count: number;
+  presets: Preset[];
+  source_health: Record<string, SourceHealthItem>;
+  run_lifecycle: RunLifecycle;
+  trust_posture: string[];
 }
 
 export interface Filters {
@@ -98,4 +133,27 @@ export interface Filters {
   cwe: string;
   ecosystem: string;
   reviewed: string;
+}
+
+export interface RunOptions {
+  max_items?: number;
+  feed_url?: string;
+  allow_custom_feed?: boolean;
+  fetch_pages?: boolean;
+  nvd_keyword?: string;
+}
+
+export interface AiConfig {
+  provider: string;
+  base_url: string;
+  api_key: string;
+  model: string;
+}
+
+export interface AiSummary {
+  status: "ok" | "unavailable" | "failed";
+  summary: string;
+  fallback_summary: string;
+  fallback_used: boolean;
+  error: string;
 }

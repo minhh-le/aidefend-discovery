@@ -1,9 +1,13 @@
 # Open Loops
 
-Updated: 2026-05-06 (canonical private monorepo consolidation)
+Updated: 2026-05-08 (public local-demo product conversion)
 
 ## High Priority
 
+- [ ] **Run a real-key demo rehearsal**: `make demo`; configure OpenRouter
+  model/key via env or session-only UI field; run RSS, NVD, GHSA, and Full
+  Sweep with appropriate keys; verify AI success path, fallback path, logs,
+  reviewed-only exports, full-run exports, and Action Packet output in-browser.
 - [ ] **Open the first upstream promotion PR** per [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) to close the hardened Phase 1 exit. Use a Shape-A candidate from `lab/aidefend_discovery/gold/labeling_log.md` (e.g., `GHSA-324q-cwx9-7crr` KubeAI command-injection).
 - [ ] **Run the nightly workflow once manually** (`gh workflow run discovery-nightly.yml --repo minhh-le/aidefend-discovery`) and review the auto-PR's exports.
 - [ ] **Embeddings + cross-encoder rerank** — re-open trigger fired (gold `recall_is_gap=0.0`); evaluate adding a scope classifier or rerank on BM25 top-20.
@@ -16,9 +20,25 @@ Updated: 2026-05-06 (canonical private monorepo consolidation)
 
 ## Medium Priority
 
-- [ ] Decide public surface for candidate output: labs docs, MCP-only, website, or another channel. License-posture upgrade gated on this (see ROADMAP "Deferred with reasoning" license-posture re-open trigger).
+- [ ] Decide whether/when to deploy beyond clone-and-run local demo. License-posture upgrade gated on this (see ROADMAP "Deferred with reasoning" license-posture re-open trigger).
 - [ ] Refresh vendored taxonomy anchor YAMLs (`lab/aidefend_discovery/taxonomy_anchors/`) per `QUALITY_AUDIT_CHECKLIST.md` Section 2 — quarterly.
 - [ ] Grow `lab/aidefend_discovery/gold/example_labels.jsonl` from 25 → 50+ rows; unlocks BM25 field-weighting work.
+
+## Resolved this session (2026-05-08 public local-demo product conversion)
+
+- [x] Added one-command local startup (`make demo`, `scripts/run_demo.py`) with
+  frontend build, Python API start, open-port selection, and browser auto-open.
+- [x] Converted the review console into a mission-control product UI with dark
+  threat-intel aesthetic, source health, trust posture, run presets, run logs,
+  errors, candidate review, optional AI briefing, and exports.
+- [x] Added UI-run presets for sample, RSS, NVD, GHSA, and Full Sweep merged
+  queue.
+- [x] Added provider-agnostic optional AI summary support with deterministic
+  fallback and no persistent key/output storage.
+- [x] Split reviewed-only exports from full-run exports and added selected
+  candidate Action Packets.
+- [x] Added demo runbook and future-work roadmap.
+- [x] Ignored generated local demo DB/report artifacts.
 
 ## Resolved this session (2026-05-06 monorepo consolidation)
 

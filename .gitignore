@@ -40,7 +40,9 @@ tmp/
 # AIDEFEND discovery prototype outputs
 lab/aidefend_discovery/candidates.jsonl
 lab/aidefend_discovery/discovery_state.db
+lab/aidefend_discovery/review_console.db
 reports/gap_run_*.json
+reports/demo/
 reports/feed_audit_*.json
 reports/anchor_diff_*.json
 reports/review_*.csv

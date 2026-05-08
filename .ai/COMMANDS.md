@@ -1,6 +1,6 @@
 # Commands
 
-Updated: 2026-05-05
+Updated: 2026-05-08
 
 ## Orientation
 
@@ -13,6 +13,8 @@ find . -maxdepth 3 -type f | sort
 
 ```bash
 cd /path/to/aidefend-discovery
+make demo
+python3 scripts/run_demo.py --no-open --port 8878
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 PYTHONPATH=scripts .venv/bin/python -m unittest discover -s tests -v
 python3 scripts/run_discovery_gap.py \
@@ -41,11 +43,27 @@ python3 scripts/export_review_digest.py --report reports/gap_run_YYYYMMDD.json \
 python3 scripts/export_review_digest.py --sample --output reports/discovery_digest_sample.md
 cd review_console && npm install && npm run build && cd ..
 PYTHONPATH=scripts python3 -m aidefend_discovery.review_console \
-  --report reports/gap_run_20260505.json \
+  --report tests/fixtures/sample_gap_run.json \
   --db lab/aidefend_discovery/review_console.db \
   --port 8765
+cd review_console && npm test -- src/App.test.tsx && npm run build && cd ..
 cd services/aidefend-mcp && pytest tests/test_discovery_tools.py && cd ../..
 ```
+
+## Optional Demo Keys
+
+```bash
+export NVD_API_KEY=...
+export GH_PAT_FOR_GHSA=...   # or GITHUB_TOKEN
+export AI_SUMMARY_PROVIDER=openrouter
+export AI_SUMMARY_BASE_URL=https://openrouter.ai/api/v1
+export AI_SUMMARY_API_KEY=...
+export AI_SUMMARY_MODEL=...
+make demo
+```
+
+The UI also supports a session-only pasted AI API key. Do not write keys to
+docs, fixtures, reports, logs, sqlite DBs, or `.ai` files.
 
 ## Safety Checks
 

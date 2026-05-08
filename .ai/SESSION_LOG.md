@@ -418,3 +418,41 @@ Verification:
 - From `../agent-continuity`: `python3 scripts/closeout_check.py
   /home/minh/Desktop/repos/aidefend-discovery` (PASS with expected pre-commit
   stale-handoff warning)
+
+## 2026-05-08 — Public local-demo product conversion closeout
+
+Summary:
+Reviewed and closed out the product conversion that makes AIDEFEND Discovery a
+clone-and-run local demo. The repo now has one-command startup, a dark
+mission-control UI, UI-started discovery presets, optional AI summaries with
+deterministic fallback, reviewed-only/full-run exports, and Action Packets.
+
+Changed:
+- Added `Makefile` and `scripts/run_demo.py` for `make demo` startup.
+- Expanded `scripts/aidefend_discovery/review_console.py` with run presets,
+  run lifecycle state, source health, logs/errors, Full Sweep merged queues,
+  optional AI summary adapter, plain-English deterministic summaries, and export
+  endpoints.
+- Rebuilt `review_console/` as a dark threat-intel briefing room with mission
+  control, source health, trust posture, run controls, candidate review,
+  evidence/provenance expansion, reviewer decisions, and export grouping.
+- Added reviewed-only export UI, scoped reviewed counts to the active report,
+  fixed Shape A Action Packet placeholder semantics, and ignored local demo
+  runtime artifacts.
+- Added `docs/aidefend_discovery/DEMO_RUNBOOK.md` and
+  `docs/aidefend_discovery/FUTURE_WORK.md`; updated README, lab README, and
+  roadmap.
+
+Verification:
+- `PYTHONPATH=scripts python3 -m unittest tests.test_review_console -v` (14 tests)
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (91 tests)
+- `cd review_console && npm test -- src/App.test.tsx` (7 tests)
+- `cd review_console && npm run build`
+- `git diff --check`
+
+Known limitations:
+- Real OpenRouter success was not exercised in this closeout because no demo key
+  was provided.
+- Final live NVD/GHSA calls were not repeated during closeout to avoid
+  rate-limit variability; connector tests and source-health states pass.
+- Multi-run comparison remains future work in `docs/aidefend_discovery/FUTURE_WORK.md`.
