@@ -1,0 +1,189 @@
+{
+  "generated_at": "2026-05-09T10:05:33Z",
+  "data_json": "/home/runner/work/aidefend-discovery/aidefend-discovery/aidefense-framework/data/data.json",
+  "feed_url": null,
+  "source": "nvd",
+  "technique_records": 289,
+  "candidates": [
+    {
+      "id": "candidate-rss-c1afc33361c92247",
+      "status": "candidate",
+      "title": "CVE-2026-32207",
+      "summary": "Improper neutralization of input during web page generation ('cross-site scripting') in Azure Machine Learning allows an unauthorized attacker to perform spoofing over a network.",
+      "summary_raw": "Improper neutralization of input during web page generation ('cross-site scripting') in Azure Machine Learning allows an unauthorized attacker to perform spoofing over a network.",
+      "source_urls": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-32207"
+      ],
+      "retrieved_at": "2026-05-09T10:05:33Z",
+      "license_note": "NVD CVE API candidate; verify downstream redistribution policy.",
+      "confidence": 0.7,
+      "raw_hash": "c1afc33361c92247e44a9ca6d24065dfa30e571db616d69b1a14afd6c5db1df1",
+      "feed_url": "nvd_api",
+      "source_type": "nvd_api",
+      "source_id": "CVE-2026-32207",
+      "entities": {
+        "cves": [
+          "CVE-2026-32207"
+        ],
+        "ghsas": [],
+        "cwes": [
+          "CWE-79"
+        ],
+        "version_constraints": [
+          "2026 - 32207"
+        ]
+      },
+      "kev_flag": false,
+      "body_extracted": null,
+      "body_truncated": false,
+      "body_extracted_bytes": 0,
+      "body_fetch_error": null,
+      "body_fetch_skipped_reason": "fetch_disabled",
+      "retrieval_chunks": [
+        {
+          "index": 0,
+          "text": "Improper neutralization of input during web page generation ('cross-site scripting') in Azure Machine Learning allows an unauthorized attacker to perform spoofing over a network.",
+          "source_url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-32207",
+          "char_start": 0,
+          "char_end": 178
+        }
+      ],
+      "retrieval_chunk_queries": [
+        "CVE-2026-32207\n\nCVE-2026-32207 CWE-79 2026 - 32207\n\nImproper neutralization of input during web page generation ('cross-site scripting') in Azure Machine Learning allows an unauthorized attacker to perform spoofing over a network."
+      ],
+      "body_retrieval": "CVE-2026-32207\n\nImproper neutralization of input during web page generation ('cross-site scripting') in Azure Machine Learning allows an unauthorized attacker to perform spoofing over a network.",
+      "body_retrieval_truncated": false,
+      "content_hash": "c1afc33361c92247e44a9ca6d24065dfa30e571db616d69b1a14afd6c5db1df1"
+    }
+  ],
+  "gap_reports": [
+    {
+      "candidate_id": "candidate-rss-c1afc33361c92247",
+      "nearest_technique_ids": [
+        "AID-H-006.002",
+        "AID-E-004",
+        "AID-H-019.005",
+        "AID-H-003.001",
+        "AID-H-020"
+      ],
+      "bm25_scores": [
+        22.033997006661863,
+        17.056936789153486,
+        15.232423305672226,
+        13.77043488526066,
+        13.259400755438561
+      ],
+      "max_bm25": 22.033997006661863,
+      "threat_id_overlap": [],
+      "candidate_threat_tokens": [],
+      "nearest_lexical_overlap_terms": [
+        [
+          "site",
+          "azure",
+          "scripting",
+          "improper",
+          "input",
+          "an",
+          "cross",
+          "a",
+          "in",
+          "2026",
+          "of",
+          "to"
+        ],
+        [
+          "cve",
+          "perform",
+          "input",
+          "an",
+          "unauthorized",
+          "cross",
+          "a",
+          "in",
+          "2026",
+          "of",
+          "to",
+          "learning"
+        ],
+        [
+          "web",
+          "attacker",
+          "improper",
+          "an",
+          "unauthorized",
+          "cross",
+          "a",
+          "2026",
+          "of",
+          "to",
+          "learning",
+          "machine"
+        ],
+        [
+          "cve",
+          "generation",
+          "cross",
+          "in",
+          "2026",
+          "of",
+          "to",
+          "learning",
+          "machine"
+        ],
+        [
+          "web",
+          "network",
+          "input",
+          "cross",
+          "2026",
+          "to",
+          "learning",
+          "machine"
+        ]
+      ],
+      "is_gap": false,
+      "gap_reason": "not_gap",
+      "suggested_tactic_ids": [
+        "detect",
+        "evict",
+        "harden"
+      ],
+      "suggested_pillars": [
+        "app",
+        "data",
+        "infra"
+      ],
+      "suggested_phases": [
+        "building",
+        "improvement",
+        "operation"
+      ],
+      "bridge_rationales": [
+        "CWE-79: XSS in AI-app frontends (chat UIs, dashboards) and rendered LLM output; harden output encoding, detect script-injection patterns. (conf 0.70; src https://cwe.mitre.org/data/definitions/79.html)"
+      ],
+      "rationale": "BM25 top-k (max-pooled over chunk queries) vs AIDEFEND techniques; threat IDs vs defendsAgainst; lexical overlap terms for review; CWE→tactic bridge hints when entities present."
+    }
+  ],
+  "params": {
+    "source": "nvd",
+    "top_k": 5,
+    "gap_bm25_max": 8.0,
+    "max_items": 50,
+    "phase1": {
+      "fetch_pages": false,
+      "page_fetch_allowlist": "/home/runner/work/aidefend-discovery/aidefend-discovery/lab/aidefend_discovery/page_fetch.allowlist",
+      "body_max_bytes": 49152,
+      "chunk_size": 3500,
+      "chunk_overlap": 200,
+      "extraction": "trafilatura"
+    },
+    "nvd": {
+      "lastmod_start": "2026-05-02T10:05:28Z",
+      "lastmod_end": "2026-05-09T10:05:28Z",
+      "results_per_page": 200,
+      "max_pages": 2,
+      "keyword": "machine learning",
+      "state_db": "lab/aidefend_discovery/discovery_state.db"
+    }
+  }
+}
