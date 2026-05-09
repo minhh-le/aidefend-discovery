@@ -49,13 +49,16 @@ docs.
 
 ## Demo flow
 
-1. Start with `Quick Demo: sample report` to prove the product works without
-   network or keys.
+1. Start with `Curated demo` to inspect real GHSA/NVD-backed sample evidence
+   with deterministic review-ready briefs.
 2. Review the source health strip. RSS should show allowlisted feeds. NVD and
    GHSA should show anonymous or key-configured status. AI should show enabled
    only when a model and key are configured.
-3. Run `RSS: AI framework releases` for a live, low-risk source.
-4. Run `Full Sweep: RSS + NVD + GHSA` when you want one merged candidate queue.
+3. Run `Live advisory scan` when you want current GHSA/NVD advisory evidence.
+   If it returns fewer than 3 review-ready candidates, the UI recommends the
+   curated demo rather than padding the queue with weak items.
+4. Run `Broad source sweep` only when you want pipeline breadth, including
+   allowlisted RSS. Release-note-like items stay outside the default queue.
 5. Pick a candidate, inspect the readable sections, then expand evidence and
    raw provenance.
 6. Save a reviewer decision: Promote, Merge Into Existing, Reject, Needs

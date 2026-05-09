@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-08 (public local-demo product conversion)
+Updated: 2026-05-09 (review-console quality gate hardening)
 
 ## Repo Purpose
 
@@ -25,17 +25,20 @@ mappings alongside tracked AIDEFEND framework and MCP/REST snapshots.
 - **Taxonomy anchor diff** (`scripts/anchor_diff.py` + 9 vendored YAMLs in `lab/aidefend_discovery/taxonomy_anchors/`) surfaces upstream framework IDs not yet mapped in AIDEFEND `defendsAgainst`.
 - **sqlite candidate store** at `lab/aidefend_discovery/discovery_state.db` (state_store.py v1 schema: runs / candidates / gap_reports / seen_window) with `INSERT OR IGNORE` idempotency on `content_hash`. Read APIs power MCP + exports + metrics.
 - **Review export + metrics**: `scripts/export_review.py` → CSV; `scripts/discovery_metrics.py` → JSON.
-- **Public review digest**: `scripts/export_review_digest.py` renders deterministic Markdown from a single `reports/gap_run_*.json`, with lowest-coverage/highest-severity tables, candidate briefs, numeric coverage/security scores, reviewer action labels, and raw provenance in each brief. `--sample` uses `tests/fixtures/sample_gap_run.json` so public testers can preview the format without API keys.
+- **Public review digest**: `scripts/export_review_digest.py` renders deterministic Markdown from a single `reports/gap_run_*.json`, with a candidate quality lifecycle (`raw_source_item`, `normalized_candidate`, `needs_enrichment`, `review_ready`, `low_signal`), run quality summary counts, review-ready lowest-coverage/highest-severity tables, narrative-led candidate briefs, numeric coverage/security scores, reviewer action labels, and raw provenance in each brief. `--sample` uses a real GHSA/NVD-backed fixture at `tests/fixtures/sample_gap_run.json` so public testers can preview the format without API keys.
 - **Public demo review console/product UI**:
   `scripts/aidefend_discovery/review_console.py` + `review_console/` provide a
   local Python API and React/TypeScript mission-control interface. It can load
-  the sample report or start new discovery runs from UI presets: RSS, NVD,
-  GHSA, or Full Sweep merged queue. It reuses digest scoring/action helpers,
+  the curated sample report or start new discovery runs from UI presets:
+  Curated demo, Live advisory scan (GHSA/NVD first), or Broad source sweep
+  (GHSA+NVD+RSS exploration). It reuses digest scoring/action helpers,
   stores reviewer decisions candidate-locally in sqlite, keeps backend
   `recommended_action` separate from reviewer `review_decision`, supports run
-  lifecycle logs/errors, source health, queue tabs/filters, layman-readable
-  briefs, expert evidence/provenance expansion, optional on-demand AI summaries
-  with deterministic fallback, and reviewed-only/full-run/Action Packet exports.
+  lifecycle logs/errors, source health, review-ready default queue, lower
+  needs-enrichment queue, explicit low-signal reveal, run summary counts,
+  narrative-led detail briefs, expert evidence/provenance expansion, optional
+  on-demand AI summaries with deterministic fallback, and reviewed-only/full-run/
+  Action Packet exports.
 - **Scheduled run**: `.github/workflows/discovery-nightly.yml` (cron 09:00 UTC); secrets `NVD_API_KEY` + `GH_PAT_FOR_GHSA` provisioned. Auto-PR opened, never merged.
 - **MCP/REST integration** is bundled in `services/aidefend-mcp/`: full service
   snapshot plus `app/discovery/store.py` and 3 namespace-walled tools

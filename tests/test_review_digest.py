@@ -108,6 +108,36 @@ class TestDigestActionRecommendation(unittest.TestCase):
         self.assertEqual(export_review_digest.recommended_action(candidate, {}, 10, 50), "Reject")
 
 
+class TestDigestQualityLayer(unittest.TestCase):
+    def test_sample_quality_summary_splits_review_ready_enrichment_and_low_signal(self) -> None:
+        payload = json.loads((FIXTURES / "sample_gap_run.json").read_text(encoding="utf-8"))
+        rows = export_review_digest.build_rows(payload)
+        self.assertEqual(export_review_digest.quality_summary(rows)["review_ready"], 3)
+        self.assertEqual(export_review_digest.quality_status(rows[0]), export_review_digest.QUALITY_REVIEW_READY)
+        self.assertEqual(export_review_digest.quality_status(rows[3]), export_review_digest.QUALITY_NEEDS_ENRICHMENT)
+        self.assertEqual(export_review_digest.quality_status(rows[4]), export_review_digest.QUALITY_LOW_SIGNAL)
+
+    def test_review_ready_requires_human_attack_narrative(self) -> None:
+        payload = json.loads((FIXTURES / "sample_gap_run.json").read_text(encoding="utf-8"))
+        candidate = dict(payload["candidates"][0])
+        candidate["summary"] = "Security Score includes deterministic boosts for source metadata."
+        candidate.pop("narrative", None)
+        row = export_review_digest.build_rows({"candidates": [candidate], "gap_reports": [payload["gap_reports"][0]]})[0]
+        self.assertNotEqual(export_review_digest.quality_status(row), export_review_digest.QUALITY_REVIEW_READY)
+        narrative = export_review_digest.narrative_sections(row)
+        primary = " ".join(narrative.values())
+        self.assertNotIn("max_bm25", primary)
+
+    def test_curated_sample_uses_real_ghsa_nvd_style_evidence(self) -> None:
+        payload = json.loads((FIXTURES / "sample_gap_run.json").read_text(encoding="utf-8"))
+        evidence = json.dumps(payload)
+        self.assertIn("GHSA-5gfj-64gh-mgmw", evidence)
+        self.assertIn("CVE-2026-39981", evidence)
+        self.assertIn("https://nvd.nist.gov/vuln/detail/CVE-2026-39981", evidence)
+        self.assertNotIn("GHSA-aaaa", evidence)
+        self.assertNotIn("example.test", evidence)
+
+
 class TestDigestCli(unittest.TestCase):
     def test_renders_markdown_from_sample_report(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -140,6 +170,9 @@ class TestDigestCli(unittest.TestCase):
             generated_at="2026-05-05T00:00:00Z",
         )
         self.assertIn("- Candidates analyzed: 5", text)
+        self.assertIn("- Review-ready candidates: 3", text)
+        self.assertIn("- Needs enrichment: 1", text)
+        self.assertIn("- Low signal: 1", text)
         self.assertIn("- Candidates shown in detail: 2", text)
         self.assertIn("- Number in lowest coverage view: 2", text)
         self.assertIn("- Number in highest severity view: 2", text)
@@ -184,7 +217,7 @@ class TestDigestCli(unittest.TestCase):
             input_report=FIXTURES / "sample_gap_run.json",
             top_n=2,
         )
-        self.assertIn("- Generated timestamp: 2026-05-05T00:00:00Z", text)
+        self.assertIn("- Generated timestamp: 2026-05-08T00:00:00Z", text)
 
     def test_deduplicates_candidate_briefs_across_views(self) -> None:
         payload = json.loads((FIXTURES / "sample_gap_run.json").read_text(encoding="utf-8"))
@@ -194,8 +227,11 @@ class TestDigestCli(unittest.TestCase):
             top_n=5,
             generated_at="2026-05-05T00:00:00Z",
         )
-        self.assertEqual(text.count("### Critical Model Loader Deserialization"), 1)
+        self.assertEqual(text.count("### AGiXT Path Traversal in safe_join()"), 1)
         self.assertIn("- Candidate ID: cand-promote", text)
+        self.assertNotIn("### langchain-mistralai==1.1.4", text)
+        self.assertNotIn("Severity basis:", text)
+        self.assertNotIn("Security Score includes deterministic boosts", text)
 
     def test_sample_mode_writes_digest(self) -> None:
         with tempfile.TemporaryDirectory() as td:

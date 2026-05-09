@@ -160,6 +160,13 @@ p {
   align-items: start;
 }
 
+.briefing-head > *,
+.briefing-actions,
+.mission-panel,
+.preset-button {
+  min-width: 0;
+}
+
 .value-line {
   max-width: 72ch;
   margin-bottom: 0;
@@ -216,13 +223,14 @@ p {
 
 .mission-grid {
   display: grid;
-  grid-template-columns: minmax(18rem, 0.9fr) minmax(18rem, 0.9fr) minmax(24rem, 1.4fr);
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(28rem, 1.2fr);
   gap: var(--space-lg);
 }
 
 .mission-panel,
 .config-panel,
 .run-status-panel,
+.quality-guidance,
 .filters,
 .guidance,
 .brief-disclosure,
@@ -236,8 +244,25 @@ p {
 
 .mission-panel,
 .config-panel,
-.run-status-panel {
+.run-status-panel,
+.quality-guidance {
   padding: var(--space-lg);
+}
+
+.quality-guidance {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-md);
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  border-color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.quality-guidance p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.9rem;
 }
 
 .section-title-row,
@@ -312,7 +337,7 @@ p {
 
 .preset-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-sm);
 }
 
@@ -528,6 +553,25 @@ summary {
   line-height: 1;
 }
 
+.quality-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.quality-counts span {
+  min-height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  padding: 0.12rem 0.45rem;
+  background: oklch(16.5% 0.017 225);
+}
+
 .tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -556,6 +600,24 @@ summary {
   background: var(--surface);
   border-color: var(--line);
   color: var(--ink);
+}
+
+.reveal-button {
+  width: 100%;
+  min-height: 2rem;
+  margin-bottom: var(--space-sm);
+  border: 1px dashed var(--line-strong);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reveal-button:hover {
+  color: var(--amber);
+  border-color: var(--amber);
 }
 
 .queue-prompt {
@@ -641,6 +703,10 @@ input[type="checkbox"] {
   gap: var(--space-sm);
 }
 
+.row-meta {
+  flex-wrap: wrap;
+}
+
 .row-topline strong {
   line-height: 1.25;
   font-size: 0.92rem;
@@ -676,13 +742,19 @@ input[type="checkbox"] {
 }
 
 .identifier-line,
-.row-meta {
+.row-meta,
+.quality-reason {
   color: var(--muted);
   font-size: 0.78rem;
 }
 
-.identifier-line {
+.identifier-line,
+.quality-reason {
   overflow-wrap: anywhere;
+}
+
+.quality-reason {
+  line-height: 1.35;
 }
 
 .score {
@@ -934,6 +1006,7 @@ dd {
   font-size: 0.875rem;
   font-weight: 740;
   text-decoration: none;
+  overflow-wrap: anywhere;
   cursor: pointer;
   transition:
     background 150ms cubic-bezier(0.25, 1, 0.5, 1),
@@ -968,6 +1041,11 @@ dd {
   border: 1px solid var(--accent-strong);
   background: var(--accent-strong);
   color: oklch(15% 0.014 225);
+}
+
+.primary-button.subtle {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .decision-buttons {
@@ -1022,6 +1100,13 @@ dd {
 .export-group {
   display: grid;
   gap: var(--space-xs);
+}
+
+.trust-note {
+  margin: 0 0 var(--space-xs);
+  color: var(--dim);
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 .export-group + .export-group {
@@ -1128,16 +1213,36 @@ dd {
 }
 
 @media (max-width: 900px) {
+  .mission-control {
+    overflow-x: hidden;
+  }
+
   .briefing-head,
   .mission-grid,
   .config-grid,
-  .workflow-strip {
+  .workflow-strip,
+  .quality-guidance {
     grid-template-columns: 1fr;
   }
 
   .briefing-actions,
-  .preset-grid {
+  .preset-grid,
+  .quality-counts {
     grid-template-columns: 1fr;
+  }
+
+  .briefing-actions,
+  .value-line,
+  .workflow-strip,
+  .mission-panel,
+  .run-status-panel {
+    width: 100%;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .briefing-actions .primary-button,
+  .briefing-actions .secondary-button {
+    width: 100%;
   }
 
   .config-grid .wide {
@@ -1187,5 +1292,15 @@ dd {
 
   .header-score-strip {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .briefing-actions,
+  .value-line,
+  .workflow-strip,
+  .mission-panel,
+  .run-status-panel {
+    max-width: min(100%, 22.375rem);
   }
 }

@@ -41,13 +41,13 @@ not available, it prints the URL.
 The first screen is an operational mission-control surface:
 
 - workflow: Signals -> Candidates -> Coverage -> Gap -> Action Packet
-- first-run actions: run the checked-in sample, start an RSS quick scan,
-  configure optional keys, and open the latest run
+- first-run actions: run the curated demo, run a live advisory scan,
+  run a broad source sweep, configure optional keys, and open the latest run
 - source health: RSS allowlist, NVD anonymous/key status, GHSA anonymous/key
   status, optional AI summary status, and local data posture
-- trust posture: candidates are not approved AIDEFEND truth, backend
-  recommendations are separate from reviewer decisions, and data stays local
-  unless a live source or AI summary is explicitly invoked
+- quality gates: the default queue shows review-ready candidates only; needs
+  enrichment sits lower in the queue, and low-signal broad-source noise is
+  hidden until explicitly revealed
 
 The review workbench lets you start discovery runs from the UI, watch progress
 and errors, inspect candidates, expand evidence/provenance, save reviewer
@@ -57,11 +57,9 @@ decisions, request optional AI summaries, and export maintainer-ready artifacts.
 
 Available from the UI:
 
-- `Quick Demo: sample report`, no network or API keys
-- `RSS: AI framework releases`, allowlisted feeds
-- `NVD: AI/ML keyword scan`, anonymous or `NVD_API_KEY`
-- `GHSA: high-severity advisories`, anonymous or GitHub token
-- `Full Sweep: RSS + NVD + GHSA`, one merged candidate queue
+- `Curated demo`, real GHSA/NVD-backed sample evidence, no network or API keys
+- `Live advisory scan`, GHSA and NVD first, anonymous or configured keys
+- `Broad source sweep`, GHSA + NVD + allowlisted RSS for pipeline exploration
 
 RSS uses [`lab/aidefend_discovery/feeds.allowlist`](lab/aidefend_discovery/feeds.allowlist)
 by default. The UI includes an advanced custom-feed escape hatch, but the safe

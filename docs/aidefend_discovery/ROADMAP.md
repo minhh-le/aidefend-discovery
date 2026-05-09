@@ -123,7 +123,7 @@ Work **phase-by-phase**; check items off in git as you go. Prefer **APIs and off
 - [x] **Scheduler:** [`.github/workflows/discovery-nightly.yml`](../../.github/workflows/discovery-nightly.yml) (cron 09:00 UTC); `NVD_API_KEY` + `GH_PAT_FOR_GHSA` provisioned as repo secrets; opens auto-PR, never auto-merges.
 - [x] **Review export:** [`scripts/export_review.py`](../../scripts/export_review.py) → CSV with `candidate_id`, `status`, `reject_reason`, `reviewer`, `source_urls`, `gap_summary`.
 - [x] **Metrics:** [`scripts/discovery_metrics.py`](../../scripts/discovery_metrics.py) → JSON (% candidates with `is_gap`, throughput, promotion counts).
-- [x] **Clone-and-run local demo:** `make demo` / `python3 scripts/run_demo.py` starts the React review console and Python API, with UI-started sample, RSS, NVD, GHSA, and Full Sweep runs, source health, run logs, optional AI summaries, and Markdown/CSV/JSON/Action Packet exports.
+- [x] **Clone-and-run local demo:** `make demo` / `python3 scripts/run_demo.py` starts the React review console and Python API, with a curated real-advisory demo, GHSA/NVD-first live advisory scan, broad source sweep for RSS-inclusive exploration, source health, run logs, optional AI summaries, and Markdown/CSV/JSON/Action Packet exports.
 
 ---
 

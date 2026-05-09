@@ -456,3 +456,53 @@ Known limitations:
 - Final live NVD/GHSA calls were not repeated during closeout to avoid
   rate-limit variability; connector tests and source-health states pass.
 - Multi-run comparison remains future work in `docs/aidefend_discovery/FUTURE_WORK.md`.
+
+## 2026-05-09 — Review-console quality gate hardening
+
+Summary:
+Made the local demo bias toward fewer, stronger candidates by formalizing
+quality lifecycle gates, replacing the synthetic sample with real GHSA/NVD-style
+evidence, and restructuring the console around curated/live/broad source
+boundaries.
+
+Changed:
+- Added candidate quality statuses and deterministic narrative sections in
+  `scripts/export_review_digest.py`.
+- Updated `scripts/aidefend_discovery/review_console.py` so default queues only
+  show review-ready candidates, live advisory scans emit curated guidance when
+  under threshold, and broad source sweep can carry RSS/noisy rows without
+  polluting the main queue.
+- Replaced `tests/fixtures/sample_gap_run.json` with real advisory-backed
+  sample rows and explicit needs-enrichment/low-signal examples.
+- Reworked `review_console/src/App.tsx`, `types.ts`, and `styles.css` for
+  curated/live/broad CTAs, run summary counts, low-signal reveal, compact trust
+  posture near exports, narrative-led detail sections, and stale-selection
+  protection during run transitions.
+- Updated backend, digest, and frontend tests to enforce quality
+  classification, narrative requirements, score-provenance separation, live
+  fallback guidance, default queue filtering, stale selection behavior, and run
+  summary rendering.
+- Updated public docs and repo-local `.ai` continuity notes for the new IA and
+  candidate quality contract.
+
+Verification:
+- `PYTHONPATH=scripts python3 -m unittest tests.test_review_console -v` (19 tests)
+- `PYTHONPATH=scripts python3 -m unittest tests.test_review_digest -v` (21 tests)
+- `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (99 tests)
+- `cd review_console && npm test -- src/App.test.tsx` (9 tests)
+- `cd review_console && npm run build`
+- `python3 scripts/run_demo.py --no-open --port 8878`, followed by API smoke for
+  active run counts and candidate tabs.
+- Headless Chromium desktop/mobile screenshots against the local demo. The
+  first mobile pass exposed right-edge clipping; CSS was tightened and the
+  second pass fit cleanly.
+- Official GHSA/NVD pages spot-checked for AGiXT path traversal
+  (`GHSA-5gfj-64gh-mgmw` / `CVE-2026-39981`), mcp-from-openapi SSRF
+  (`GHSA-v6ph-xcq9-qxxj` / `CVE-2026-39885`), and React Server Components DoS
+  (`GHSA-479c-33wc-g2pg` / `CVE-2026-23869`).
+- `git diff --check`
+
+Known limitations:
+- Real-key live GHSA/NVD and optional AI success-path rehearsal is still open.
+- Broader AI-relevance/product allowlist filtering and embeddings/rerank work
+  remains open beyond this deterministic review-console quality gate.

@@ -1,153 +1,201 @@
 {
-  "generated_at": "2026-05-05T00:00:00Z",
-  "source": "sample",
-  "technique_records": 2,
+  "generated_at": "2026-05-08T00:00:00Z",
+  "source": "curated_demo",
+  "technique_records": 5,
   "params": {
-    "gap_bm25_max": 10.0
+    "gap_bm25_max": 10.0,
+    "fixture_note": "Curated demo uses real GHSA/NVD-style advisory evidence plus deterministic narrative fields."
   },
   "candidates": [
     {
       "id": "cand-promote",
       "status": "candidate",
-      "title": "Critical Model Loader Deserialization",
-      "summary": "A reviewed advisory describes deserialization of untrusted model artifacts that can execute code during model loading.",
-      "source_urls": ["https://github.com/advisories/GHSA-aaaa-bbbb-cccc"],
-      "retrieved_at": "2026-05-05T00:00:00Z",
-      "license_note": "Sample public advisory metadata.",
+      "title": "AGiXT Path Traversal in safe_join()",
+      "summary": "AGiXT is vulnerable to path traversal in safe_join(). The safe_join() function in the essential_abilities extension fails to validate that resolved file paths remain within the designated agent workspace. An authenticated attacker can use directory traversal sequences to read files outside the workspace.",
+      "source_urls": [
+        "https://github.com/Josh-XT/AGiXT/security/advisories/GHSA-5gfj-64gh-mgmw",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-39981",
+        "https://github.com/Josh-XT/AGiXT/releases/tag/v1.9.2"
+      ],
+      "retrieved_at": "2026-05-08T00:00:00Z",
+      "license_note": "GitHub Security Advisory and NVD metadata; cite URLs and verify downstream redistribution scope.",
       "confidence": 0.9,
       "source_type": "ghsa_api",
-      "source_id": "GHSA-aaaa-bbbb-cccc",
+      "source_id": "GHSA-5gfj-64gh-mgmw",
       "entities": {
-        "cves": ["CVE-2026-0001"],
-        "ghsas": ["ghsa-aaaa-bbbb-cccc"],
-        "cwes": ["CWE-502"],
-        "version_constraints": ["vulnerable:< 1.2.3"]
+        "cves": ["CVE-2026-39981"],
+        "ghsas": ["ghsa-5gfj-64gh-mgmw"],
+        "cwes": ["CWE-22"],
+        "version_constraints": ["vulnerable:<= 1.9.1", "patched:1.9.2"]
       },
       "ghsa_severity": "high",
-      "ghsa_packages": ["pypi:model-loader"]
+      "ghsa_packages": ["pip:agixt"],
+      "narrative": {
+        "what_happened": "AGiXT's safe_join helper could let an authenticated attacker traverse out of the intended agent workspace and read files outside that boundary.",
+        "why_it_matters": "An attacker may be able to read prompts, tool outputs, configuration, or other local files that an agent runtime should keep isolated. For AIDEFEND, the case tests filesystem isolation around agent workspaces and retrieval tools.",
+        "existing_coverage": "Strongest existing coverage is path normalization and filesystem isolation, with AID-H-019.007 as the closest current neighbor.",
+        "gap_assessment": "Likely gap: the source is a concrete agent-workspace path traversal advisory, while the nearest AIDEFEND match is weak and does not clearly describe this safe_join failure mode."
+      }
     },
     {
       "id": "cand-merge",
       "status": "candidate",
-      "title": "Known Prompt Injection Variant",
-      "summary": "A high severity advisory provides extra evidence for behavior already well covered by nearby AIDEFEND techniques.",
-      "source_urls": ["https://nvd.nist.gov/vuln/detail/CVE-2026-0002"],
-      "retrieved_at": "2026-05-05T00:00:00Z",
-      "license_note": "Sample NVD metadata.",
-      "confidence": 0.8,
-      "source_type": "nvd_api",
-      "source_id": "CVE-2026-0002",
+      "title": "mcp-from-openapi SSRF via untrusted OpenAPI $ref",
+      "summary": "mcp-from-openapi is vulnerable to server-side request forgery because it dereferences $ref pointers in untrusted OpenAPI specifications without restricting network locations. An attacker can cause the tool to fetch internal or attacker-controlled URLs while converting an API spec into MCP tools.",
+      "source_urls": [
+        "https://github.com/agentfront/frontmcp/security/advisories/GHSA-v6ph-xcq9-qxxj",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-39885",
+        "https://github.com/agentfront/frontmcp/releases/tag/v1.0.4"
+      ],
+      "retrieved_at": "2026-05-08T00:00:00Z",
+      "license_note": "GitHub Security Advisory and NVD metadata; cite URLs and verify downstream redistribution scope.",
+      "confidence": 0.86,
+      "source_type": "ghsa_api",
+      "source_id": "GHSA-v6ph-xcq9-qxxj",
       "entities": {
-        "cves": ["CVE-2026-0002"],
-        "ghsas": [],
-        "cwes": ["CWE-79"]
+        "cves": ["CVE-2026-39885"],
+        "ghsas": ["ghsa-v6ph-xcq9-qxxj"],
+        "cwes": ["CWE-918"],
+        "version_constraints": ["vulnerable:<= 2.1.2", "patched:2.1.3"]
       },
-      "severity": "high"
+      "ghsa_severity": "high",
+      "ghsa_packages": ["npm:mcp-from-openapi", "npm:@frontmcp/sdk", "npm:@frontmcp/adapters"],
+      "narrative": {
+        "what_happened": "mcp-from-openapi dereferenced attacker-supplied OpenAPI $ref URLs without an egress allowlist, creating an SSRF path through MCP tool generation.",
+        "why_it_matters": "An attacker may be able to make a trusted MCP conversion service reach internal metadata endpoints or attacker-controlled infrastructure. For AIDEFEND, this maps directly to tool egress control and URL allowlisting coverage.",
+        "existing_coverage": "Strongest existing coverage appears to be URL egress hardening and request allowlisting, especially AID-H-020 and AID-H-020.001.",
+        "gap_assessment": "Likely covered: the advisory should be reviewed as evidence to merge into existing tool-egress and SSRF defenses rather than as a new technique."
+      }
     },
     {
       "id": "cand-monitor",
       "status": "candidate",
-      "title": "Medium Risk Dependency Disclosure",
-      "summary": "A medium severity advisory has identifiers but lower urgency for immediate promotion.",
-      "source_urls": ["https://github.com/advisories/GHSA-dddd-eeee-ffff"],
-      "retrieved_at": "2026-05-05T00:00:00Z",
-      "license_note": "Sample public advisory metadata.",
-      "confidence": 0.7,
+      "title": "React Server Components Denial of Service",
+      "summary": "React Server Components have a denial of service vulnerability in server function endpoints. Specially crafted HTTP requests can cause excessive CPU usage for up to a minute in packages such as react-server-dom-webpack, react-server-dom-parcel, and react-server-dom-turbopack.",
+      "source_urls": [
+        "https://github.com/facebook/react/security/advisories/GHSA-479c-33wc-g2pg",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-23869",
+        "https://react.dev/blog/2025/12/11/denial-of-service-and-source-code-exposure-in-react-server-components"
+      ],
+      "retrieved_at": "2026-05-08T00:00:00Z",
+      "license_note": "GitHub Security Advisory and NVD metadata; cite URLs and verify downstream redistribution scope.",
+      "confidence": 0.82,
       "source_type": "ghsa_api",
-      "source_id": "GHSA-dddd-eeee-ffff",
+      "source_id": "GHSA-479c-33wc-g2pg",
       "entities": {
-        "cves": [],
-        "ghsas": ["ghsa-dddd-eeee-ffff"],
-        "cwes": []
+        "cves": ["CVE-2026-23869"],
+        "ghsas": ["ghsa-479c-33wc-g2pg"],
+        "cwes": ["CWE-400", "CWE-502"],
+        "version_constraints": [
+          "vulnerable:>= 19.0.0, < 19.0.5",
+          "vulnerable:>= 19.1.0, < 19.1.6",
+          "vulnerable:>= 19.2.0, < 19.2.5"
+        ]
       },
-      "ghsa_severity": "medium"
-    },
-    {
-      "id": "cand-needs-evidence",
-      "status": "candidate",
-      "title": "Ambiguous AI Security Blog",
-      "summary": "A blog post mentions AI risk in vague terms without advisory identifiers.",
-      "source_urls": ["https://example.test/blog"],
-      "retrieved_at": "2026-05-05T00:00:00Z",
-      "license_note": "Sample web metadata.",
-      "confidence": 0.4,
-      "source_type": "rss",
-      "source_id": "blog-1",
-      "entities": {
-        "cves": [],
-        "ghsas": [],
-        "cwes": []
+      "ghsa_severity": "high",
+      "ghsa_packages": ["npm:react-server-dom-parcel", "npm:react-server-dom-turbopack", "npm:react-server-dom-webpack"],
+      "narrative": {
+        "what_happened": "React Server Components endpoints can spend excessive CPU on specially crafted requests, causing denial of service in affected server-side rendering packages.",
+        "why_it_matters": "An attacker may be able to exhaust server resources with repeated requests. For AIDEFEND, the case is relevant to runtime quotas, request shaping, and resource exhaustion defenses around AI-adjacent application infrastructure.",
+        "existing_coverage": "Strongest existing coverage is resource exhaustion and quota enforcement, including AID-H-029.007 and AID-E-004.",
+        "gap_assessment": "Unclear: AIDEFEND has resource-exhaustion coverage, but the reviewer should decide whether server-component request shaping needs more precise evidence."
       }
     },
     {
-      "id": "cand-reject",
-      "status": "rejected",
-      "title": "Duplicate Non-AI Web Framework Bug",
-      "summary": "A duplicate item that is out of scope for AIDEFEND review.",
-      "source_urls": ["https://example.test/duplicate"],
-      "retrieved_at": "2026-05-05T00:00:00Z",
-      "license_note": "Sample web metadata.",
-      "confidence": 0.2,
+      "id": "cand-needs-enrichment",
+      "status": "candidate",
+      "title": "langchain-core==0.3.86",
+      "summary": "Changes since langchain-core==0.3.85 release(core): 0.3.86. fix(core): backport path-traversal fix to v0.3 (CVE-2026-34070, GHSA-qh6h-p6c9-ff54).",
+      "source_urls": ["https://github.com/langchain-ai/langchain/releases/tag/langchain-core%3D%3D0.3.86"],
+      "retrieved_at": "2026-05-08T00:00:00Z",
+      "license_note": "Third-party feed content; cite URL only; verify license before redistribution.",
+      "confidence": 0.55,
       "source_type": "rss",
-      "source_id": "duplicate-1",
-      "rejected_reason": "out_of_scope",
+      "feed_url": "https://github.com/langchain-ai/langchain/releases.atom",
+      "source_id": "langchain-core-0.3.86-release",
       "entities": {
-        "cves": ["CVE-2026-0003"],
+        "cves": ["CVE-2026-34070"],
+        "ghsas": ["ghsa-qh6h-p6c9-ff54"],
+        "cwes": [],
+        "version_constraints": ["== 0.3.86", "== 0.3.85"]
+      }
+    },
+    {
+      "id": "cand-low-signal",
+      "status": "candidate",
+      "title": "langchain-mistralai==1.1.4",
+      "summary": "Changes since langchain-mistralai==1.1.3. release(mistralai): 1.1.4. fix(mistralai): strip non-wire keys from ToolMessage.",
+      "source_urls": ["https://github.com/langchain-ai/langchain/releases/tag/langchain-mistralai%3D%3D1.1.4"],
+      "retrieved_at": "2026-05-08T00:00:00Z",
+      "license_note": "Third-party feed content; cite URL only; verify license before redistribution.",
+      "confidence": 0.35,
+      "source_type": "rss",
+      "feed_url": "https://github.com/langchain-ai/langchain/releases.atom",
+      "source_id": "langchain-mistralai-1.1.4-release",
+      "entities": {
+        "cves": [],
         "ghsas": [],
-        "cwes": []
-      },
-      "severity": "low"
+        "cwes": [],
+        "version_constraints": ["== 1.1.4", "== 1.1.3"]
+      }
     }
   ],
   "gap_reports": [
     {
       "candidate_id": "cand-promote",
-      "nearest_technique_ids": ["AID-H-001"],
-      "bm25_scores": [2.0],
+      "nearest_technique_ids": ["AID-H-019.007", "AID-I-004.006", "AID-M-009.002"],
+      "bm25_scores": [2.0, 1.7, 1.2],
       "max_bm25": 2.0,
       "is_gap": true,
       "gap_reason": "max_bm25_below_threshold(2.0000<10.0)",
-      "suggested_tactic_ids": ["AID-H"],
-      "bridge_rationales": ["CWE-502: deserialization behavior maps to model artifact loading risk."]
+      "suggested_tactic_ids": ["AID-H", "AID-I"],
+      "bridge_rationales": [
+        "CWE-22: Path traversal in model-loading or RAG-document paths can read arbitrary files; harden path normalization, isolate the filesystem view. (conf 0.70; src https://cwe.mitre.org/data/definitions/22.html)"
+      ]
     },
     {
       "candidate_id": "cand-merge",
-      "nearest_technique_ids": ["AID-M-001"],
-      "bm25_scores": [8.0],
-      "max_bm25": 8.0,
+      "nearest_technique_ids": ["AID-H-020", "AID-H-020.001", "AID-H-031.004"],
+      "bm25_scores": [12.0, 10.8, 8.9],
+      "max_bm25": 12.0,
       "is_gap": false,
       "gap_reason": "not_gap",
-      "suggested_tactic_ids": ["AID-M"],
-      "bridge_rationales": []
+      "suggested_tactic_ids": ["AID-H"],
+      "bridge_rationales": [
+        "CWE-918: SSRF in inference servers and agents that fetch arbitrary URLs; harden URL allowlists, isolate egress. (conf 0.80; src https://cwe.mitre.org/data/definitions/918.html)"
+      ]
     },
     {
       "candidate_id": "cand-monitor",
-      "nearest_technique_ids": ["AID-I-001"],
-      "bm25_scores": [5.0],
-      "max_bm25": 5.0,
+      "nearest_technique_ids": ["AID-E-004", "AID-H-029.007", "AID-I-007"],
+      "bm25_scores": [7.0, 6.4, 5.1],
+      "max_bm25": 7.0,
       "is_gap": false,
       "gap_reason": "not_gap",
-      "suggested_tactic_ids": ["AID-I"],
-      "bridge_rationales": []
+      "suggested_tactic_ids": ["AID-E", "AID-H"],
+      "bridge_rationales": [
+        "CWE-400: Resource exhaustion, denial-of-wallet on LLM inference and recursive prompt loops; harden quotas, detect anomalous spend. (conf 0.75; src https://cwe.mitre.org/data/definitions/400.html)",
+        "CWE-502: Deserialization of untrusted data, isolate load context and prefer safer artifact formats. (conf 0.85; src https://cwe.mitre.org/data/definitions/502.html)"
+      ]
     },
     {
-      "candidate_id": "cand-needs-evidence",
-      "nearest_technique_ids": [],
+      "candidate_id": "cand-needs-enrichment",
+      "nearest_technique_ids": ["AID-H-019.007"],
       "bm25_scores": [1.0],
       "max_bm25": 1.0,
       "is_gap": true,
       "gap_reason": "max_bm25_below_threshold(1.0000<10.0)",
-      "suggested_tactic_ids": [],
+      "suggested_tactic_ids": ["AID-H"],
       "bridge_rationales": []
     },
     {
-      "candidate_id": "cand-reject",
-      "nearest_technique_ids": ["AID-M-001"],
-      "bm25_scores": [3.0],
-      "max_bm25": 3.0,
-      "is_gap": true,
-      "gap_reason": "max_bm25_below_threshold(3.0000<10.0)",
-      "suggested_tactic_ids": [],
+      "candidate_id": "cand-low-signal",
+      "nearest_technique_ids": ["AID-H-021.002"],
+      "bm25_scores": [5.0],
+      "max_bm25": 5.0,
+      "is_gap": false,
+      "gap_reason": "not_gap",
+      "suggested_tactic_ids": ["AID-H"],
       "bridge_rationales": []
     }
   ]

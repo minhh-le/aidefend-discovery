@@ -1,6 +1,7 @@
 export type ReviewDecision = "promote" | "merge" | "reject" | "needs_evidence" | "monitor";
-export type QueueTab = "lowest" | "highest" | "needs_evidence" | "monitor" | "reviewed";
+export type QueueTab = "review_ready" | "needs_enrichment" | "low_signal" | "reviewed";
 export type RunStatus = "idle" | "running" | "completed" | "partial_failure" | "failed";
+export type QualityStatus = "raw_source_item" | "normalized_candidate" | "needs_enrichment" | "review_ready" | "low_signal";
 
 export interface CandidateSummary {
   candidate_key: string;
@@ -13,6 +14,9 @@ export interface CandidateSummary {
   coverage_score: number;
   security_score: number;
   recommended_action: string;
+  quality_status: QualityStatus;
+  quality_label: string;
+  quality_reason: string;
   review_status: ReviewDecision | "unreviewed";
   review_decision_label: string;
   identifiers: {
@@ -43,6 +47,10 @@ export interface ReviewState {
 export interface CandidateDetail extends CandidateSummary {
   review: ReviewState | null;
   sections: {
+    what_happened: string;
+    why_it_matters: string;
+    existing_coverage: string;
+    gap_assessment: string;
     what_this_is: string;
     why_care: string;
     coverage_assessment: string;
@@ -118,7 +126,21 @@ export interface RunInfo {
   generated_at: string;
   source: string;
   candidate_count: number;
+  review_ready_count: number;
+  needs_enrichment_count: number;
+  low_signal_count: number;
   reviewed_count: number;
+  run_summary: {
+    ingested: number;
+    review_ready: number;
+    needs_enrichment: number;
+    low_signal: number;
+    status_counts: Record<QualityStatus, number>;
+  };
+  quality_guidance?: {
+    level: string;
+    message: string;
+  } | null;
   presets: Preset[];
   source_health: Record<string, SourceHealthItem>;
   run_lifecycle: RunLifecycle;

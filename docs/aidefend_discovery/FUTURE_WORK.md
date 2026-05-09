@@ -43,6 +43,6 @@ This captures good ideas intentionally left outside the public local-demo v1.
 
 - Keyboard-first queue triage.
 - Better responsive table density for very large queues.
-- Candidate dedupe and grouping across sources inside Full Sweep.
+- Candidate dedupe and grouping across sources inside the broad source sweep.
 - Inline source-error remediation tips.
 - Accessibility audit with screen-reader pass and reduced-motion verification.

@@ -74,46 +74,38 @@ REVIEW_DECISIONS = {
 
 PRESETS = [
     {
-        "id": "quick_demo",
-        "label": "Quick Demo: sample report",
-        "short_label": "Run sample demo",
-        "description": "Loads the checked-in sample report. No network or API keys.",
+        "id": "curated_demo",
+        "label": "Curated demo",
+        "short_label": "Run curated demo",
+        "description": "Loads real GHSA/NVD-backed sample evidence with golden-quality deterministic briefs.",
         "sources": ["sample"],
         "network": False,
     },
     {
-        "id": "rss_ai_releases",
-        "label": "RSS: AI framework releases",
-        "short_label": "Start quick scan",
-        "description": "Fetches one allowlisted AI framework release feed and maps candidates.",
-        "sources": ["rss"],
+        "id": "live_advisory_scan",
+        "label": "Live advisory scan",
+        "short_label": "Run live advisory scan",
+        "description": "Queries GHSA and NVD first, then keeps only review-ready advisory candidates in the main queue.",
+        "sources": ["ghsa", "nvd"],
         "network": True,
     },
     {
-        "id": "nvd_ai_ml",
-        "label": "NVD: AI/ML keyword scan",
-        "short_label": "Scan NVD",
-        "description": "Queries NVD for recent AI/ML keyword matches. NVD_API_KEY improves rate limits.",
-        "sources": ["nvd"],
-        "network": True,
-    },
-    {
-        "id": "ghsa_high",
-        "label": "GHSA: high-severity advisories",
-        "short_label": "Scan GHSA",
-        "description": "Queries GitHub Security Advisories for recent high-severity advisories.",
-        "sources": ["ghsa"],
-        "network": True,
-    },
-    {
-        "id": "full_sweep",
-        "label": "Full Sweep: RSS + NVD + GHSA",
-        "short_label": "Full sweep",
-        "description": "Runs RSS, NVD, and GHSA into one merged candidate queue.",
-        "sources": ["rss", "nvd", "ghsa"],
+        "id": "broad_source_sweep",
+        "label": "Broad source sweep",
+        "short_label": "Run broad source sweep",
+        "description": "Explores GHSA, NVD, and allowlisted RSS breadth. Noisy release notes stay out of the default queue.",
+        "sources": ["ghsa", "nvd", "rss"],
         "network": True,
     },
 ]
+
+PRESET_ALIASES = {
+    "quick_demo": "curated_demo",
+    "rss_ai_releases": "broad_source_sweep",
+    "nvd_ai_ml": "live_advisory_scan",
+    "ghsa_high": "live_advisory_scan",
+    "full_sweep": "broad_source_sweep",
+}
 
 TACTIC_FILES = {
     "AID-M": "vendor/aidefense-framework/tactics/model.js",
@@ -178,13 +170,14 @@ def candidate_key(candidate: dict[str, Any], report_id: str | None = None) -> st
 
 
 def source_label(candidate: dict[str, Any]) -> str:
+    source_type = _text(candidate.get("source_type")).lower()
     raw = _text(candidate.get("source_type") or candidate.get("feed_url")).lower()
     source_id = _text(candidate.get("source_id")).lower()
     if "ghsa" in raw or source_id.startswith("ghsa-"):
         return "GHSA"
     if "nvd" in raw or source_id.startswith("cve-"):
         return "NVD"
-    if "rss" in raw:
+    if source_type == "rss" or candidate.get("feed_url") or "rss" in raw or "atom" in raw:
         return "RSS"
     return raw.upper() if raw else "UNKNOWN"
 
@@ -209,6 +202,13 @@ def reason_chips(row: export_review_digest.DigestRow) -> list[str]:
     chips: list[str] = []
     candidate = row.candidate
     gap = row.gap_report
+    quality = export_review_digest.quality_status(row)
+    if quality == export_review_digest.QUALITY_REVIEW_READY:
+        chips.append("review-ready")
+    elif quality == export_review_digest.QUALITY_NEEDS_ENRICHMENT:
+        chips.append("needs enrichment")
+    elif quality == export_review_digest.QUALITY_LOW_SIGNAL:
+        chips.append("low signal")
     if row.coverage_score <= 40:
         chips.append("low coverage")
     if source_label(candidate) == "GHSA":
@@ -342,9 +342,14 @@ def reviewed_count_for_session(session: ReportSession, store: ReviewStore) -> in
     )
 
 
+def run_quality_summary(session: ReportSession) -> dict[str, Any]:
+    return export_review_digest.quality_summary(session.rows)
+
+
 def row_summary(row: export_review_digest.DigestRow, report_id: str, review: dict[str, Any] | None) -> dict[str, Any]:
     candidate = row.candidate
     entities = _entities(candidate)
+    quality = export_review_digest.quality_status(row)
     return {
         "candidate_key": candidate_key(candidate, report_id),
         "candidate_id": row.candidate_id,
@@ -356,6 +361,9 @@ def row_summary(row: export_review_digest.DigestRow, report_id: str, review: dic
         "coverage_score": row.coverage_score,
         "security_score": row.security_score,
         "recommended_action": row.recommended_action,
+        "quality_status": quality,
+        "quality_label": export_review_digest.QUALITY_LABELS.get(quality, quality),
+        "quality_reason": export_review_digest.quality_reason(row),
         "review_status": review.get("review_decision") if review else "unreviewed",
         "review_decision_label": REVIEW_DECISIONS.get(review.get("review_decision", ""), "") if review else "",
         "identifiers": {
@@ -372,6 +380,7 @@ def row_detail(row: export_review_digest.DigestRow, report_id: str, review: dict
     candidate = row.candidate
     gap = row.gap_report
     entities = _entities(candidate)
+    narrative = export_review_digest.narrative_sections(row)
     nearest = []
     ids = _as_list(gap.get("nearest_technique_ids"))
     overlaps = _as_list(gap.get("nearest_lexical_overlap_terms"))
@@ -391,12 +400,14 @@ def row_detail(row: export_review_digest.DigestRow, report_id: str, review: dict
         **summary,
         "review": review,
         "sections": {
-            "what_this_is": export_review_digest._truncate(
-                candidate.get("summary") or candidate.get("summary_raw") or "No summary available.", 900
-            ),
-            "why_care": export_review_digest._why_care(row),
-            "coverage_assessment": export_review_digest._coverage_assessment(row),
-            "security_assessment": export_review_digest._security_assessment(row),
+            "what_happened": narrative["what_happened"],
+            "why_it_matters": narrative["why_it_matters"],
+            "existing_coverage": narrative["existing_coverage"],
+            "gap_assessment": narrative["gap_assessment"],
+            "what_this_is": narrative["what_happened"],
+            "why_care": narrative["why_it_matters"],
+            "coverage_assessment": narrative["existing_coverage"],
+            "security_assessment": narrative["gap_assessment"],
             "evidence": {
                 "identifiers": summary["identifiers"],
                 "packages": _as_list(candidate.get("ghsa_packages") or candidate.get("packages")),
@@ -428,22 +439,36 @@ def row_detail(row: export_review_digest.DigestRow, report_id: str, review: dict
 
 
 def filtered_rows(session: ReportSession, store: ReviewStore, params: dict[str, list[str]]) -> list[dict[str, Any]]:
-    tab = params.get("tab", ["lowest"])[0]
+    tab = params.get("tab", ["review_ready"])[0]
     reviewed = store.reviewed_keys()
     summaries = []
     for row in session.rows:
         key = candidate_key(row.candidate, session.report_id)
         review = store.get(key)
         item = row_summary(row, session.report_id, review)
-        if tab == "lowest" and "low coverage" not in item["reason_chips"]:
+        quality = item["quality_status"]
+        if tab in {"lowest", "highest"}:
+            if quality != export_review_digest.QUALITY_REVIEW_READY:
+                continue
+            if tab == "lowest" and "low coverage" not in item["reason_chips"]:
+                continue
+            if tab == "highest" and row.security_score < 80:
+                continue
+        elif tab == "review_ready" and quality != export_review_digest.QUALITY_REVIEW_READY:
             continue
-        if tab == "highest" and row.security_score < 80:
+        elif tab == "needs_enrichment" and quality not in {
+            export_review_digest.QUALITY_NEEDS_ENRICHMENT,
+            export_review_digest.QUALITY_NORMALIZED_CANDIDATE,
+            export_review_digest.QUALITY_RAW_SOURCE_ITEM,
+        }:
             continue
-        if tab == "needs_evidence" and row.recommended_action != export_review_digest.ACTION_NEEDS_EVIDENCE:
+        elif tab == "low_signal" and quality != export_review_digest.QUALITY_LOW_SIGNAL:
             continue
-        if tab == "monitor" and row.recommended_action != export_review_digest.ACTION_MONITOR:
+        elif tab == "needs_evidence" and row.recommended_action != export_review_digest.ACTION_NEEDS_EVIDENCE:
             continue
-        if tab == "reviewed" and key not in reviewed:
+        elif tab == "monitor" and row.recommended_action != export_review_digest.ACTION_MONITOR:
+            continue
+        elif tab == "reviewed" and key not in reviewed:
             continue
         if params.get("source_type", [""])[0] and item["source_type"] != params["source_type"][0]:
             continue
@@ -471,6 +496,10 @@ def filtered_rows(session: ReportSession, store: ReviewStore, params: dict[str, 
         summaries.append(item)
     if tab == "highest":
         summaries.sort(key=lambda x: (-x["security_score"], x["coverage_score"], x["title"]))
+    elif tab == "needs_enrichment":
+        summaries.sort(key=lambda x: (-x["security_score"], x["source_type"], x["title"]))
+    elif tab == "low_signal":
+        summaries.sort(key=lambda x: (x["source_type"], x["title"]))
     else:
         summaries.sort(key=lambda x: (x["coverage_score"], -x["security_score"], x["title"]))
     return summaries
@@ -610,6 +639,8 @@ def export_candidates_csv(session: ReportSession, store: ReviewStore) -> str:
         "title",
         "source_type",
         "source_id",
+        "quality_status",
+        "quality_reason",
         "severity",
         "coverage_score",
         "security_score",
@@ -641,6 +672,8 @@ def export_candidates_csv(session: ReportSession, store: ReviewStore) -> str:
                 "title": detail["title"],
                 "source_type": prov["source_type"],
                 "source_id": prov["source_id"],
+                "quality_status": detail["quality_status"],
+                "quality_reason": detail["quality_reason"],
                 "severity": detail["severity"],
                 "coverage_score": detail["coverage_score"],
                 "security_score": detail["security_score"],
@@ -926,6 +959,7 @@ class DiscoveryRuntime:
 
     def start(self, preset_id: str, options: dict[str, Any] | None = None) -> dict[str, Any]:
         options = options or {}
+        preset_id = PRESET_ALIASES.get(preset_id, preset_id)
         preset_ids = {p["id"] for p in PRESETS}
         if preset_id not in preset_ids:
             raise ValueError("Unknown preset.")
@@ -948,8 +982,9 @@ class DiscoveryRuntime:
             return self._run.as_dict()
 
     def _run_worker(self, preset_id: str, options: dict[str, Any]) -> None:
+        preset_id = PRESET_ALIASES.get(preset_id, preset_id)
         try:
-            if preset_id == "quick_demo":
+            if preset_id == "curated_demo":
                 self._log("Loading checked-in sample report.")
                 session = ReportSession.load(DEFAULT_SAMPLE_REPORT)
                 with self._lock:
@@ -1036,6 +1071,7 @@ def run_discovery_preset(
     reports_dir: Path = DEFAULT_REPORTS_DIR,
     state_db: Path = DEFAULT_DISCOVERY_DB,
 ) -> Path:
+    preset_id = PRESET_ALIASES.get(preset_id, preset_id)
     max_items = max(1, min(100, int(options.get("max_items") or 20)))
     fetch_pages = bool(options.get("fetch_pages", False))
     feed_url = str(options.get("feed_url") or _default_feed_url()).strip()
@@ -1146,6 +1182,17 @@ def run_discovery_preset(
             "partial_failures": source_errors,
         },
     }
+    summary = export_review_digest.quality_summary(export_review_digest.build_rows(payload))
+    payload["quality_summary"] = summary
+    if preset_id == "live_advisory_scan" and summary["review_ready"] < 3:
+        payload["quality_guidance"] = {
+            "level": "curated_demo_recommended",
+            "message": (
+                "Live GHSA/NVD returned fewer than 3 review-ready candidates. "
+                "Use the curated demo to inspect golden-quality briefs, or broaden the date/source settings."
+            ),
+        }
+        log(payload["quality_guidance"]["message"])
     report_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     log(f"Wrote report: {report_path}")
     return report_path
@@ -1178,13 +1225,12 @@ def plain_gap_reason(gap_reason: Any) -> str:
 def deterministic_summary(detail: dict[str, Any]) -> str:
     evidence = detail["sections"]["evidence"]
     prov = detail["sections"]["provenance"]
-    gap_summary = plain_gap_reason(prov.get("gap_reason"))
     return "\n".join(
         [
-            f"What happened: {detail['sections']['what_this_is']}",
-            f"Why it matters: {detail['sections']['why_care']}",
-            f"How AIDEFEND appears to cover it: {detail['sections']['coverage_assessment']}",
-            f"What may be missing: {gap_summary}",
+            f"What happened: {detail['sections']['what_happened']}",
+            f"Why it matters: {detail['sections']['why_it_matters']}",
+            f"How AIDEFEND appears to cover it: {detail['sections']['existing_coverage']}",
+            f"What may be missing: {detail['sections']['gap_assessment']}",
             f"Suggested reviewer action: {detail['recommended_action']}",
             f"Evidence: CVE={_join_text(evidence['identifiers']['cves'])}; GHSA={_join_text(evidence['identifiers']['ghsas'])}; CWE={_join_text(evidence['identifiers']['cwes'])}; URLs={_join_text(evidence['source_urls'])}",
         ]
@@ -1200,7 +1246,7 @@ def _compact_ai_context(detail: dict[str, Any]) -> dict[str, Any]:
         "source_type": prov["source_type"],
         "source_id": prov["source_id"],
         "identifiers": evidence["identifiers"],
-        "short_summary": export_review_digest._truncate(detail["sections"]["what_this_is"], 900),
+        "short_summary": export_review_digest._truncate(detail["sections"]["what_happened"], 900),
         "severity": detail["severity"],
         "package_or_ecosystem": detail["ecosystem"] or evidence["packages"][:5],
         "nearest_aidefend_comparison": [
@@ -1327,6 +1373,7 @@ class ReviewConsoleHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/run":
             session = self.runtime.session
+            summary = run_quality_summary(session)
             self._send_json(
                 {
                     "report_path": str(session.report_path),
@@ -1334,7 +1381,12 @@ class ReviewConsoleHandler(SimpleHTTPRequestHandler):
                     "generated_at": session.payload.get("generated_at"),
                     "source": session.payload.get("source") or session.payload.get("feed_url"),
                     "candidate_count": len(session.rows),
+                    "review_ready_count": summary["review_ready"],
+                    "needs_enrichment_count": summary["needs_enrichment"],
+                    "low_signal_count": summary["low_signal"],
                     "reviewed_count": reviewed_count_for_session(session, self.store),
+                    "run_summary": summary,
+                    "quality_guidance": session.payload.get("quality_guidance"),
                     "presets": PRESETS,
                     "source_health": source_health(),
                     "run_lifecycle": self.runtime.run_dict(),
@@ -1434,7 +1486,7 @@ class ReviewConsoleHandler(SimpleHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0") or 0)
             try:
                 data = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
-                run = self.runtime.start(_text(data.get("preset_id") or "quick_demo"), data.get("options") or {})
+                run = self.runtime.start(_text(data.get("preset_id") or "curated_demo"), data.get("options") or {})
             except RuntimeError as exc:
                 self._send_json({"error": str(exc)}, 409)
                 return

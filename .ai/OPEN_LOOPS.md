@@ -1,18 +1,20 @@
 # Open Loops
 
-Updated: 2026-05-08 (public local-demo product conversion)
+Updated: 2026-05-09 (review-console quality gate hardening)
 
 ## High Priority
 
 - [ ] **Run a real-key demo rehearsal**: `make demo`; configure OpenRouter
-  model/key via env or session-only UI field; run RSS, NVD, GHSA, and Full
-  Sweep with appropriate keys; verify AI success path, fallback path, logs,
-  reviewed-only exports, full-run exports, and Action Packet output in-browser.
+  model/key via env or session-only UI field; run the curated demo, live
+  advisory scan, and broad source sweep with appropriate keys; verify AI
+  success path, fallback path, quality guidance, logs, reviewed-only exports,
+  full-run exports, and Action Packet output in-browser.
 - [ ] **Open the first upstream promotion PR** per [`docs/aidefend_discovery/PROMOTION_PLAYBOOK.md`](../docs/aidefend_discovery/PROMOTION_PLAYBOOK.md) to close the hardened Phase 1 exit. Use a Shape-A candidate from `lab/aidefend_discovery/gold/labeling_log.md` (e.g., `GHSA-324q-cwx9-7crr` KubeAI command-injection).
 - [ ] **Run the nightly workflow once manually** (`gh workflow run discovery-nightly.yml --repo minhh-le/aidefend-discovery`) and review the auto-PR's exports.
 - [ ] **Embeddings + cross-encoder rerank** — re-open trigger fired (gold `recall_is_gap=0.0`); evaluate adding a scope classifier or rerank on BM25 top-20.
 - [ ] **Rotate credentials**: revoke and re-issue `NVD_API_KEY` and `GH_PAT_FOR_GHSA` that appeared in chat transcripts. Update `gh secret set` after rotation.
-- [ ] Add stricter AI-relevance/product allowlist filtering for vuln-shaped candidate quality (intersects with embeddings rerank).
+- [ ] Continue stricter AI-relevance/product allowlist filtering beyond the
+  deterministic review-console quality gate (intersects with embeddings rerank).
 - [ ] After monorepo validation is pushed to `main`, delete fully represented
   remote branches: `cleanup/rename-and-consolidate`,
   `discovery-nightly/20260504`, `discovery-nightly/20260505`, and
@@ -24,7 +26,27 @@ Updated: 2026-05-08 (public local-demo product conversion)
 - [ ] Refresh vendored taxonomy anchor YAMLs (`lab/aidefend_discovery/taxonomy_anchors/`) per `QUALITY_AUDIT_CHECKLIST.md` Section 2 — quarterly.
 - [ ] Grow `lab/aidefend_discovery/gold/example_labels.jsonl` from 25 → 50+ rows; unlocks BM25 field-weighting work.
 
-## Resolved this session (2026-05-08 public local-demo product conversion)
+## Resolved this session (2026-05-09 review-console quality gate hardening)
+
+- [x] Formalized a quality lifecycle for discovery rows: `raw_source_item`,
+  `normalized_candidate`, `needs_enrichment`, `review_ready`, and `low_signal`.
+- [x] Reworked first-screen IA around `Run curated demo`, `Run live advisory
+  scan`, and `Run broad source sweep`; RSS release-note collection is no longer
+  presented as quick scan value.
+- [x] Replaced the synthetic sample with real GHSA/NVD-style evidence and
+  deterministic golden-quality candidate narratives.
+- [x] Default queue excludes low-signal release noise and shows only
+  review-ready candidates; needs-enrichment and low-signal rows remain available
+  through explicit navigation.
+- [x] Added live advisory guidance when GHSA/NVD produces fewer than three
+  review-ready candidates.
+- [x] Made review-ready require meaningful attack/vulnerability prose and moved
+  score mechanics into provenance.
+- [x] Fixed stale selected-candidate state on new run start/report changes.
+- [x] Added run summary counts and backend/frontend/digest tests for the quality
+  split.
+
+## Resolved earlier (2026-05-08 public local-demo product conversion)
 
 - [x] Added one-command local startup (`make demo`, `scripts/run_demo.py`) with
   frontend build, Python API start, open-port selection, and browser auto-open.

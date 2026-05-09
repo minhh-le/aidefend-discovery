@@ -1,8 +1,8 @@
 # Handoff
 
-Updated: 2026-05-08 (public local-demo product conversion)
+Updated: 2026-05-09 (review-console quality gate hardening)
 Updated by: Codex
-Verification: `PYTHONPATH=scripts python3 -m unittest tests.test_review_console -v` (14 tests); `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (91 tests); `cd review_console && npm test -- src/App.test.tsx` (7 tests); `cd review_console && npm run build`; `git diff --check`; prior implementation smoke included `python3 scripts/run_demo.py --no-open --port 8878`, sample run, decision persistence, AI fallback, Markdown/CSV/Action Packet exports, live RSS preset smoke, and Playwright desktop/mobile screenshots. From `../agent-continuity`, closeout validation ran after `.ai` updates.
+Verification: `PYTHONPATH=scripts python3 -m unittest tests.test_review_console -v` (19 tests); `PYTHONPATH=scripts python3 -m unittest tests.test_review_digest -v` (21 tests); `PYTHONPATH=scripts python3 -m unittest discover -s tests -v` (99 tests); `cd review_console && npm test -- src/App.test.tsx` (9 tests); `cd review_console && npm run build`; local demo smoke with `python3 scripts/run_demo.py --no-open --port 8878`, API checks, and Chromium desktop/mobile screenshots; official GHSA/NVD page spot-check for the three curated advisories; `git diff --check`.
 
 ## Current Goal
 
@@ -11,11 +11,40 @@ clone-and-run public local demo product. It contains the discovery pipeline,
 mission-control review UI, one-command demo launcher, public digest/export
 paths, latest retained nightly reports from `discovery-nightly/20260506`, a
 tracked AIDEFEND framework snapshot under `vendor/aidefense-framework/`, and
-the full MCP/REST service under `services/aidefend-mcp/`. The remaining work is
-to exercise the demo with real credentials, run live NVD/GHSA scans, and then
-continue operationalisation: first promotion through the bundled framework
-snapshot, manual nightly review, embeddings/rerank evaluation, and credential
-rotation.
+the full MCP/REST service under `services/aidefend-mcp/`. The review console now
+uses a quality-gated candidate lifecycle so the default queue shows fewer,
+stronger, advisory-backed candidates instead of broad RSS release-note noise.
+The remaining work is to exercise the live advisory scan with real credentials,
+run the first promotion through the bundled framework snapshot, manually review
+the nightly workflow, continue embeddings/rerank evaluation, and rotate
+credentials.
+
+## Last Meaningful Work - review-console quality gate hardening (2026-05-09)
+
+- Formalized the candidate lifecycle in `scripts/export_review_digest.py` and
+  `scripts/aidefend_discovery/review_console.py`: `raw_source_item`,
+  `normalized_candidate`, `needs_enrichment`, `review_ready`, and `low_signal`.
+- Changed first-screen run actions to `Run curated demo`, `Run live advisory
+  scan`, and `Run broad source sweep`. RSS is now broad pipeline exploration,
+  not the main first-screen value demo.
+- Replaced the synthetic sample fixture with real GHSA/NVD-style evidence for
+  AGiXT path traversal, mcp-from-openapi SSRF, and React Server Components DoS.
+- Default queue now shows only `review_ready`; `needs_enrichment` appears lower
+  in navigation; `low_signal` requires explicit reveal.
+- Live advisory scan uses GHSA/NVD first and emits curated-demo guidance when it
+  produces fewer than three review-ready candidates.
+- Detail view leads with deterministic narrative sections: what happened, why
+  it matters, existing AIDEFEND coverage, and likely gap verdict. Algorithmic
+  score mechanics are relegated to evidence/provenance.
+- Fixed stale selected-candidate state during run transitions so a new run does
+  not briefly fetch a candidate key from the prior report.
+- Moved the Trust Posture concept out of the first visible action area and kept
+  it as compact candidate-only provenance near exports.
+- Added run summary counts such as `5 ingested · 3 review-ready · 1 needs
+  enrichment · 1 low signal`; backend, frontend, and digest tests now enforce
+  this quality split.
+- Smoke-tested the local demo at desktop and mobile widths. A mobile overflow
+  found during headless Chromium review was fixed before closeout.
 
 ## Last Meaningful Work - public local-demo product conversion (2026-05-08)
 
@@ -26,7 +55,9 @@ rotation.
 - Expanded `scripts/aidefend_discovery/review_console.py` from one-report
   review API into a local product backend:
   - UI-started presets: sample report, RSS quick scan, NVD AI/ML keyword scan,
-    GHSA high-severity scan, and Full Sweep merged RSS+NVD+GHSA queue.
+    GHSA high-severity scan, and Full Sweep merged RSS+NVD+GHSA queue. These
+    legacy preset names remain as compatibility aliases after the 2026-05-09
+    curated/live/broad IA change.
   - One active run lifecycle with progress, source status, logs, partial
     failures, and prominent errors.
   - Source health for RSS/NVD/GHSA/local data and optional AI summary status.
@@ -179,9 +210,10 @@ rotation.
 ## Next Recommended Action
 
 - **Run an end-to-end demo rehearsal with real config**: `make demo`, paste or
-  export an OpenRouter key/model, generate an AI briefing, run RSS, then run NVD
-  and GHSA with configured keys. Confirm source health, logs, exports, and
-  fallback behavior in the browser.
+  export an OpenRouter key/model, generate an AI briefing, run the curated demo,
+  live advisory scan, and broad source sweep with configured keys. Confirm
+  source health, quality guidance, logs, exports, and fallback behavior in the
+  browser.
 - **Open the first upstream promotion PR** to close the hardened Phase 1
   exit. Pick one row from `lab/aidefend_discovery/gold/labeling_log.md` Shape-A
   candidates (e.g., `GHSA-324q-cwx9-7crr` KubeAI command-injection → AID-H);

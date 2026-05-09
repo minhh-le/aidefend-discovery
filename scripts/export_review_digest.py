@@ -35,6 +35,61 @@ ACTION_REJECT = "Reject"
 ACTION_NEEDS_EVIDENCE = "Needs Evidence"
 ACTION_MONITOR = "Monitor"
 
+QUALITY_RAW_SOURCE_ITEM = "raw_source_item"
+QUALITY_NORMALIZED_CANDIDATE = "normalized_candidate"
+QUALITY_NEEDS_ENRICHMENT = "needs_enrichment"
+QUALITY_REVIEW_READY = "review_ready"
+QUALITY_LOW_SIGNAL = "low_signal"
+
+QUALITY_LABELS = {
+    QUALITY_RAW_SOURCE_ITEM: "Raw Source Item",
+    QUALITY_NORMALIZED_CANDIDATE: "Normalized Candidate",
+    QUALITY_NEEDS_ENRICHMENT: "Needs Enrichment",
+    QUALITY_REVIEW_READY: "Review Ready",
+    QUALITY_LOW_SIGNAL: "Low Signal",
+}
+
+ATTACK_NARRATIVE_TERMS = (
+    "arbitrary file read",
+    "arbitrary code",
+    "broken access control",
+    "bypass",
+    "command injection",
+    "code execution",
+    "denial of service",
+    "deserialization",
+    "exfiltration",
+    "exposes",
+    "file read",
+    "read files",
+    "hijack",
+    "injection",
+    "malicious",
+    "path traversal",
+    "poison",
+    "remote code",
+    "resource exhaustion",
+    "server-side request forgery",
+    "spoof",
+    "ssrf",
+    "traversal",
+    "traverse",
+    "unauthenticated",
+    "unauthorized",
+    "untrusted",
+    "vulnerability",
+    "xss",
+)
+
+GENERIC_BRIEF_MARKERS = (
+    "max_bm25",
+    "gap_bm25",
+    "coverage_ceiling",
+    "security score includes",
+    "severity basis",
+    "deterministic boosts",
+)
+
 
 @dataclass(frozen=True)
 class DigestRow:
@@ -89,6 +144,19 @@ def _entities(candidate: dict[str, Any]) -> dict[str, list[Any]]:
     return {str(k): _as_list(v) for k, v in entities.items()}
 
 
+def _source_family(candidate: dict[str, Any]) -> str:
+    source_type = _text(candidate.get("source_type")).lower()
+    source_id = _text(candidate.get("source_id")).lower()
+    feed_url = _text(candidate.get("feed_url")).lower()
+    if "ghsa" in source_type or source_id.startswith("ghsa-") or "github.com/advisories" in feed_url:
+        return "ghsa"
+    if "nvd" in source_type or source_id.startswith("cve-") or "nvd.nist.gov" in feed_url:
+        return "nvd"
+    if source_type == "rss" or feed_url:
+        return "rss"
+    return "unknown"
+
+
 def _has_identifier(candidate: dict[str, Any]) -> bool:
     entities = _entities(candidate)
     return bool(entities.get("cves") or entities.get("ghsas") or entities.get("cwes"))
@@ -117,13 +185,16 @@ def _has_package_or_version(candidate: dict[str, Any]) -> bool:
 
 
 def _is_reviewed_source(candidate: dict[str, Any]) -> bool:
-    source_type = _text(candidate.get("source_type")).lower()
-    feed_url = _text(candidate.get("feed_url")).lower()
+    return _source_family(candidate) in {"ghsa", "nvd"}
+
+
+def _has_advisory_reference(candidate: dict[str, Any]) -> bool:
     source_id = _text(candidate.get("source_id")).lower()
+    urls = " ".join(_text(url).lower() for url in _as_list(candidate.get("source_urls")))
     return (
-        source_type in {"ghsa_api", "nvd_api"}
-        or feed_url in {"ghsa_api", "nvd_api"}
-        or source_id.startswith(("cve-", "ghsa-"))
+        source_id.startswith(("cve-", "ghsa-"))
+        or "github.com/advisories/" in urls
+        or "nvd.nist.gov/vuln/detail/" in urls
     )
 
 
@@ -149,6 +220,191 @@ def _has_mapping_evidence(gap_report: dict[str, Any]) -> bool:
         or _as_list(gap_report.get("nearest_technique_ids"))
         or _as_list(gap_report.get("suggested_tactic_ids"))
     )
+
+
+def _clean_summary_text(value: Any) -> str:
+    text = _text(value)
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    text = re.sub(r"(?m)^\s{0,3}#{1,6}\s*", "", text)
+    text = re.sub(r"(?m)^\s*[-*]\s+", "", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def _first_meaningful_sentence(text: str, *, limit: int = 360) -> str:
+    clean = _clean_summary_text(text)
+    if not clean:
+        return ""
+    parts = [p.strip(" :-") for p in re.split(r"(?<=[.!?])\s+|\s{2,}", clean) if p.strip()]
+    candidates = parts if parts else [clean]
+    lower_terms = ATTACK_NARRATIVE_TERMS
+    for part in candidates:
+        lowered = part.lower()
+        if len(part) >= 45 and any(term in lowered for term in lower_terms):
+            return _truncate(part, limit)
+    return _truncate(candidates[0], limit)
+
+
+def _explicit_narrative(candidate: dict[str, Any], key: str) -> str:
+    narrative = candidate.get("narrative") or candidate.get("brief") or {}
+    if isinstance(narrative, dict):
+        return _clean_summary_text(narrative.get(key) or "")
+    return ""
+
+
+def _what_happened(row: DigestRow) -> str:
+    explicit = _explicit_narrative(row.candidate, "what_happened")
+    if explicit:
+        return _truncate(explicit, 520)
+    summary = row.candidate.get("summary") or row.candidate.get("summary_raw") or ""
+    return _first_meaningful_sentence(summary, limit=520) or "No attack or vulnerability narrative could be built from the source."
+
+
+def _has_attack_narrative(row: DigestRow) -> bool:
+    text = _what_happened(row).lower()
+    if len(text) < 55:
+        return False
+    if any(marker in text for marker in GENERIC_BRIEF_MARKERS):
+        return False
+    return any(term in text for term in ATTACK_NARRATIVE_TERMS)
+
+
+def _looks_like_release_note(candidate: dict[str, Any]) -> bool:
+    title = _text(candidate.get("title"))
+    summary = _clean_summary_text(candidate.get("summary") or candidate.get("summary_raw") or "")
+    blob = f"{title} {summary}".lower()
+    package_title = bool(re.search(r"\b[a-z0-9_.-]+==\d", title.lower()))
+    release_markers = (
+        "changes since",
+        "release(",
+        "chore(",
+        "feat(",
+        "fix(",
+        "bump ",
+        "merge remote-tracking",
+    )
+    return package_title or any(marker in blob for marker in release_markers)
+
+
+def quality_status(row: DigestRow) -> str:
+    c = row.candidate
+    if not _text(c.get("id")) or not _text(c.get("title")):
+        return QUALITY_RAW_SOURCE_ITEM
+    if _is_reject_signal(c):
+        return QUALITY_LOW_SIGNAL
+
+    has_summary = bool(_text(c.get("summary") or c.get("summary_raw")).strip())
+    if not has_summary:
+        return QUALITY_RAW_SOURCE_ITEM
+
+    has_identifier = _has_identifier(c)
+    has_source = _has_source_detail(c)
+    has_attack = _has_attack_narrative(row)
+    is_reviewed_advisory = _is_reviewed_source(c)
+    release_like = _looks_like_release_note(c)
+
+    if is_reviewed_advisory and has_source and has_identifier and has_attack:
+        return QUALITY_REVIEW_READY
+    if has_identifier or _has_advisory_reference(c):
+        return QUALITY_NEEDS_ENRICHMENT
+    if release_like or (_source_family(c) == "rss" and _has_package_or_version(c)):
+        return QUALITY_LOW_SIGNAL
+    if has_attack:
+        return QUALITY_NORMALIZED_CANDIDATE
+    return QUALITY_LOW_SIGNAL
+
+
+def quality_reason(row: DigestRow) -> str:
+    status = quality_status(row)
+    if status == QUALITY_REVIEW_READY:
+        return "Advisory source, identifiers, evidence URL, and attack narrative are present."
+    if status == QUALITY_NEEDS_ENRICHMENT:
+        if _source_family(row.candidate) == "rss":
+            return "Advisory identifiers were observed in a broad feed item, but the item needs advisory enrichment before review."
+        return "The item has advisory signal, but the attack narrative or evidence is incomplete."
+    if status == QUALITY_LOW_SIGNAL:
+        if _looks_like_release_note(row.candidate):
+            return "Broad release-note or package-version item without enough vulnerability narrative."
+        return "Insufficient advisory signal for the default review queue."
+    if status == QUALITY_RAW_SOURCE_ITEM:
+        return "Source data is missing normalized candidate fields."
+    return "Normalized but not enriched enough for the default review queue."
+
+
+def _existing_coverage(row: DigestRow) -> str:
+    explicit = _explicit_narrative(row.candidate, "existing_coverage")
+    if explicit:
+        return _truncate(explicit, 420)
+    bridge = _as_list(row.gap_report.get("bridge_rationales"))
+    nearest = _as_list(row.gap_report.get("nearest_technique_ids"))
+    if bridge:
+        nearest_text = f" Nearest AIDEFEND evidence: {_csv(nearest[:3])}." if nearest else ""
+        return _truncate(f"Strongest existing coverage is the mapped defense family from the CWE bridge: {bridge[0]}{nearest_text}", 520)
+    if nearest:
+        return f"Strongest existing coverage appears to be {nearest[0]}, with nearby candidates {_csv(nearest[:3])}."
+    return "No nearest AIDEFEND technique was reported, so existing coverage is unclear."
+
+
+def _gap_assessment(row: DigestRow) -> str:
+    explicit = _explicit_narrative(row.candidate, "gap_assessment")
+    if explicit:
+        return _truncate(explicit, 420)
+    nearest = _csv(_as_list(row.gap_report.get("nearest_technique_ids"))[:3])
+    if row.gap_report.get("is_gap") and row.coverage_score <= 40:
+        return f"Likely gap: current lexical coverage is weak and the nearest evidence is limited to {nearest}."
+    if row.coverage_score >= 60 and not row.gap_report.get("is_gap"):
+        return f"Likely covered: current AIDEFEND neighbors are strong enough to review this as a merge into {nearest}."
+    return f"Unclear: the item has security signal, but the nearest AIDEFEND comparison needs human review ({nearest})."
+
+
+def _why_it_matters(row: DigestRow) -> str:
+    explicit = _explicit_narrative(row.candidate, "why_it_matters")
+    if explicit:
+        return _truncate(explicit, 520)
+    c = row.candidate
+    what = _what_happened(row).lower()
+    entities = _entities(c)
+    cwes = " ".join(str(v) for v in entities.get("cwes", []))
+    attack_text = f"{what} {cwes}".lower()
+    if any(term in attack_text for term in ("command injection", "code execution", "cwe-78", "cwe-94", "deserialization", "cwe-502")):
+        impact = "An attacker may be able to run code or cross a trust boundary through unsafe execution or object loading."
+    elif any(term in attack_text for term in ("path traversal", "file read", "cwe-22", "cwe-200", "exposes", "exfiltration")):
+        impact = "An attacker may be able to read or expose files, prompts, agent state, or other sensitive runtime data."
+    elif any(term in attack_text for term in ("ssrf", "server-side request forgery", "cwe-918")):
+        impact = "An attacker may be able to make a trusted service issue network requests to attacker-selected locations."
+    elif any(term in attack_text for term in ("denial of service", "resource exhaustion", "cwe-400", "cwe-770")):
+        impact = "An attacker may be able to exhaust compute, memory, or service capacity."
+    elif any(term in attack_text for term in ("authorization", "authentication", "bypass", "unauthorized", "unauthenticated")):
+        impact = "An attacker may be able to use protected functionality without the intended authorization checks."
+    else:
+        impact = "An attacker may be able to exploit the affected software in a way that changes confidentiality, integrity, or availability."
+    return f"{impact} For AIDEFEND, this should be reviewed against the closest defense coverage before any promotion decision."
+
+
+def narrative_sections(row: DigestRow) -> dict[str, str]:
+    return {
+        "what_happened": _what_happened(row),
+        "why_it_matters": _why_it_matters(row),
+        "existing_coverage": _existing_coverage(row),
+        "gap_assessment": _gap_assessment(row),
+    }
+
+
+def quality_summary(rows: list[DigestRow]) -> dict[str, Any]:
+    counts = Counter(quality_status(row) for row in rows)
+    needs = (
+        counts[QUALITY_NEEDS_ENRICHMENT]
+        + counts[QUALITY_NORMALIZED_CANDIDATE]
+        + counts[QUALITY_RAW_SOURCE_ITEM]
+    )
+    return {
+        "ingested": len(rows),
+        "review_ready": counts[QUALITY_REVIEW_READY],
+        "needs_enrichment": needs,
+        "low_signal": counts[QUALITY_LOW_SIGNAL],
+        "status_counts": {key: counts[key] for key in QUALITY_LABELS},
+    }
 
 
 def coverage_score(gap_report: dict[str, Any], coverage_ceiling: float | int | None) -> int:
@@ -307,9 +563,13 @@ def _render_brief(row: DigestRow) -> list[str]:
     c = row.candidate
     g = row.gap_report
     entities = _entities(c)
+    narrative = narrative_sections(row)
+    status = quality_status(row)
     lines = [
         f"### {_md_escape(row.title)}",
         "",
+        f"- Candidate Quality: {QUALITY_LABELS.get(status, status)}",
+        f"- Quality Reason: {quality_reason(row)}",
         f"- Coverage Score: {row.coverage_score}/100",
         f"- Security Score: {row.security_score}/100",
         f"- Recommended Action: {row.recommended_action}",
@@ -321,21 +581,21 @@ def _render_brief(row: DigestRow) -> list[str]:
         "- [ ] Confirm whether source identifiers and affected package/version evidence are sufficient.",
         "- [ ] Record promote, merge, reject, needs-evidence, or monitor decision.",
         "",
-        "#### What This Is",
+        "#### What happened?",
         "",
-        _truncate(c.get("summary") or c.get("summary_raw") or "No summary available."),
+        narrative["what_happened"],
         "",
-        "#### Why AIDEFEND Should Care",
+        "#### Why does it matter?",
         "",
-        _why_care(row),
+        narrative["why_it_matters"],
         "",
-        "#### Coverage Assessment",
+        "#### What does AIDEFEND already cover?",
         "",
-        _coverage_assessment(row),
+        narrative["existing_coverage"],
         "",
-        "#### Security Assessment",
+        "#### Is this likely a gap?",
         "",
-        _security_assessment(row),
+        narrative["gap_assessment"],
         "",
         "#### Evidence",
         "",
@@ -361,32 +621,15 @@ def _render_brief(row: DigestRow) -> list[str]:
 
 
 def _why_care(row: DigestRow) -> str:
-    g = row.gap_report
-    bridge = _as_list(g.get("bridge_rationales"))
-    if bridge:
-        return _truncate(bridge[0], 500)
-    if row.security_score >= 80 and row.coverage_score <= 40:
-        return "The source carries high security signal while lexical coverage against current AIDEFEND techniques is low."
-    if row.security_score >= 70:
-        return "The source carries enough security signal to review as supporting evidence for AIDEFEND coverage."
-    return "The source may be relevant, but current evidence suggests lower urgency or a need for more corroboration."
+    return narrative_sections(row)["why_it_matters"]
 
 
 def _coverage_assessment(row: DigestRow) -> str:
-    nearest = _csv(_as_list(row.gap_report.get("nearest_technique_ids")))
-    if row.coverage_score <= 40:
-        return f"Low coverage ({row.coverage_score}/100). Nearest candidates: {nearest}."
-    if row.coverage_score >= 70:
-        return f"High coverage ({row.coverage_score}/100). Review whether this should merge into existing techniques: {nearest}."
-    return f"Medium coverage ({row.coverage_score}/100). The mapping may need reviewer judgment. Nearest candidates: {nearest}."
+    return narrative_sections(row)["existing_coverage"]
 
 
 def _security_assessment(row: DigestRow) -> str:
-    sev = _severity(row.candidate)
-    return (
-        f"Severity basis: {sev}. Security Score {row.security_score}/100 includes deterministic boosts "
-        "for reviewed source metadata and observed identifiers/package/version evidence."
-    )
+    return narrative_sections(row)["gap_assessment"]
 
 
 def render_digest(payload: dict[str, Any], *, input_report: Path, top_n: int, generated_at: str | None = None) -> str:
@@ -397,8 +640,11 @@ def render_digest(payload: dict[str, Any], *, input_report: Path, top_n: int, ge
         or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     )
     rows = build_rows(payload)
-    lowest = _rank_lowest_coverage(rows, top_n)
-    highest = _rank_highest_security(rows, top_n)
+    summary = quality_summary(rows)
+    review_ready = [row for row in rows if quality_status(row) == QUALITY_REVIEW_READY]
+    ranking_pool = review_ready if review_ready else rows
+    lowest = _rank_lowest_coverage(ranking_pool, top_n)
+    highest = _rank_highest_security(ranking_pool, top_n)
     briefs = _brief_rows(lowest, highest, top_n)
     counts = _source_counts(rows)
     source_counts = ", ".join(f"{k}: {v}" for k, v in sorted(counts.items())) or "none"
@@ -409,6 +655,9 @@ def render_digest(payload: dict[str, Any], *, input_report: Path, top_n: int, ge
         "## Run Summary",
         "",
         f"- Candidates analyzed: {len(rows)}",
+        f"- Review-ready candidates: {summary['review_ready']}",
+        f"- Needs enrichment: {summary['needs_enrichment']}",
+        f"- Low signal: {summary['low_signal']}",
         f"- Candidates shown in detail: {len(briefs)}",
         f"- Number in lowest coverage view: {len(lowest)}",
         f"- Number in highest severity view: {len(highest)}",
@@ -437,6 +686,8 @@ def render_digest(payload: dict[str, Any], *, input_report: Path, top_n: int, ge
             "- Input source is one deterministic `gap_run_*.json` report, not sqlite backlog/history.",
             "- Coverage Score is `round(min(100, 100 * max_bm25 / strongest_max_bm25_in_report))`, preserving relative coverage within the run.",
             "- Security Score starts from advisory severity and adds bounded evidence boosts for reviewed source, CVE, GHSA, CWE, and package/version evidence.",
+            "- Review-ready candidates require advisory evidence and a deterministic attack or vulnerability narrative.",
+            "- Needs-enrichment and low-signal items remain in exports, but they are not the default review queue.",
             "- Recommended actions are deterministic reviewer triage labels. They are not upstream AIDEFEND truth.",
             "- Raw provenance remains in each candidate brief: source URL, source type, candidate ID, retrieved timestamp, identifiers, and raw score details.",
             "",

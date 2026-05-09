@@ -16,9 +16,11 @@ From repo root:
 make demo
 ```
 
-The UI supports sample mode, live RSS/NVD/GHSA presets, source health, run
-progress, reviewer decisions, optional on-demand AI summaries, and Markdown,
-CSV, JSON, and Action Packet exports. See
+The UI supports a curated real-advisory demo, a GHSA/NVD-first live advisory
+scan, a broad source sweep for RSS-inclusive pipeline exploration, source
+health, run progress, reviewer decisions, optional on-demand AI summaries, and
+Markdown, CSV, JSON, and Action Packet exports. The default queue shows only
+review-ready candidates. See
 [`docs/aidefend_discovery/DEMO_RUNBOOK.md`](../../docs/aidefend_discovery/DEMO_RUNBOOK.md).
 
 ## Configure feeds (RSS mode)

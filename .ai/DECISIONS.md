@@ -1,6 +1,22 @@
 # Decisions
 
-Updated: 2026-05-08
+Updated: 2026-05-09
+
+## 2026-05-09 — Review-ready requires advisory evidence and attack narrative
+
+Decision: Gate the review console around a formal candidate lifecycle:
+`raw_source_item`, `normalized_candidate`, `needs_enrichment`, `review_ready`,
+and `low_signal`. The default queue shows only `review_ready`; RSS and other
+broad collection output is routed to broad source sweep exploration, with
+low-signal rows hidden behind explicit reveal. Curated demo uses real GHSA/NVD-
+style evidence, live advisory scan starts with GHSA/NVD, and review-ready detail
+must lead with deterministic attack/vulnerability narrative before score
+mechanics.
+
+Rationale: AIDEFEND Discovery must bias toward fewer, stronger candidates and
+must not let release-note noise or generic scoring copy look like security
+review findings. Keeping scoring/provenance secondary preserves the
+candidate-only boundary while making the human review queue easier to trust.
 
 ## 2026-05-08 — Ship clone-and-run local demo as the public v1 surface
 

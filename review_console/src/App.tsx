@@ -19,7 +19,6 @@ import {
   Play,
   RadioTower,
   Search,
-  ShieldAlert,
   ShieldCheck,
   TerminalSquare,
   XCircle
@@ -41,11 +40,10 @@ import type {
 } from "./types";
 
 const tabs: Array<{ id: QueueTab; label: string; prompt: string }> = [
-  { id: "lowest", label: "Lowest Coverage", prompt: "Likely gaps and weak coverage first." },
-  { id: "highest", label: "Highest Severity", prompt: "Security impact first, then coverage." },
-  { id: "needs_evidence", label: "Needs Evidence", prompt: "Candidates that need corroboration." },
-  { id: "monitor", label: "Monitor", prompt: "Keep visible without promoting yet." },
-  { id: "reviewed", label: "Reviewed", prompt: "Captured human decisions." }
+  { id: "review_ready", label: "Review Ready", prompt: "Advisory-backed candidates with a concrete attack narrative." },
+  { id: "needs_enrichment", label: "Needs Enrichment", prompt: "Advisory signal exists, but the narrative or evidence is incomplete." },
+  { id: "reviewed", label: "Reviewed", prompt: "Captured human decisions." },
+  { id: "low_signal", label: "Low Signal", prompt: "Broad source noise, shown only when explicitly revealed." }
 ];
 
 const decisionLabels: Record<ReviewDecision, string> = {
@@ -218,8 +216,9 @@ function MissionControl({
 }) {
   const [showConfig, setShowConfig] = useState(false);
   const presets = run?.presets || [];
-  const sample = presets.find((preset) => preset.id === "quick_demo");
-  const quick = presets.find((preset) => preset.id === "rss_ai_releases");
+  const curated = presets.find((preset) => preset.id === "curated_demo");
+  const live = presets.find((preset) => preset.id === "live_advisory_scan");
+  const broad = presets.find((preset) => preset.id === "broad_source_sweep");
 
   return (
     <header className="mission-control">
@@ -233,16 +232,22 @@ function MissionControl({
           </p>
         </div>
         <div className="briefing-actions" aria-label="First run actions">
-          {sample && (
-            <button className="primary-button" type="button" onClick={() => onStart(sample.id)} disabled={starting}>
+          {curated && (
+            <button className="primary-button" type="button" onClick={() => onStart(curated.id)} disabled={starting}>
               {starting ? <Loader2 className="spin" size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
-              Run sample demo
+              Run curated demo
             </button>
           )}
-          {quick && (
-            <button className="secondary-button" type="button" onClick={() => onStart(quick.id)} disabled={starting}>
+          {live && (
+            <button className="primary-button subtle" type="button" onClick={() => onStart(live.id)} disabled={starting}>
               <RadioTower size={16} aria-hidden="true" />
-              Start quick scan
+              Run live advisory scan
+            </button>
+          )}
+          {broad && (
+            <button className="secondary-button" type="button" onClick={() => onStart(broad.id)} disabled={starting}>
+              <Search size={16} aria-hidden="true" />
+              Run broad source sweep
             </button>
           )}
           <button className="secondary-button" type="button" onClick={() => setShowConfig(!showConfig)}>
@@ -258,6 +263,19 @@ function MissionControl({
 
       <WorkflowStrip />
 
+      {run?.quality_guidance && (
+        <section className="quality-guidance" aria-label="Quality guidance">
+          <AlertTriangle size={18} aria-hidden="true" />
+          <p>{run.quality_guidance.message}</p>
+          {curated && (
+            <button className="secondary-button" type="button" onClick={() => onStart(curated.id)} disabled={starting}>
+              <Play size={15} aria-hidden="true" />
+              Run curated demo
+            </button>
+          )}
+        </section>
+      )}
+
       <div className="mission-grid">
         <section className="mission-panel">
           <div className="section-title-row">
@@ -270,26 +288,11 @@ function MissionControl({
           <SourceHealth health={run?.source_health || {}} />
         </section>
 
-        <section className="mission-panel">
-          <div className="section-title-row">
-            <div>
-              <p className="eyebrow">Trust Posture</p>
-              <h2>Candidate discipline</h2>
-            </div>
-            <ShieldAlert size={18} aria-hidden="true" />
-          </div>
-          <ul className="trust-list">
-            {(run?.trust_posture || []).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-
         <section className="mission-panel presets-panel">
           <div className="section-title-row">
             <div>
               <p className="eyebrow">Discovery Presets</p>
-              <h2>Start one merged queue</h2>
+              <h2>Choose quality boundary</h2>
             </div>
             <Search size={18} aria-hidden="true" />
           </div>
@@ -406,12 +409,15 @@ function QueuePane({
   onSelect: (candidateKey: string) => void;
   loading: boolean;
 }) {
+  const [showLowSignal, setShowLowSignal] = useState(false);
+  const visibleTabs = tabs.filter((item) => item.id !== "low_signal" || showLowSignal || tab === "low_signal");
+  const summary = run?.run_summary;
   return (
     <aside className="queue-pane" aria-label="Candidate queue">
       <div className="pane-header">
         <div>
           <p className="eyebrow">Candidate Queue</p>
-          <h2>{run?.candidate_count ?? 0} candidates</h2>
+          <h2>{run?.review_ready_count ?? 0} review-ready</h2>
         </div>
         <div className="run-count" aria-label="Reviewed candidates">
           <strong>{run?.reviewed_count ?? 0}</strong>
@@ -419,8 +425,15 @@ function QueuePane({
         </div>
       </div>
 
+      <div className="quality-counts" aria-label="Run quality summary">
+        <span>{summary?.ingested ?? run?.candidate_count ?? 0} ingested</span>
+        <span>{summary?.review_ready ?? 0} review-ready</span>
+        <span>{summary?.needs_enrichment ?? 0} needs enrichment</span>
+        <span>{summary?.low_signal ?? 0} low signal</span>
+      </div>
+
       <div className="tabs" role="tablist" aria-label="Queue tabs">
-        {tabs.map((item) => (
+        {visibleTabs.map((item) => (
           <button
             key={item.id}
             role="tab"
@@ -432,6 +445,11 @@ function QueuePane({
           </button>
         ))}
       </div>
+      {!showLowSignal && (
+        <button className="reveal-button" type="button" onClick={() => setShowLowSignal(true)}>
+          Reveal low-signal items
+        </button>
+      )}
       <p className="queue-prompt">{tabs.find((item) => item.id === tab)?.prompt}</p>
 
       <div className="filters" aria-label="Candidate filters">
@@ -498,11 +516,13 @@ function QueuePane({
                 <Score label="Security" value={candidate.security_score} tone="security" />
               </span>
               <span className="row-meta">
+                <span>{candidate.quality_label}</span>
                 <span>{candidate.recommended_action}</span>
                 <span className={decisionClass(candidate.review_status)}>
                   {candidate.review_decision_label || "unreviewed"}
                 </span>
               </span>
+              <span className="quality-reason">{candidate.quality_reason}</span>
               <span className="identifier-line">
                 {join([...candidate.identifiers.cves, ...candidate.identifiers.ghsas, ...candidate.identifiers.cwes], "No identifiers")}
               </span>
@@ -567,6 +587,7 @@ function BriefPane({
       </div>
 
       <div className="action-strip" aria-label="Recommendation summary">
+        <span><Info size={16} aria-hidden="true" /> Quality: {detail.quality_label}</span>
         <span><ShieldCheck size={16} aria-hidden="true" /> Backend: {detail.recommended_action}</span>
         <span className={decisionClass(detail.review_status)}>
           Reviewer: {detail.review_decision_label || "unreviewed"}
@@ -575,22 +596,22 @@ function BriefPane({
 
       <section className="brief-section">
         <h3>What happened?</h3>
-        <p>{detail.sections.what_this_is}</p>
+        <p>{detail.sections.what_happened}</p>
       </section>
 
       <section className="brief-section emphasis-section">
         <h3>Why does it matter?</h3>
-        <p>{detail.sections.why_care}</p>
+        <p>{detail.sections.why_it_matters}</p>
       </section>
 
       <div className="split-sections">
         <section className="brief-section">
           <h3>What does AIDEFEND already cover?</h3>
-          <p>{detail.sections.coverage_assessment}</p>
+          <p>{detail.sections.existing_coverage}</p>
         </section>
         <section className="brief-section">
           <h3>Is this likely a gap?</h3>
-          <p>{detail.sections.security_assessment}</p>
+          <p>{detail.sections.gap_assessment}</p>
         </section>
       </div>
 
@@ -626,7 +647,7 @@ function BriefPane({
             <div className="comparison-panel candidate-side">
               <span className="panel-label">Candidate</span>
               <strong>{detail.title}</strong>
-              <p>{detail.sections.coverage_assessment}</p>
+              <p>{detail.sections.existing_coverage}</p>
             </div>
             <div className="comparison-panel">
               <span className="panel-label">Nearest technique</span>
@@ -829,6 +850,9 @@ function DecisionPanel({ detail, onSaved }: { detail: CandidateDetail | null; on
       </div>
 
       <div className="export-menu" aria-label="Exports">
+        <p className="trust-note">
+          Candidate-only output. Backend recommendations and reviewer decisions are not approved AIDEFEND truth.
+        </p>
         <div className="export-group">
           <span className="export-group-label">Reviewed Only</span>
           <a className="secondary-button" href="/api/export/reviewed-markdown">
@@ -878,7 +902,7 @@ function DecisionPanel({ detail, onSaved }: { detail: CandidateDetail | null; on
 
 export function App() {
   const [run, setRun] = useState<RunInfo | null>(null);
-  const [tab, setTab] = useState<QueueTab>("lowest");
+  const [tab, setTab] = useState<QueueTab>("review_ready");
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [options, setOptions] = useState<RunOptions>(initialRunOptions);
   const [aiConfig, setAiConfig] = useState<AiConfig>(initialAiConfig);
@@ -891,7 +915,7 @@ export function App() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
   const selectedExists = useMemo(() => candidates.some((candidate) => candidate.candidate_key === selectedKey), [candidates, selectedKey]);
-  const runKey = `${run?.report_id || ""}:${run?.candidate_count || 0}:${run?.reviewed_count || 0}`;
+  const runKey = `${run?.report_id || ""}:${run?.candidate_count || 0}:${run?.reviewed_count || 0}:${run?.run_lifecycle.status || ""}:${run?.run_lifecycle.report_path || ""}`;
 
   async function refreshRun() {
     const info = await getRunInfo();
@@ -906,6 +930,7 @@ export function App() {
       setCandidates(items);
       const key = nextSelectedKey && items.some((item) => item.candidate_key === nextSelectedKey) ? nextSelectedKey : items[0]?.candidate_key || "";
       setSelectedKey(key);
+      return key;
     } finally {
       setLoadingQueue(false);
     }
@@ -914,6 +939,10 @@ export function App() {
   async function handleStart(presetId: string) {
     setStarting(true);
     setError("");
+    setCandidates([]);
+    setSelectedKey("");
+    setDetail(null);
+    setTab("review_ready");
     try {
       await startRun(presetId, options);
       await refreshRun();
@@ -952,6 +981,13 @@ export function App() {
   }, [run?.run_lifecycle.status]);
 
   useEffect(() => {
+    if (run?.run_lifecycle.status === "running") {
+      setCandidates([]);
+      setSelectedKey("");
+      setDetail(null);
+      setLoadingQueue(false);
+      return;
+    }
     let active = true;
     setLoadingQueue(true);
     setError("");
@@ -970,11 +1006,12 @@ export function App() {
     return () => {
       active = false;
     };
-  }, [tab, filters, runKey]);
+  }, [tab, filters, runKey, run?.run_lifecycle.status]);
 
   useEffect(() => {
     if (!selectedKey || !selectedExists) {
       setDetail(null);
+      setLoadingDetail(false);
       return;
     }
     let active = true;
@@ -996,9 +1033,9 @@ export function App() {
 
   async function handleSaved() {
     await refreshRun();
-    await refreshQueue(selectedKey);
-    if (selectedKey) {
-      setDetail(await getCandidate(selectedKey));
+    const key = await refreshQueue(selectedKey);
+    if (key) {
+      setDetail(await getCandidate(key));
     }
   }
 
@@ -1019,8 +1056,11 @@ export function App() {
       />
       <div className="run-summary-bar" id="review-workbench">
         <span><Database size={15} aria-hidden="true" /> {run?.report_path || "No report loaded"}</span>
-        <span>{run?.candidate_count ?? 0} candidates</span>
-        <span>{run?.source || "sample"} source</span>
+        <span>{run?.run_summary?.ingested ?? run?.candidate_count ?? 0} ingested</span>
+        <span>{run?.run_summary?.review_ready ?? 0} review-ready</span>
+        <span>{run?.run_summary?.needs_enrichment ?? 0} needs enrichment</span>
+        <span>{run?.run_summary?.low_signal ?? 0} low signal</span>
+        <span>{run?.source || "curated_demo"} source</span>
       </div>
       <div className="workbench">
         <QueuePane
