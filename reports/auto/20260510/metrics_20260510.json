@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-05-10T10:16:42Z",
+  "state_db": "lab/aidefend_discovery/discovery_state.db",
+  "counts": {
+    "total": 101,
+    "status_candidate": 101,
+    "status_rejected": 0,
+    "status_promoted": 0,
+    "total_runs": 7,
+    "total_gap_reports": 101,
+    "is_gap_true": 0
+  },
+  "rates": {
+    "is_gap_rate": 0.0,
+    "promotion_rate": 0.0,
+    "rejection_rate": 0.0,
+    "candidate_pending_rate": 1.0
+  }
+}
