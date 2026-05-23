@@ -10,9 +10,9 @@ Nothing auto-promotes. You decide. Every decision is traceable.
 
 ---
 
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/b24d6821-8dd8-4101-a347-b40aef1dc3d0" />
 
-
-
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/cd8cc305-09a1-4ca7-b9cc-ea65047fc3b7" />
 
 ---
 
