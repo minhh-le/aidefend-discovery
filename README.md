@@ -4,7 +4,7 @@
 
 <img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/65cbd61d-4c91-48a2-b545-77af15055eb5" />
 
-AIDEFEND Discovery is a local review workbench for security practitioners. It continuously watches public sources (NVD, GitHub Security Advisories, curated RSS feeds), surfaces AI-threat candidates worth your attention, scores them against your existing [AIDEFEND](https://aidefend.net) defenses, and gives you a structured place to make — and record — your call.
+AIDEFEND Discovery is a local review workbench for security practitioners, forked from Edward Lee's AI Defense Framework https://github.com/edward-playground/aidefense-framework. It continuously watches public sources (NVD, GitHub Security Advisories, curated RSS feeds), surfaces AI-threat candidates worth your attention, scores them against your existing [AIDEFEND](https://aidefend.net) defenses, and gives you a structured place to make — and record — your call.
 
 Nothing auto-promotes. You decide. Every decision is traceable.
 
